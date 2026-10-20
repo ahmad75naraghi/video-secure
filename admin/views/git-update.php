@@ -17,6 +17,9 @@
  * @var int    $max_backups
  */
 
+use Falnic\SecureHLS\Admin_Tabs;
+use Falnic\SecureHLS\Git_Update_Page;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

@@ -33,6 +33,8 @@ delete_option( 'falnic_log_db_version' );
 delete_option( 'falnic_log_salt' );
 delete_option( 'falnic_deny_stats' );
 delete_option( 'falnic_encode_jobs' );
+delete_option( 'falnic_bin_ffmpeg' );
+delete_option( 'falnic_bin_ffprobe' );
 
 // تنظیمات آپدیت از گیت (شامل توکن).
 delete_option( 'falnic_git_repo' );

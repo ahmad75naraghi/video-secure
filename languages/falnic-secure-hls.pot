@@ -16,12 +16,20 @@ msgstr ""
 "X-Domain: falnic-secure-hls\n"
 "X-Generator: bin/make-pot.js\n"
 
+#: includes/class-meta-box.php:119
+msgid "— انتخاب دوره —"
+msgstr ""
+
 #: includes/class-learn-dash.php:103
 msgid "— بدون ویدیو —"
 msgstr ""
 
+#: includes/class-meta-box.php:134
+msgid "— کل دوره —"
+msgstr ""
+
 #. translators: 1: تعداد منتقل‌شده، 2: تعداد ناموفق، 3: باقی‌مانده
-#: admin/views/settings.php:47
+#: admin/views/settings.php:49
 msgid "%1$d ویدیو به پوشه‌ی امن منتقل شد؛ %2$d ناموفق. باقی‌مانده: %3$d. اگر باقی‌مانده دارید، دوباره روی دکمه بزنید."
 msgstr ""
 
@@ -31,7 +39,7 @@ msgid "%1$s — خط %3$d: %2$s"
 msgstr ""
 
 #. translators: %d: تعداد روز
-#: admin/views/watch-log.php:156
+#: admin/views/watch-log.php:159
 msgid "%d روز"
 msgstr ""
 
@@ -41,32 +49,24 @@ msgid "%d فایل حذف نشد و دست‌نخورده باقی ماند."
 msgstr ""
 
 #. translators: %s: مدت زمان
-#: admin/views/watch-log.php:225
+#: admin/views/watch-log.php:228
 msgid "%s دقیقه"
 msgstr ""
 
-#: admin/views/watch-log.php:82
+#: admin/views/watch-log.php:85
 msgid "⚠️ حساب‌های مشکوک به اشتراک‌گذاری"
 msgstr ""
 
-#: includes/class-meta-box.php:120
-msgid "⚠️ عنوان ویدیو (کادر بالا) می‌تواند فارسی باشد؛ اما اگر انگلیسی و بدون فاصله بنویسید، شناسه‌ی خواناتری ساخته می‌شود. شناسه پس از اولین ذخیره تغییر نمی‌کند."
-msgstr ""
-
 #. translators: %d: تعداد نشست‌ها
-#: admin/views/watch-log.php:48
+#: admin/views/watch-log.php:51
 msgid "✅ %d پخش فعال قطع شد. اگر دستگاه کاربر صفحه را باز نگه داشته باشد، حداکثر تا ۳۰ ثانیه بعد پخش متوقف می‌شود."
 msgstr ""
 
-#: admin/views/encoder.php:34
+#: admin/views/encoder.php:46
 msgid "✅ در صف انکود قرار گرفت:"
 msgstr ""
 
-#: includes/class-meta-box.php:94
-msgid "✅ ویدیو با موفقیت انکود شده است."
-msgstr ""
-
-#: admin/views/encoder.php:44
+#: admin/views/encoder.php:55
 msgid "✅ ویدیو رمزنگاری شد:"
 msgstr ""
 
@@ -82,35 +82,47 @@ msgstr ""
 msgid "🎬 ویدیوی امن این درس"
 msgstr ""
 
-#: admin/views/watch-log.php:129
+#: admin/views/watch-log.php:132
 msgid "🚫 تلاش‌های ردشده امروز"
 msgstr ""
 
-#: admin/views/git-update.php:164
+#: admin/views/git-update.php:167
 msgid "۱) بررسی آخرین نسخه"
 msgstr ""
 
-#: admin/views/git-update.php:69
+#: admin/views/git-update.php:72
 msgid "۱) تنظیمات منبع"
 msgstr ""
 
-#: admin/views/git-update.php:143
+#: admin/views/git-update.php:146
 msgid "۲) آپدیت افزونه"
 msgstr ""
 
-#: admin/views/git-update.php:167
+#: admin/views/git-update.php:170
 msgid "۲) آپدیت همین حالا"
 msgstr ""
 
-#: admin/views/git-update.php:196
+#: admin/views/git-update.php:199
 msgid "۳) پشتیبان‌ها"
 msgstr ""
 
-#: includes/class-encoder.php:547
+#: includes/class-encoder.php:617
 msgid "ffmpeg با خطا پایان یافت."
 msgstr ""
 
-#: admin/views/git-update.php:28
+#: admin/class-admin-menu.php:392
+msgid "ffmpeg در دسترس است"
+msgstr ""
+
+#: admin/class-admin-menu.php:397
+msgid "ffprobe در دسترس است"
+msgstr ""
+
+#: admin/class-admin-menu.php:399
+msgid "ffprobe معمولاً همراه ffmpeg نصب می‌شود؛ مسیر را با FALNIC_FFPROBE_BIN بدهید."
+msgstr ""
+
+#: admin/views/git-update.php:31
 msgid "ghp_…"
 msgstr ""
 
@@ -118,21 +130,25 @@ msgstr ""
 msgid "IP Mismatch"
 msgstr ""
 
-#: admin/views/watch-log.php:261
+#: admin/views/watch-log.php:264
 msgid "IP فقط به‌صورت هش یک‌طرفه ذخیره می‌شود؛ دو ردیف با هش یکسان یعنی یک IP. دوره‌ی نگه‌داری پیش‌فرض ۹۰ روز است."
 msgstr ""
 
-#: admin/views/settings.php:60
+#: admin/views/settings.php:62
 #: includes/class-learn-dash.php:273
 msgid "LearnDash روی این سایت فعال نیست. ویدیوهایی که به درس متصل شده‌اند تا فعال شدن LearnDash فقط برای مدیران قابل مشاهده‌اند."
 msgstr ""
 
-#: admin/class-admin-menu.php:512
+#: admin/class-admin-menu.php:618
 msgid "LearnDash فعال است"
 msgstr ""
 
 #: includes/class-key-server.php:44
 msgid "Unauthorized"
+msgstr ""
+
+#: admin/class-admin-menu.php:402
+msgid "WP-Cron غیرفعال نشده است"
 msgstr ""
 
 #: includes/class-git-updater.php:982
@@ -152,10 +168,10 @@ msgstr ""
 msgid "ZipArchive روی سرور فعال نیست."
 msgstr ""
 
-#: admin/class-admin-menu.php:92
 #: admin/class-admin-menu.php:93
+#: admin/class-admin-menu.php:94
 #: admin/class-admin-tabs.php:43
-#: admin/views/git-update.php:36
+#: admin/views/git-update.php:39
 msgid "آپدیت از گیت"
 msgstr ""
 
@@ -172,19 +188,19 @@ msgid "آپدیت با موفقیت انجام شد."
 msgstr ""
 
 #. translators: %d: کد خطای آپلود
-#: includes/class-meta-box.php:277
+#: includes/class-meta-box.php:347
 msgid "آپلود فایل ناموفق بود (کد خطا: %d)."
 msgstr ""
 
-#: admin/views/watch-log.php:90
+#: admin/views/watch-log.php:93
 msgid "آخرین پخش"
 msgstr ""
 
-#: admin/class-admin-menu.php:457
+#: admin/class-admin-menu.php:563
 msgid "آخرین فعالیت"
 msgstr ""
 
-#: admin/views/git-update.php:175
+#: admin/views/git-update.php:178
 msgid "آخرین نسخهٔ موجود"
 msgstr ""
 
@@ -200,7 +216,7 @@ msgstr ""
 msgid "ابتدا مخزن گیت‌هاب را در کارت تنظیمات ذخیره کنید."
 msgstr ""
 
-#: admin/class-admin-menu.php:524
+#: admin/class-admin-menu.php:630
 msgid "اتصال امن HTTPS"
 msgstr ""
 
@@ -212,17 +228,30 @@ msgstr ""
 msgid "اتصال به گیت‌هاب برقرار نشد (خطای شبکه یا cURL)."
 msgstr ""
 
-#: admin/class-admin-menu.php:461
-#: admin/views/watch-log.php:199
+#: admin/class-admin-menu.php:567
+#: admin/views/watch-log.php:202
 msgid "اثر انگشت IP"
 msgstr ""
 
-#: includes/class-encoder.php:457
+#: includes/class-encoder.php:527
 msgid "اجرای ffmpeg ممکن نشد."
 msgstr ""
 
-#: includes/class-encoder.php:131
+#: admin/class-admin-menu.php:387
+msgid "اجرای فرمان در PHP (proc_open/exec)"
+msgstr ""
+
+#: includes/class-encoder.php:201
 msgid "اجرای فرمان در سرور مسدود است (exec/proc_open)."
+msgstr ""
+
+#: admin/views/encoder.php:144
+msgid "اجرای فوری صف"
+msgstr ""
+
+#. translators: %d: تعداد کار اجراشده
+#: admin/views/encoder.php:67
+msgid "اجرای فوری صف انجام شد؛ %d کار پردازش شد. وضعیت هر کار در جدول پایین است."
 msgstr ""
 
 #: admin/class-git-update-page.php:87
@@ -233,7 +262,7 @@ msgstr ""
 msgid "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید."
 msgstr ""
 
-#: admin/views/settings.php:115
+#: admin/views/settings.php:117
 msgid "از بالاترین کیفیت موجود در فایل منبع انتخاب می‌شود (۱۰۸۰ / ۷۲۰ / ۴۸۰ / ۳۶۰). هر کیفیت بیشتر یعنی زمان انکود بیشتر."
 msgstr ""
 
@@ -253,6 +282,14 @@ msgstr ""
 msgid "اطلاعات آخرین نسخه دریافت شد."
 msgstr ""
 
+#: admin/views/encoder.php:168
+msgid "افزودن به صف"
+msgstr ""
+
+#: admin/views/encoder.php:150
+msgid "افزودن ویدیو از سرور"
+msgstr ""
+
 #: includes/class-post-type.php:53
 msgid "افزودن ویدیوی امن"
 msgstr ""
@@ -265,15 +302,19 @@ msgstr ""
 msgid "افزونهٔ ZipArchive"
 msgstr ""
 
-#: admin/views/watch-log.php:91
+#: admin/views/watch-log.php:94
 msgid "اقدام"
 msgstr ""
 
-#: admin/views/template.php:76
+#: admin/class-admin-menu.php:404
+msgid "اگر DISABLE_WP_CRON=true است، cron سیستمی برای wp-cron.php بسازید یا دکمه‌ی «اجرای فوری صف» را بزنید."
+msgstr ""
+
+#: admin/views/template.php:78
 msgid "اگر خاموش باشد، فقط نام کاربری و نام نمایشی نشان داده می‌شود."
 msgstr ""
 
-#: admin/views/settings.php:150
+#: admin/views/settings.php:152
 msgid "الزام ثبت‌نام در دوره"
 msgstr ""
 
@@ -285,42 +326,42 @@ msgstr ""
 msgid "امکان بررسی syntax بدون اجرا وجود ندارد (TOKEN_PARSE)."
 msgstr ""
 
-#: includes/class-encode-queue.php:119
+#: includes/class-encode-queue.php:162
 msgid "انتقال فایل به پوشه‌ی موقت ناموفق بود. مجوز پوشه را بررسی کنید."
 msgstr ""
 
-#: admin/views/settings.php:228
+#: admin/views/settings.php:230
 msgid "انتقال ویدیوهای قدیمی به پوشه‌ی امن"
 msgstr ""
 
-#: includes/class-encode-queue.php:248
+#: includes/class-encode-queue.php:291
 msgid "انکود با موفقیت تمام شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:365
+#: includes/class-encode-queue.php:463
 msgid "انکود پیش از شروع لغو شد."
 msgstr ""
 
-#: includes/class-encoder.php:193
+#: includes/class-encoder.php:263
 msgid "انکود توسط مدیر لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:274
-#: includes/class-encoder.php:537
+#: includes/class-encode-queue.php:317
+#: includes/class-encoder.php:607
 msgid "انکود لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:275
+#: includes/class-encode-queue.php:318
 msgid "انکود ناموفق بود."
 msgstr ""
 
-#: admin/class-admin-menu.php:56
 #: admin/class-admin-menu.php:57
+#: admin/class-admin-menu.php:58
 #: admin/class-admin-tabs.php:35
 msgid "انکودر دستی"
 msgstr ""
 
-#: admin/views/encoder.php:19
+#: admin/views/encoder.php:31
 msgid "انکودر دستی سرور"
 msgstr ""
 
@@ -344,11 +385,11 @@ msgstr ""
 msgid "این حساب در دستگاه دیگری در حال پخش است. برای تماشا، پخش قبلی را ببندید."
 msgstr ""
 
-#: admin/views/watch-log.php:83
+#: admin/views/watch-log.php:86
 msgid "این حساب‌ها در ۲۴ ساعت گذشته از سه IP یا بیشتر پخش کرده‌اند."
 msgstr ""
 
-#: includes/class-access.php:399
+#: includes/class-access.php:514
 msgid "این درس هنوز برای شما باز نشده است. زمان باز شدن را در صفحه‌ی دوره ببینید."
 msgstr ""
 
@@ -356,7 +397,7 @@ msgstr ""
 msgid "این فایل پشتیبان برای همیشه حذف شود؟"
 msgstr ""
 
-#: includes/class-encode-queue.php:386
+#: includes/class-encode-queue.php:484
 msgid "این کار در حال اجراست."
 msgstr ""
 
@@ -375,27 +416,27 @@ msgstr ""
 msgid "این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-access.php:393
+#: includes/class-access.php:508
 msgid "این ویدیو به هیچ دوره‌ای متصل نشده است؛ دسترسی فقط برای مدیران است."
 msgstr ""
 
-#: includes/class-access.php:396
+#: includes/class-access.php:511
 msgid "این ویدیو مخصوص دانشجویان دوره است. برای تماشا باید در دوره ثبت‌نام کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:109
+#: includes/class-encode-queue.php:152
 msgid "این ویدیو همین حالا در صف انکود است."
 msgstr ""
 
-#: includes/class-access.php:390
+#: includes/class-access.php:505
 msgid "این ویدیو هنوز آماده نیست. کمی بعد دوباره تلاش کنید."
 msgstr ""
 
-#: admin/views/settings.php:158
+#: admin/views/settings.php:160
 msgid "با فعال بودن این گزینه (پیشنهادی)، ویدیویی که به هیچ درسی متصل نشده برای کاربران عادی قابل پخش نیست."
 msgstr ""
 
-#: admin/views/git-update.php:233
+#: admin/views/git-update.php:236
 msgid "بازگردانی"
 msgstr ""
 
@@ -407,19 +448,23 @@ msgstr ""
 msgid "بازگردانی به این پشتیبان انجام شود؟ فایل‌های فعلی جایگزین می‌شوند."
 msgstr ""
 
-#: admin/views/watch-log.php:149
+#: admin/views/watch-log.php:152
 msgid "بازه:"
 msgstr ""
 
-#: admin/views/settings.php:176
+#: admin/views/settings.php:178
 msgid "بالای محتوای درس"
+msgstr ""
+
+#: admin/views/encoder.php:27
+msgid "بدون کار"
 msgstr ""
 
 #: includes/class-player.php:88
 msgid "برای ادامه پخش روی صفحه کلیک کنید"
 msgstr ""
 
-#: admin/views/settings.php:217
+#: admin/views/settings.php:219
 msgid "برای امنیت کامل، این فایل‌ها را منتقل کنید."
 msgstr ""
 
@@ -427,27 +472,19 @@ msgstr ""
 msgid "برای پخش باید وارد شوید."
 msgstr ""
 
-#: includes/class-access.php:387
+#: includes/class-access.php:502
 msgid "برای تماشای این ویدیو ابتدا وارد حساب کاربری خود شوید."
 msgstr ""
 
-#: admin/views/settings.php:180
+#: admin/views/settings.php:182
 msgid "برای جای‌گذاری دستی از شورت‌کد [falnic_lesson_video] داخل محتوای درس استفاده کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:100
-msgid "برای جایگزینی، می‌توانید فایل جدیدی آپلود کنید:"
-msgstr ""
-
-#: includes/class-meta-box.php:210
-msgid "برای حذف، تیک بزنید و ذخیره کنید."
-msgstr ""
-
-#: admin/views/git-update.php:121
+#: admin/views/git-update.php:124
 msgid "برای حفظ توکن فعلی، این فیلد را خالی بگذارید."
 msgstr ""
 
-#: admin/views/git-update.php:124
+#: admin/views/git-update.php:127
 msgid "برای مخزن خصوصی، توکن با دسترسی خواندن محتوا لازم است."
 msgstr ""
 
@@ -463,8 +500,12 @@ msgstr ""
 msgid "برنچ موردنظر در مخزن پیدا نشد."
 msgstr ""
 
-#: admin/views/git-update.php:90
+#: admin/views/git-update.php:93
 msgid "به شکل owner/repo — مثال: ahmad75naraghi/video-secure"
+msgstr ""
+
+#: admin/views/encoder.php:107
+msgid "به‌روزرسانی"
 msgstr ""
 
 #: includes/class-git-updater.php:416
@@ -479,24 +520,16 @@ msgstr ""
 msgid "پاسخ گیت‌هاب غیرمنتظره بود."
 msgstr ""
 
-#: admin/views/settings.php:177
+#: admin/views/settings.php:179
 msgid "پایین محتوای درس"
 msgstr ""
 
-#: admin/views/watch-log.php:69
+#: admin/views/watch-log.php:72
 msgid "پخش ۷ روز اخیر"
 msgstr ""
 
-#: admin/views/watch-log.php:65
+#: admin/views/watch-log.php:68
 msgid "پخش امروز"
-msgstr ""
-
-#: admin/views/encoder.php:37
-msgid "پردازش در پس‌زمینه انجام می‌شود؛ وضعیت را در صفحه‌ی ویدیوهای امن ببینید."
-msgstr ""
-
-#: includes/class-meta-box.php:108
-msgid "پس از ذخیره، فایل در پس‌زمینه پردازش می‌شود و می‌توانید صفحه را ببندید. پیشرفت کار همین‌جا نمایش داده می‌شود."
 msgstr ""
 
 #: admin/class-git-update-page.php:94
@@ -511,7 +544,7 @@ msgstr ""
 msgid "پشتیبان موجود"
 msgstr ""
 
-#: admin/views/settings.php:168
+#: admin/views/settings.php:170
 msgid "پلیر بالای محتوای درس نمایش داده شود"
 msgstr ""
 
@@ -549,35 +582,51 @@ msgstr ""
 msgid "پوشهٔ نسخهٔ جدید پیدا نشد."
 msgstr ""
 
-#: admin/class-admin-menu.php:504
+#: admin/class-admin-menu.php:610
 msgid "پوشه‌ی رسانه خارج از web root"
 msgstr ""
 
-#: admin/class-admin-menu.php:516
+#: admin/class-admin-menu.php:622
 msgid "پوشه‌ی کلیدها قابل نوشتن"
 msgstr ""
 
-#: admin/class-admin-menu.php:520
+#: admin/class-admin-menu.php:407
+msgid "پوشه‌ی موقت قابل نوشتن است"
+msgstr ""
+
+#: admin/class-admin-menu.php:626
 msgid "پوشه‌ی ویدیوها قابل نوشتن"
 msgstr ""
 
-#: admin/views/git-update.php:181
+#: admin/views/encoder.php:106
+msgid "پیام"
+msgstr ""
+
+#: admin/views/git-update.php:184
 msgid "پیام کامیت"
 msgstr ""
 
-#: admin/views/git-update.php:58
+#: admin/views/encoder.php:133
+msgid "پیش"
+msgstr ""
+
+#: admin/views/encoder.php:105
+msgid "پیشرفت"
+msgstr ""
+
+#: admin/views/git-update.php:61
 msgid "پیش‌نیازهای سرور کامل نیست؛ آپدیت غیرفعال است:"
 msgstr ""
 
-#: admin/class-admin-menu.php:500
+#: admin/class-admin-menu.php:606
 msgid "تابع exec (برای ffmpeg)"
 msgstr ""
 
-#: admin/views/git-update.php:215
+#: admin/views/git-update.php:218
 msgid "تاریخ"
 msgstr ""
 
-#: admin/views/git-update.php:180
+#: admin/views/git-update.php:183
 msgid "تاریخ کامیت"
 msgstr ""
 
@@ -585,63 +634,67 @@ msgstr ""
 msgid "ترکی"
 msgstr ""
 
-#: admin/views/settings.php:105
+#: admin/views/settings.php:107
 msgid "تطبیقی (چند کیفیت + انتخاب خودکار)"
 msgstr ""
 
-#: admin/views/watch-log.php:88
+#: admin/views/watch-log.php:91
 msgid "تعداد IP"
 msgstr ""
 
-#: admin/views/watch-log.php:89
+#: admin/views/watch-log.php:92
 msgid "تعداد نشست"
 msgstr ""
 
-#: admin/views/settings.php:106
+#: admin/views/settings.php:108
 msgid "تک‌کیفیت (سبک‌تر، مصرف CPU کمتر)"
 msgstr ""
 
-#: includes/class-meta-box.php:168
+#: includes/class-meta-box.php:238
 msgid "تلاش دوباره"
 msgstr ""
 
-#: admin/class-admin-menu.php:66
+#: admin/views/encoder.php:24
+msgid "تمام‌شده"
+msgstr ""
+
+#: admin/class-admin-menu.php:67
 msgid "تنظیمات"
 msgstr ""
 
-#: admin/class-admin-menu.php:65
+#: admin/class-admin-menu.php:66
 #: admin/class-admin-tabs.php:27
 msgid "تنظیمات امنیتی"
 msgstr ""
 
-#: admin/views/settings.php:33
+#: admin/views/settings.php:35
 msgid "تنظیمات امنیتی پلیر"
 msgstr ""
 
-#: admin/views/settings.php:38
+#: admin/views/settings.php:40
 msgid "تنظیمات ذخیره شد."
 msgstr ""
 
-#: admin/class-admin-menu.php:74
 #: admin/class-admin-menu.php:75
+#: admin/class-admin-menu.php:76
 #: admin/class-admin-tabs.php:31
-#: admin/views/template.php:15
+#: admin/views/template.php:17
 msgid "تنظیمات قالب"
 msgstr ""
 
-#: admin/views/template.php:20
+#: admin/views/template.php:22
 msgid "تنظیمات قالب ذخیره شد."
 msgstr ""
 
-#: admin/views/git-update.php:41
+#: admin/views/git-update.php:44
 msgid "تنظیمات منبع ذخیره شد."
 msgstr ""
 
-#: admin/views/git-update.php:107
+#: admin/views/git-update.php:110
 msgid "توکن GitHub (اختیاری)"
 msgstr ""
 
-#: admin/views/settings.php:91
+#: admin/views/settings.php:93
 msgid "توکن پخش به IP گره می‌خورد. برای کاربران موبایل توصیه نمی‌شود."
 msgstr ""
 
@@ -661,11 +714,11 @@ msgstr ""
 msgid "توکن دسترسی معتبر نیست."
 msgstr ""
 
-#: admin/views/git-update.php:120
+#: admin/views/git-update.php:123
 msgid "توکن ذخیره شده"
 msgstr ""
 
-#: admin/views/git-update.php:123
+#: admin/views/git-update.php:126
 msgid "توکن ذخیره نشده"
 msgstr ""
 
@@ -673,11 +726,11 @@ msgstr ""
 msgid "توکن گیت‌هاب معتبر نیست یا منقضی شده است."
 msgstr ""
 
-#: admin/views/watch-log.php:58
+#: admin/views/watch-log.php:61
 msgid "جدول گزارش هنوز ساخته نشده است. افزونه را یک‌بار غیرفعال و دوباره فعال کنید تا ساختار دیتابیس ساخته شود."
 msgstr ""
 
-#: includes/class-meta-box.php:175
+#: includes/class-meta-box.php:245
 msgid "جزئیات خطا"
 msgstr ""
 
@@ -689,45 +742,45 @@ msgstr ""
 msgid "چک syntax فایل‌های PHP ناموفق بود؛ هیچ تغییری اعمال نشد."
 msgstr ""
 
-#: admin/views/settings.php:102
+#: admin/views/settings.php:104
 msgid "حالت کیفیت"
 msgstr ""
 
-#: admin/views/git-update.php:216
-#: admin/views/watch-log.php:197
+#: admin/views/git-update.php:219
+#: admin/views/watch-log.php:200
 msgid "حجم"
 msgstr ""
 
 #. translators: %s: حداکثر حجم به مگابایت
-#: includes/class-meta-box.php:298
+#: includes/class-meta-box.php:368
 msgid "حجم فایل بیش از حد مجاز است (حداکثر %s مگابایت)."
 msgstr ""
 
-#: includes/class-meta-box.php:368
+#: includes/class-meta-box.php:475
 msgid "حجم فایل زیرنویس بیش از ۵ مگابایت است."
 msgstr ""
 
-#: admin/views/settings.php:126
+#: admin/views/settings.php:128
 msgid "حداکثر پخش هم‌زمان هر حساب"
 msgstr ""
 
-#: admin/views/settings.php:112
+#: admin/views/settings.php:114
 msgid "حداکثر تعداد کیفیت"
 msgstr ""
 
-#: admin/views/settings.php:81
+#: admin/views/settings.php:83
 msgid "حداکثر حجم فایل آپلود (مگابایت)"
 msgstr ""
 
-#: admin/views/settings.php:74
+#: admin/views/settings.php:76
 msgid "حداکثر لاگین هم‌زمان (برای کاربران)"
 msgstr ""
 
-#: admin/views/git-update.php:240
+#: admin/views/git-update.php:243
 msgid "حذف"
 msgstr ""
 
-#: admin/views/git-update.php:130
+#: admin/views/git-update.php:133
 msgid "حذف توکن ذخیره‌شده"
 msgstr ""
 
@@ -735,16 +788,20 @@ msgstr ""
 msgid "حذف فایل پشتیبان ناموفق بود."
 msgstr ""
 
-#: admin/views/settings.php:204
+#: admin/views/settings.php:206
 msgid "خارج از web root — امن"
 msgstr ""
 
-#: admin/views/watch-log.php:178
+#: admin/views/watch-log.php:181
 msgid "خروجی CSV"
 msgstr ""
 
-#: includes/class-encoder.php:202
+#: includes/class-encoder.php:272
 msgid "خروجی ffmpeg قابل استفاده نیست."
+msgstr ""
+
+#: admin/views/encoder.php:125
+msgid "خطا"
 msgstr ""
 
 #: includes/class-player.php:89
@@ -755,11 +812,11 @@ msgstr ""
 msgid "خطا در پردازش ویدیو:"
 msgstr ""
 
-#: admin/views/encoder.php:28
-msgid "خطا: افزودن به صف انکود ناموفق بود. مجوز پوشه‌ی موقت و مسیر فایل را بررسی کنید."
+#: admin/views/encoder.php:40
+msgid "خطا: افزودن به صف ناموفق بود. مجوز پوشه‌ی موقت و مسیر فایل را بررسی کنید."
 msgstr ""
 
-#: admin/views/encoder.php:24
+#: admin/views/encoder.php:36
 msgid "خطا: فایل در مسیر داده‌شده یافت نشد."
 msgstr ""
 
@@ -767,15 +824,15 @@ msgstr ""
 msgid "خطای گواهی SSL هنگام اتصال به گیت‌هاب. تنظیمات گواهی سرور را بررسی کنید."
 msgstr ""
 
-#: admin/views/template.php:40
+#: admin/views/template.php:42
 msgid "خودکار (بدون محدودیت)"
 msgstr ""
 
-#: admin/views/settings.php:206
+#: admin/views/settings.php:208
 msgid "داخل web root — دسترسی مستقیم باید در وب‌سرور بسته شود"
 msgstr ""
 
-#: admin/views/watch-log.php:204
+#: admin/views/watch-log.php:207
 msgid "داده‌ای برای نمایش نیست."
 msgstr ""
 
@@ -788,16 +845,24 @@ msgstr ""
 msgid "دانلود، بررسی و پشتیبان‌گیری در حال انجام است…"
 msgstr ""
 
+#: admin/class-admin-menu.php:389
+msgid "در php.ini یا کانفیگ هاست، disable_functions شامل proc_open و exec نباشد."
+msgstr ""
+
 #: admin/class-git-update-page.php:86
 msgid "در حال انجام…"
 msgstr ""
 
-#: includes/class-encode-queue.php:192
+#: admin/views/encoder.php:23
+msgid "در حال انکود"
+msgstr ""
+
+#: includes/class-encode-queue.php:235
 msgid "در حال انکود…"
 msgstr ""
 
 #. translators: %d: درصد پیشرفت
-#: includes/class-encode-queue.php:212
+#: includes/class-encode-queue.php:255
 msgid "در حال انکود… (%d%%)"
 msgstr ""
 
@@ -805,16 +870,20 @@ msgstr ""
 msgid "در حال بررسی نسخه…"
 msgstr ""
 
-#: includes/class-encode-queue.php:347
+#: includes/class-encode-queue.php:445
 msgid "در حال لغو…"
 msgstr ""
 
-#: admin/views/settings.php:108
+#: admin/views/settings.php:110
 msgid "در حالت تطبیقی، یک پلی‌لیست اصلی (master) ساخته می‌شود و پلیر بر اساس سرعت اینترنت کیفیت را عوض می‌کند."
 msgstr ""
 
-#: includes/class-encode-queue.php:129
-#: includes/class-encode-queue.php:406
+#: admin/views/encoder.php:22
+msgid "در صف"
+msgstr ""
+
+#: includes/class-encode-queue.php:172
+#: includes/class-encode-queue.php:504
 msgid "در صف انکود…"
 msgstr ""
 
@@ -823,7 +892,7 @@ msgstr ""
 msgid "در مرحلهٔ جایگزینی فایل خطا رخ داد (%s)؛ از بخش پشتیبان‌ها Rollback را اجرا کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:469
+#: includes/class-encode-queue.php:567
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
@@ -836,7 +905,7 @@ msgstr ""
 msgid "درخواست نامعتبر"
 msgstr ""
 
-#: includes/class-access.php:402
+#: includes/class-access.php:517
 #: includes/class-key-server.php:50
 msgid "درخواست نامعتبر است."
 msgstr ""
@@ -856,11 +925,15 @@ msgstr ""
 msgid "درخواست‌های بیش از حد. کمی بعد تلاش کنید."
 msgstr ""
 
+#: includes/class-meta-box.php:132
+msgid "درس"
+msgstr ""
+
 #: includes/class-player.php:186
 msgid "درس هنوز باز نشده"
 msgstr ""
 
-#: admin/views/settings.php:143
+#: admin/views/settings.php:145
 msgid "دسترسی LearnDash"
 msgstr ""
 
@@ -873,45 +946,50 @@ msgstr ""
 msgid "دسترسی محدود"
 msgstr ""
 
-#: admin/class-admin-menu.php:107
-#: admin/class-admin-menu.php:159
-#: admin/class-admin-menu.php:228
-#: admin/class-admin-menu.php:270
-#: admin/class-admin-menu.php:378
-#: includes/class-encode-queue.php:572
+#: admin/class-admin-menu.php:108
+#: admin/class-admin-menu.php:160
+#: admin/class-admin-menu.php:229
+#: admin/class-admin-menu.php:271
+#: admin/class-admin-menu.php:304
+#: admin/class-admin-menu.php:484
+#: includes/class-encode-queue.php:670
 msgid "دسترسی ندارید."
 msgstr ""
 
-#: admin/class-admin-menu.php:460
-#: admin/views/watch-log.php:198
+#: admin/class-admin-menu.php:566
+#: admin/views/watch-log.php:201
 msgid "دستگاه"
 msgstr ""
 
-#: admin/views/settings.php:188
+#: includes/class-meta-box.php:117
+msgid "دوره"
+msgstr ""
+
+#: admin/views/settings.php:190
 msgid "ذخیره تغییرات"
 msgstr ""
 
-#: admin/views/git-update.php:136
+#: admin/views/git-update.php:139
 msgid "ذخیره تنظیمات"
 msgstr ""
 
-#: admin/views/template.php:81
+#: admin/views/template.php:83
 msgid "ذخیره تنظیمات قالب"
 msgstr ""
 
-#: admin/views/git-update.php:43
+#: admin/views/git-update.php:46
 msgid "ذخیرهٔ تنظیمات ناموفق بود."
 msgstr ""
 
-#: admin/views/git-update.php:27
+#: admin/views/git-update.php:30
 msgid "ذخیره شده — برای تغییر مقدار جدید وارد کنید"
 msgstr ""
 
-#: admin/views/settings.php:136
+#: admin/views/settings.php:138
 msgid "ردیف‌های قدیمی‌تر روزانه به‌صورت خودکار حذف می‌شوند."
 msgstr ""
 
-#: admin/views/template.php:47
+#: admin/views/template.php:49
 msgid "رنگ تأکیدی"
 msgstr ""
 
@@ -919,11 +997,11 @@ msgstr ""
 msgid "ریشهٔ نسخهٔ جدید پیدا نشد."
 msgstr ""
 
-#: includes/class-meta-box.php:213
-msgid "زبان:"
+#: includes/class-meta-box.php:282
+msgid "زبان"
 msgstr ""
 
-#: includes/class-encoder.php:515
+#: includes/class-encoder.php:585
 msgid "زمان انکود بیش از حد مجاز شد."
 msgstr ""
 
@@ -935,7 +1013,7 @@ msgstr ""
 msgid "زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:196
+#: includes/class-meta-box.php:266
 msgid "زیرنویس (اختیاری)"
 msgstr ""
 
@@ -956,7 +1034,7 @@ msgstr ""
 msgid "ساخت پوشه ناموفق بود: %s — از بخش پشتیبان‌ها Rollback را اجرا کنید."
 msgstr ""
 
-#: includes/class-encoder.php:148
+#: includes/class-encoder.php:218
 msgid "ساخت پوشه‌ی خروجی ناموفق بود."
 msgstr ""
 
@@ -972,7 +1050,7 @@ msgstr ""
 msgid "ساختار ZIP غیرمنتظره است (باید یک پوشهٔ ریشه داشته باشد)."
 msgstr ""
 
-#: includes/class-meta-box.php:387
+#: includes/class-meta-box.php:494
 msgid "ساختار فایل زیرنویس معتبر نیست (باید با WEBVTT شروع شود)."
 msgstr ""
 
@@ -984,41 +1062,37 @@ msgstr ""
 msgid "سقف درخواست‌های گیت‌هاب پر شده است. یک توکن اضافه کنید یا بعداً تلاش کنید."
 msgstr ""
 
-#: admin/class-admin-menu.php:459
-#: admin/views/watch-log.php:196
+#: admin/class-admin-menu.php:565
+#: admin/views/watch-log.php:199
 msgid "سگمنت"
 msgstr ""
 
-#: admin/views/watch-log.php:77
+#: admin/views/watch-log.php:80
 msgid "سگمنت تحویل‌شده"
 msgstr ""
 
 #: admin/class-git-update-page.php:91
-#: admin/views/git-update.php:178
+#: admin/views/git-update.php:181
 msgid "شاخه"
 msgstr ""
 
-#: admin/views/git-update.php:94
+#: admin/views/git-update.php:97
 msgid "شاخه (Branch)"
 msgstr ""
 
-#: admin/class-admin-menu.php:456
+#: admin/class-admin-menu.php:562
 msgid "شروع"
 msgstr ""
 
-#: admin/views/watch-log.php:194
+#: admin/views/watch-log.php:197
 msgid "شروع (UTC)"
 msgstr ""
 
-#: admin/views/encoder.php:66
-msgid "شروع انکودینگ"
-msgstr ""
-
-#: admin/views/template.php:56
+#: admin/views/template.php:58
 msgid "شفافیت واترمارک (۰.۱ تا ۰.۹)"
 msgstr ""
 
-#: includes/class-access.php:405
+#: includes/class-access.php:520
 msgid "شما اجازه‌ی تماشای این ویدیو را ندارید."
 msgstr ""
 
@@ -1028,15 +1102,11 @@ msgstr ""
 msgid "شما مجوز به‌روزرسانی افزونه‌ها را ندارید."
 msgstr ""
 
-#: admin/views/watch-log.php:171
+#: admin/views/watch-log.php:174
 msgid "شناسه کاربر:"
 msgstr ""
 
-#: includes/class-meta-box.php:114
-msgid "شناسه‌ی این ویدیو (نام فایل‌ها):"
-msgstr ""
-
-#: includes/class-encode-queue.php:487
+#: includes/class-encode-queue.php:585
 msgid "شناسه‌ی ویدیو پیدا نشد."
 msgstr ""
 
@@ -1044,19 +1114,23 @@ msgstr ""
 msgid "شورت‌کد"
 msgstr ""
 
-#: admin/views/settings.php:255
+#: admin/views/settings.php:257
 msgid "شورت‌کد ویدیو:"
 msgstr ""
 
-#: includes/class-meta-box.php:97
-msgid "شورت‌کد:"
+#: admin/views/encoder.php:95
+msgid "صف انکود"
 msgstr ""
 
-#: admin/views/settings.php:119
+#: admin/views/encoder.php:98
+msgid "صف خالی است."
+msgstr ""
+
+#: admin/views/settings.php:121
 msgid "طول هر سگمنت (ثانیه)"
 msgstr ""
 
-#: admin/views/template.php:28
+#: admin/views/template.php:30
 msgid "ظاهر پلیر"
 msgstr ""
 
@@ -1064,7 +1138,7 @@ msgstr ""
 msgid "عربی"
 msgstr ""
 
-#: admin/views/git-update.php:217
+#: admin/views/git-update.php:220
 msgid "عملیات"
 msgstr ""
 
@@ -1072,20 +1146,12 @@ msgstr ""
 msgid "فارسی"
 msgstr ""
 
-#: admin/views/template.php:62
+#: admin/views/template.php:64
 msgid "فاصلهٔ جابه‌جایی واترمارک (ثانیه)"
 msgstr ""
 
-#: admin/views/git-update.php:214
+#: admin/views/git-update.php:217
 msgid "فایل"
-msgstr ""
-
-#: includes/class-meta-box.php:102
-msgid "فایل MP4 خود را انتخاب کنید تا به صورت خودکار رمزنگاری شود:"
-msgstr ""
-
-#: includes/class-meta-box.php:216
-msgid "فایل WebVTT (.vtt) را انتخاب کنید؛ دسترسی به آن هم از همان دروازه‌ی امن انجام می‌شود."
 msgstr ""
 
 #: includes/class-git-updater.php:929
@@ -1122,7 +1188,7 @@ msgstr ""
 msgid "فایل اصلی افزونه در این پشتیبان پیدا نشد؛ بازگردانی متوقف شد."
 msgstr ""
 
-#: admin/views/git-update.php:152
+#: admin/views/git-update.php:155
 msgid "فایل اصلی فعال"
 msgstr ""
 
@@ -1154,27 +1220,23 @@ msgstr ""
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
-#: admin/views/encoder.php:71
-msgid "فایل روی سرور کپی می‌شود و انکود در صف پس‌زمینه (WP-Cron) انجام می‌گیرد؛ صفحه بلافاصله برمی‌گردد. برای صف مطمئن، WP-Cron را با یک cron سیستمی هر دقیقه اجرا کنید."
-msgstr ""
-
-#: includes/class-encode-queue.php:395
+#: includes/class-encode-queue.php:493
 msgid "فایل ورودی این کار دیگر موجود نیست؛ لطفاً ویدیو را دوباره آپلود کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:171
+#: includes/class-encode-queue.php:214
 msgid "فایل ورودی پیدا نشد؛ لطفاً دوباره آپلود کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:99
+#: includes/class-encode-queue.php:142
 msgid "فایل ورودی در دسترس نیست."
 msgstr ""
 
-#: includes/class-encoder.php:135
+#: includes/class-encoder.php:205
 msgid "فایل ورودی قابل خواندن نیست."
 msgstr ""
 
-#: admin/views/settings.php:231
+#: admin/views/settings.php:233
 msgid "فایل‌ها از uploads/secure_videos به پوشه‌ی خارج از web root منتقل می‌شوند. پیش از اجرا از سایت بکاپ بگیرید."
 msgstr ""
 
@@ -1182,7 +1244,7 @@ msgstr ""
 msgid "فایل‌های افزوده‌شده"
 msgstr ""
 
-#: admin/views/settings.php:84
+#: admin/views/settings.php:86
 msgid "فایل‌های بزرگ‌تر رد می‌شوند. این مقدار باید از محدودیت PHP (upload_max_filesize) بیشتر نباشد."
 msgstr ""
 
@@ -1198,15 +1260,15 @@ msgstr ""
 msgid "فقط دانشجویانی که در دوره‌ی این درس ثبت‌نام کرده‌اند ویدیو را می‌بینند. مدیر سایت همیشه دسترسی دارد."
 msgstr ""
 
-#: includes/class-meta-box.php:376
+#: includes/class-meta-box.php:483
 msgid "فقط فایل زیرنویس با پسوند .vtt پذیرفته می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:315
+#: includes/class-meta-box.php:385
 msgid "فقط فایل‌های ویدیویی MP4/M4V/MOV پذیرفته می‌شوند."
 msgstr ""
 
-#: admin/views/watch-log.php:175
+#: admin/views/watch-log.php:178
 msgid "فیلتر"
 msgstr ""
 
@@ -1222,34 +1284,34 @@ msgstr ""
 msgid "قالب مخزن درست نیست؛ باید به شکل owner/repo باشد (مثلاً ahmad/repo)."
 msgstr ""
 
-#: admin/views/watch-log.php:118
+#: admin/views/watch-log.php:121
 msgid "قطع پخش"
 msgstr ""
 
-#: admin/views/settings.php:88
+#: admin/views/settings.php:90
 msgid "قفل کردن استریم روی IP کاربر"
 msgstr ""
 
-#: includes/class-encode-queue.php:420
+#: includes/class-encode-queue.php:518
 msgid "کار دوباره در صف قرار گرفت."
 msgstr ""
 
-#: includes/class-encode-queue.php:466
+#: includes/class-encode-queue.php:564
 msgid "کار فعالی برای لغو پیدا نشد."
 msgstr ""
 
-#: admin/class-admin-menu.php:454
-#: admin/views/watch-log.php:87
-#: admin/views/watch-log.php:192
+#: admin/class-admin-menu.php:560
+#: admin/views/watch-log.php:90
+#: admin/views/watch-log.php:195
 msgid "کاربر"
 msgstr ""
 
-#: admin/views/watch-log.php:73
+#: admin/views/watch-log.php:76
 msgid "کاربران یکتا"
 msgstr ""
 
 #: admin/class-git-update-page.php:92
-#: admin/views/git-update.php:179
+#: admin/views/git-update.php:182
 msgid "کامیت"
 msgstr ""
 
@@ -1263,22 +1325,22 @@ msgstr ""
 msgid "کلید یافت نشد."
 msgstr ""
 
-#: admin/views/settings.php:98
+#: admin/views/settings.php:100
 msgid "کیفیت پخش و پخش هم‌زمان"
 msgstr ""
 
-#: admin/views/template.php:31
+#: admin/views/template.php:33
 msgid "گردی گوشه‌ها (پیکسل)"
 msgstr ""
 
-#: admin/views/git-update.php:188
+#: admin/views/git-update.php:191
 msgid "گزارش آپدیت"
 msgstr ""
 
-#: admin/class-admin-menu.php:83
 #: admin/class-admin-menu.php:84
+#: admin/class-admin-menu.php:85
 #: admin/class-admin-tabs.php:39
-#: admin/views/watch-log.php:38
+#: admin/views/watch-log.php:41
 msgid "گزارش تماشا"
 msgstr ""
 
@@ -1287,12 +1349,20 @@ msgstr ""
 msgid "گیت‌هاب پاسخ ناموفق برگرداند (کد %d)."
 msgstr ""
 
-#: includes/class-meta-box.php:163
+#: includes/class-meta-box.php:233
 msgid "لغو انکود"
+msgstr ""
+
+#: admin/views/encoder.php:26
+msgid "لغوشده"
 msgstr ""
 
 #: includes/class-post-type.php:75
 msgid "لینک Embed (مخصوص LearnDash)"
+msgstr ""
+
+#: admin/class-admin-menu.php:409
+msgid "مجوز پوشه‌ی falnic-secure/tmp را بررسی کنید."
 msgstr ""
 
 #: includes/class-token.php:118
@@ -1300,19 +1370,19 @@ msgid "محتوای توکن دسترسی خوانده نشد."
 msgstr ""
 
 #. translators: 1: مسیر پشتیبان، 2: تعداد نگهداری
-#: admin/views/git-update.php:201
+#: admin/views/git-update.php:204
 msgid "محل ذخیره: %1$s — فقط %2$d پشتیبان آخر نگه داشته می‌شود."
 msgstr ""
 
-#: admin/views/settings.php:193
+#: admin/views/settings.php:195
 msgid "محل ذخیره‌ی رسانه"
 msgstr ""
 
-#: admin/views/settings.php:173
+#: admin/views/settings.php:175
 msgid "محل نمایش پلیر"
 msgstr ""
 
-#: admin/views/git-update.php:79
+#: admin/views/git-update.php:82
 msgid "مخزن GitHub"
 msgstr ""
 
@@ -1320,15 +1390,15 @@ msgstr ""
 msgid "مخزن پیدا نشد. نشانی را بررسی کنید؛ اگر مخزن خصوصی است توکن لازم است."
 msgstr ""
 
-#: admin/views/git-update.php:71
+#: admin/views/git-update.php:74
 msgid "مخزن و شاخه‌ای که نسخهٔ افزونه از آن خوانده می‌شود. برای مخزن عمومی، توکن لازم نیست."
 msgstr ""
 
-#: admin/views/watch-log.php:195
+#: admin/views/watch-log.php:198
 msgid "مدت"
 msgstr ""
 
-#: admin/class-admin-menu.php:458
+#: admin/class-admin-menu.php:564
 msgid "مدت (ثانیه)"
 msgstr ""
 
@@ -1336,19 +1406,23 @@ msgstr ""
 msgid "مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند."
 msgstr ""
 
+#: admin/class-admin-menu.php:394
+msgid "مسیر ffmpeg را در wp-config با FALNIC_FFMPEG_BIN تعریف کنید."
+msgstr ""
+
 #: includes/class-git-updater.php:1418
 msgid "مسیر پشتیبان معتبر نیست."
 msgstr ""
 
-#: admin/views/settings.php:197
+#: admin/views/settings.php:199
 msgid "مسیر فعلی"
 msgstr ""
 
-#: admin/views/encoder.php:56
+#: admin/views/encoder.php:158
 msgid "مسیر کامل فایل MP4 در سرور"
 msgstr ""
 
-#: admin/views/git-update.php:156
+#: admin/views/git-update.php:159
 msgid "مسیر واقعی پوشهٔ افزونه"
 msgstr ""
 
@@ -1357,27 +1431,27 @@ msgstr ""
 msgid "مشاهده دوره: %s"
 msgstr ""
 
-#: admin/views/settings.php:129
+#: admin/views/settings.php:131
 msgid "مقدار ۰ یعنی بدون محدودیت. با ۱، پخش دوم همان حساب تا بسته‌شدن پخش اول خطای ۴۰۹ می‌گیرد. مدیران سایت مستثنا هستند."
 msgstr ""
 
-#: admin/views/settings.php:77
+#: admin/views/settings.php:79
 msgid "مقدار ۱ یعنی نشست‌های قبلی هنگام ورود جدید بسته می‌شوند."
 msgstr ""
 
-#: admin/views/template.php:58
+#: admin/views/template.php:60
 msgid "مقدار بالاتر = دیده‌شدن بیشتر و بازدارندگی بیشتر."
 msgstr ""
 
-#: admin/views/settings.php:122
+#: admin/views/settings.php:124
 msgid "مقدار کمتر = شروع سریع‌تر و تعویض کیفیت روان‌تر، اما درخواست‌های بیشتر. پیشنهاد: ۶."
 msgstr ""
 
-#: admin/views/template.php:67
+#: admin/views/template.php:69
 msgid "مقیاس اندازهٔ فونت واترمارک"
 msgstr ""
 
-#: admin/views/encoder.php:60
+#: admin/views/encoder.php:162
 msgid "نام اختصاصی (فقط حروف انگلیسی، رقم و خط تیره)"
 msgstr ""
 
@@ -1393,8 +1467,8 @@ msgstr ""
 msgid "نام فایل پشتیبان نامعتبر است."
 msgstr ""
 
-#: includes/class-encode-queue.php:91
-#: includes/class-encoder.php:127
+#: includes/class-encode-queue.php:134
+#: includes/class-encoder.php:197
 msgid "نام ویدیو نامعتبر است."
 msgstr ""
 
@@ -1402,7 +1476,11 @@ msgstr ""
 msgid "نامشخص"
 msgstr ""
 
-#: admin/views/template.php:36
+#: admin/views/encoder.php:25
+msgid "ناموفق"
+msgstr ""
+
+#: admin/views/template.php:38
 msgid "نسبت تصویر کانتینر"
 msgstr ""
 
@@ -1414,19 +1492,19 @@ msgstr ""
 msgid "نسخهٔ جدید هیچ فایلی ندارد."
 msgstr ""
 
-#: admin/views/git-update.php:182
+#: admin/views/git-update.php:185
 msgid "نسخهٔ فعلی"
 msgstr ""
 
-#: admin/views/git-update.php:148
+#: admin/views/git-update.php:151
 msgid "نسخهٔ نصب‌شده"
 msgstr ""
 
-#: admin/class-admin-menu.php:528
+#: admin/class-admin-menu.php:634
 msgid "نسخه‌ی PHP 7.4 یا بالاتر"
 msgstr ""
 
-#: admin/class-admin-menu.php:462
+#: admin/class-admin-menu.php:568
 msgid "نشست"
 msgstr ""
 
@@ -1434,31 +1512,31 @@ msgstr ""
 msgid "نشست پخش پایان یافت. اگر در دستگاه دیگری وارد شده‌اید، همان پخش فعال است."
 msgstr ""
 
-#: admin/views/settings.php:70
+#: admin/views/settings.php:72
 msgid "نشست و اتصال"
 msgstr ""
 
-#: admin/views/watch-log.php:142
+#: admin/views/watch-log.php:145
 msgid "نشست‌های پخش"
 msgstr ""
 
-#: admin/views/settings.php:133
+#: admin/views/settings.php:135
 msgid "نگه‌داری گزارش تماشا (روز)"
 msgstr ""
 
-#: admin/views/template.php:74
+#: admin/views/template.php:76
 msgid "نمایش ایمیل کاربر در واترمارک"
 msgstr ""
 
-#: admin/views/settings.php:163
+#: admin/views/settings.php:165
 msgid "نمایش خودکار در درس"
 msgstr ""
 
-#: includes/class-encoder.php:164
+#: includes/class-encoder.php:234
 msgid "نوشتن فایل keyinfo ناموفق بود."
 msgstr ""
 
-#: includes/class-encoder.php:155
+#: includes/class-encoder.php:225
 msgid "نوشتن فایل کلید ناموفق بود. مجوز پوشه را بررسی کنید."
 msgstr ""
 
@@ -1475,19 +1553,19 @@ msgstr ""
 msgid "هشدار: فایل این ویدیو هنوز انکود نشده است و پخش نمی‌شود."
 msgstr ""
 
-#: admin/class-admin-menu.php:508
+#: admin/class-admin-menu.php:614
 msgid "همه‌ی ویدیوها به پوشه‌ی امن منتقل شده‌اند"
 msgstr ""
 
-#: admin/views/git-update.php:209
+#: admin/views/git-update.php:212
 msgid "هنوز پشتیبانی ساخته نشده است. پیش از هر آپدیت، به‌صورت خودکار پشتیبان گرفته می‌شود."
 msgstr ""
 
-#: admin/views/settings.php:214
+#: admin/views/settings.php:216
 msgid "هیچ — همه منتقل شده‌اند"
 msgstr ""
 
-#: admin/views/template.php:53
+#: admin/views/template.php:55
 msgid "واترمارک"
 msgstr ""
 
@@ -1499,16 +1577,22 @@ msgstr ""
 msgid "ورود لازم است"
 msgstr ""
 
-#: admin/views/settings.php:201
+#: admin/views/encoder.php:104
+#: admin/views/settings.php:203
 msgid "وضعیت"
 msgstr ""
 
-#: admin/views/settings.php:236
+#: admin/views/encoder.php:76
+msgid "وضعیت پیش‌نیازها"
+msgstr ""
+
+#: admin/views/settings.php:238
 msgid "وضعیت سیستم"
 msgstr ""
 
-#: admin/class-admin-menu.php:455
-#: admin/views/watch-log.php:193
+#: admin/class-admin-menu.php:561
+#: admin/views/encoder.php:103
+#: admin/views/watch-log.php:196
 msgid "ویدیو"
 msgstr ""
 
@@ -1520,11 +1604,11 @@ msgstr ""
 msgid "ویدیو به دوره متصل نشده"
 msgstr ""
 
-#: includes/class-encode-queue.php:144
+#: includes/class-encode-queue.php:187
 msgid "ویدیو در صف انکود قرار گرفت. می‌توانید این صفحه را ببندید؛ پردازش در پس‌زمینه ادامه دارد."
 msgstr ""
 
-#: admin/views/settings.php:145
+#: admin/views/settings.php:147
 msgid "ویدیو را از داخل ویرایشگر درس یا مبحث (کادر «ویدیوی امن این درس») به آن مرحله متصل کنید. دسترسی فقط برای دانشجویان ثبت‌نام‌کرده‌ی همان دوره فعال می‌شود."
 msgstr ""
 
@@ -1532,7 +1616,7 @@ msgstr ""
 msgid "ویدیو یافت نشد"
 msgstr ""
 
-#: admin/views/watch-log.php:166
+#: admin/views/watch-log.php:169
 msgid "ویدیو:"
 msgstr ""
 
@@ -1540,11 +1624,11 @@ msgstr ""
 msgid "ویدیوهای امن"
 msgstr ""
 
-#: admin/views/settings.php:211
+#: admin/views/settings.php:213
 msgid "ویدیوهای باقی‌مانده در uploads"
 msgstr ""
 
-#: admin/views/settings.php:155
+#: admin/views/settings.php:157
 msgid "ویدیوهای بدون دوره فقط با قابلیت falnic_watch_videos قابل مشاهده باشند"
 msgstr ""
 
@@ -1568,7 +1652,7 @@ msgstr ""
 msgid "ویرایش ویدیوی امن"
 msgstr ""
 
-#: admin/views/git-update.php:52
+#: admin/views/git-update.php:55
 msgid "یک عملیات به‌روزرسانی یا بازگردانی در حال اجراست. تا پایان آن صبر کنید."
 msgstr ""
 

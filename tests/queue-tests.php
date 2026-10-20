@@ -15,6 +15,7 @@ $GLOBALS['falnic_tmp'] = sys_get_temp_dir() . '/falnic-queue-' . bin2hex( random
 define( 'ABSPATH', $GLOBALS['falnic_tmp'] . '/wp/' );
 define( 'FALNIC_DIR', $falnic_root . '/' );
 define( 'FALNIC_VERSION', '3.4.0' );
+define( 'FALNIC_SKIP_BINARY_PROBE', true ); // جست‌وجوی shell در تست لازم نیست
 define( 'MINUTE_IN_SECONDS', 60 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'DAY_IN_SECONDS', 86400 );
@@ -588,6 +589,24 @@ file_put_contents( $server_file, str_repeat( 'S', 8 ) );
 $copied = Falnic\SecureHLS\Encode_Queue::enqueue( 'lesson-copy', $server_file, 0, 7, true );
 falnic_check( ! empty( $copied['ok'] ), 'صف‌کردن فایل سرور در حالت کپی موفق است' );
 falnic_check( file_exists( $server_file ), 'فایل اصلی سرور پس از صف‌کردن حذف نمی‌شود' );
+
+// نگهبان صف: کار «در صف» بدون رویداد زمان‌بندی‌شده، دوباره برنامه‌ریزی می‌شود.
+$GLOBALS['falnic_scheduled'] = array();
+$GLOBALS['falnic_admin'][7]  = true;
+$source_wd = $GLOBALS['falnic_tmp'] . '/watchdog.mp4';
+file_put_contents( $source_wd, 'W' );
+$GLOBALS['falnic_options'][ Falnic\SecureHLS\Encode_Queue::JOBS_OPTION ]['lesson-wd'] = array(
+	'state'   => 'queued',
+	'percent' => 0,
+	'source'  => $source_wd,
+	'updated' => time() - 300,
+	'post_id' => 0,
+	'user_id' => 7,
+);
+Falnic\SecureHLS\Encode_Queue::watchdog();
+$hooks = array_column( $GLOBALS['falnic_scheduled'], 'hook' );
+falnic_check( in_array( Falnic\SecureHLS\Encode_Queue::CRON_HOOK, $hooks, true ), 'نگهبان صف کار رهاشده را دوباره زمان‌بندی می‌کند' );
+unset( $GLOBALS['falnic_admin'][7] );
 
 $idle = Falnic\SecureHLS\Encode_Queue::status( 'lesson-unknown' );
 falnic_check( 'idle' === $idle['state'] && 0 === $idle['percent'], 'ویدیوی بدون کار، وضعیت idle دارد' );

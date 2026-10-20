@@ -7,6 +7,8 @@
  * @var array $settings
  */
 
+use Falnic\SecureHLS\Admin_Tabs;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

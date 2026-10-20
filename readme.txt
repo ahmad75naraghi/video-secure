@@ -4,7 +4,7 @@ Tags: hls, video, learndash, watermark, aes-128
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.4.0
+Stable tag: 3.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,13 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 مسیر پلی‌لیست باید با HTTPS در دسترس باشد و پاسخ با Content-Type درست برگردد.
 
 == Changelog ==
+
+= 3.4.1 =
+* رفع خطای مهلک «Class "Admin_Tabs" not found» در صفحه‌ی انکودر دستی و بقیه‌ی صفحه‌های پنل.
+* صفحه‌ی ویرایش ویدیو: حذف متن‌های توضیحی و افزودن انتخاب «دوره» و «درس» LearnDash؛ دسترسی فقط برای ثبت‌نام‌کرده‌های همان دوره و مدیران.
+* انکودر دستی: نمایش پیش‌نیازها (php exec، ffmpeg، ffprobe، WP-Cron، مجوز پوشه)، جدول وضعیت صف با متن خطا و دکمه‌ی «اجرای فوری صف».
+* تشخیص خودکار مسیر ffmpeg/ffprobe و نگهبان صف برای کارهای جا‌مانده.
+* پیام خطای انکود تا ۵ دقیقه در پنل می‌ماند (قبلاً ۶۰ ثانیه).
 
 = 3.4.0 =
 * صف انکود پس‌زمینه با WP-Cron، نوار پیشرفت، لغو و تلاش دوباره؛ بدون کار تکراری روی ذخیره‌ی دوباره.

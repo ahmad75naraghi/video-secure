@@ -137,6 +137,37 @@ final class Post_Type {
 	}
 
 	/**
+	 * یافتن پست ویدیو از روی نام پایدار.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return int شناسه‌ی پست یا صفر.
+	 */
+	public static function find_by_name( string $name ): int {
+		$name = Storage::sanitize_name( $name );
+
+		if ( '' === $name ) {
+			return 0;
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'        => self::SLUG,
+				'post_status'      => 'any',
+				'posts_per_page'   => 1,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key'         => self::META_NAME,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'       => $name,
+			)
+		);
+
+		return empty( $posts ) ? 0 : (int) $posts[0];
+	}
+
+	/**
 	 * ذخیره‌ی نام پایدار ویدیو.
 	 *
 	 * @param int    $post_id شناسه‌ی پست.

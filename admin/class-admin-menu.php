@@ -28,6 +28,7 @@ final class Admin_Menu {
 		add_action( 'admin_post_falnic_save_template', array( __CLASS__, 'handle_template' ) );
 		add_action( 'admin_post_falnic_migrate_storage', array( __CLASS__, 'handle_migrate_storage' ) );
 		add_action( 'admin_post_falnic_watch_log_action', array( __CLASS__, 'handle_watch_log' ) );
+		add_action( 'admin_post_falnic_run_queue', array( __CLASS__, 'handle_run_queue' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -261,6 +262,39 @@ final class Admin_Menu {
 	}
 
 	/**
+	 * اجرای فوری کارهای در صف (بدون انتظار برای WP-Cron).
+	 *
+	 * @return void
+	 */
+	public static function handle_run_queue(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'دسترسی ندارید.', 'falnic-secure-hls' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'falnic_run_queue' );
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		ignore_user_abort( true );
+
+		$done = Encode_Queue::run_now( 1 );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'post_type' => Post_Type::SLUG,
+					'page'      => 'falnic_hls_encoder',
+					'ran'       => (int) $done,
+				),
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
 	 * انتقال فایل‌های قدیمی از uploads به پوشه‌ی امن.
 	 *
 	 * @return void
@@ -333,7 +367,79 @@ final class Admin_Menu {
 			return;
 		}
 
+		$encoder_jobs  = Encode_Queue::jobs();
+		$encoder_checks = self::encoder_checks();
+
 		include FALNIC_DIR . 'admin/views/encoder.php';
+	}
+
+	/**
+	 * بررسی‌های لازم برای اجرای انکود.
+	 *
+	 * @return array
+	 */
+	private static function encoder_checks(): array {
+		$ffmpeg  = Encoder::ffmpeg_bin();
+		$ffprobe = Encoder::ffprobe_bin();
+
+		return array(
+			array(
+				'label' => __( 'اجرای فرمان در PHP (proc_open/exec)', 'falnic-secure-hls' ),
+				'ok'    => Encoder::can_exec(),
+				'hint'  => __( 'در php.ini یا کانفیگ هاست، disable_functions شامل proc_open و exec نباشد.', 'falnic-secure-hls' ),
+			),
+			array(
+				'label' => __( 'ffmpeg در دسترس است', 'falnic-secure-hls' ),
+				'ok'    => self::binary_exists( $ffmpeg ),
+				'hint'  => __( 'مسیر ffmpeg را در wp-config با FALNIC_FFMPEG_BIN تعریف کنید.', 'falnic-secure-hls' ),
+			),
+			array(
+				'label' => __( 'ffprobe در دسترس است', 'falnic-secure-hls' ),
+				'ok'    => self::binary_exists( $ffprobe ),
+				'hint'  => __( 'ffprobe معمولاً همراه ffmpeg نصب می‌شود؛ مسیر را با FALNIC_FFPROBE_BIN بدهید.', 'falnic-secure-hls' ),
+			),
+			array(
+				'label' => __( 'WP-Cron غیرفعال نشده است', 'falnic-secure-hls' ),
+				'ok'    => ! ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ),
+				'hint'  => __( 'اگر DISABLE_WP_CRON=true است، cron سیستمی برای wp-cron.php بسازید یا دکمه‌ی «اجرای فوری صف» را بزنید.', 'falnic-secure-hls' ),
+			),
+			array(
+				'label' => __( 'پوشه‌ی موقت قابل نوشتن است', 'falnic-secure-hls' ),
+				'ok'    => wp_is_writable( Storage::tmp_dir() ),
+				'hint'  => __( 'مجوز پوشه‌ی falnic-secure/tmp را بررسی کنید.', 'falnic-secure-hls' ),
+			),
+		);
+	}
+
+	/**
+	 * آیا باینری در سرور قابل اجراست؟
+	 *
+	 * @param string $binary مسیر یا نام.
+	 * @return bool
+	 */
+	private static function binary_exists( string $binary ): bool {
+		if ( '' === $binary ) {
+			return false;
+		}
+
+		if ( false !== strpos( $binary, '/' ) ) {
+			return is_executable( $binary );
+		}
+
+		if ( ! function_exists( 'exec' ) ) {
+			return false;
+		}
+
+		$output = array();
+		$code   = 1;
+
+		try {
+			@exec( 'command -v ' . escapeshellarg( $binary ) . ' 2>/dev/null', $output, $code ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec, WordPress.PHP.NoSilencedErrors.Discouraged
+		} catch ( \Throwable $error ) {
+			return false;
+		}
+
+		return 0 === $code && ! empty( $output );
 	}
 
 	/**

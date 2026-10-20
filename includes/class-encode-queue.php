@@ -57,6 +57,49 @@ final class Encode_Queue {
 		add_action( 'wp_ajax_falnic_encode_status', array( __CLASS__, 'ajax_status' ) );
 		add_action( 'wp_ajax_falnic_encode_cancel', array( __CLASS__, 'ajax_cancel' ) );
 		add_action( 'wp_ajax_falnic_encode_retry', array( __CLASS__, 'ajax_retry' ) );
+		add_action( 'admin_init', array( __CLASS__, 'watchdog' ) );
+	}
+
+	/**
+	 * نگهبان صف: اگر رویداد Cron گم شده باشد، دوباره زمان‌بندی می‌کند.
+	 *
+	 * روی هاست‌هایی که loopback مسدود است یا کرون دیر اجرا می‌شود، کارهای
+	 * «در صف» بی‌پایان می‌مانند؛ این متد در هر ورود به پنل آن‌ها را نجات می‌دهد.
+	 *
+	 * @return void
+	 */
+	public static function watchdog(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		foreach ( self::jobs() as $name => $job ) {
+			if ( 'queued' !== ( $job['state'] ?? '' ) ) {
+				continue;
+			}
+
+			$source = (string) ( $job['source'] ?? '' );
+
+			if ( '' === $source || ! is_readable( $source ) ) {
+				continue;
+			}
+
+			$updated = (int) ( $job['updated'] ?? 0 );
+
+			if ( $updated > 0 && ( time() - $updated ) < MINUTE_IN_SECONDS ) {
+				continue;
+			}
+
+			$post_id = (int) ( $job['post_id'] ?? 0 );
+			$user_id = (int) ( $job['user_id'] ?? 0 );
+
+			if ( wp_next_scheduled( self::CRON_HOOK, array( $name, $source, $post_id, $user_id ) ) ) {
+				continue;
+			}
+
+			wp_schedule_single_event( time() + 5, self::CRON_HOOK, array( $name, $source, $post_id, $user_id ) );
+			self::spawn_runner();
+		}
 	}
 
 	/**
@@ -280,7 +323,7 @@ final class Encode_Queue {
 		self::clear_cancel( $name );
 
 		if ( ! $canceled && $user_id > 0 ) {
-			set_transient( 'falnic_encode_error_' . (int) $user_id, (string) ( $result['error'] ?? '' ), 120 );
+			set_transient( 'falnic_encode_error_' . (int) $user_id, (string) ( $result['error'] ?? '' ), 5 * MINUTE_IN_SECONDS );
 		}
 	}
 
@@ -309,6 +352,61 @@ final class Encode_Queue {
 				'variants' => array(),
 			)
 		);
+	}
+
+	/**
+	 * فهرست کارهای صف (تازه‌ترین اول).
+	 *
+	 * @return array<string, array>
+	 */
+	public static function jobs(): array {
+		$jobs = get_option( self::JOBS_OPTION, array() );
+
+		if ( ! is_array( $jobs ) ) {
+			return array();
+		}
+
+		uasort(
+			$jobs,
+			static function ( $a, $b ) {
+				return (int) ( $b['updated'] ?? 0 ) <=> (int) ( $a['updated'] ?? 0 );
+			}
+		);
+
+		return $jobs;
+	}
+
+	/**
+	 * اجرای فوری کارهای در صف، بدون انتظار برای WP-Cron.
+	 *
+	 * @param int $limit حداکثر تعداد کار.
+	 * @return int تعداد کارهای اجراشده.
+	 */
+	public static function run_now( int $limit = 3 ): int {
+		$done = 0;
+
+		foreach ( self::jobs() as $name => $job ) {
+			if ( $done >= max( 1, $limit ) ) {
+				break;
+			}
+
+			if ( 'queued' !== ( $job['state'] ?? '' ) ) {
+				continue;
+			}
+
+			$source = (string) ( $job['source'] ?? '' );
+
+			if ( '' === $source || ! is_readable( $source ) ) {
+				continue;
+			}
+
+			wp_clear_scheduled_hook( self::CRON_HOOK, array( $name, $source, (int) ( $job['post_id'] ?? 0 ), (int) ( $job['user_id'] ?? 0 ) ) );
+			self::run( $name, $source, (int) ( $job['post_id'] ?? 0 ), (int) ( $job['user_id'] ?? 0 ) );
+
+			$done++;
+		}
+
+		return $done;
 	}
 
 	/**

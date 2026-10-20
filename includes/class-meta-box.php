@@ -89,36 +89,106 @@ final class Meta_Box {
 
 		$name = Post_Type::video_name( $post );
 
-		if ( '' !== $name && Storage::is_encoded( $name ) ) {
-			echo '<div style="background:#e7f5ea;border-left:4px solid #46b450;padding:12px;margin-bottom:15px;">';
-			echo '<h4 style="margin:0 0 10px;color:#0a4b16;">' . esc_html__( '✅ ویدیو با موفقیت انکود شده است.', 'falnic-secure-hls' ) . '</h4>';
-			printf(
-				'<p><strong>%1$s</strong> <code>[secure_video name="%2$s"]</code></p>',
-				esc_html__( 'شورت‌کد:', 'falnic-secure-hls' ),
-				esc_html( $name )
-			);
-			echo '</div><hr><p>' . esc_html__( 'برای جایگزینی، می‌توانید فایل جدیدی آپلود کنید:', 'falnic-secure-hls' ) . '</p>';
-		} else {
-			echo '<p>' . esc_html__( 'فایل MP4 خود را انتخاب کنید تا به صورت خودکار رمزنگاری شود:', 'falnic-secure-hls' ) . '</p>';
-		}
-
 		self::render_status( $post, $name );
 
 		echo '<input type="file" name="falnic_video_file" accept="video/mp4,video/x-m4v" style="width:100%;padding:10px;border:1px dashed #ccc;">';
-		echo '<p class="description">' . esc_html__( 'پس از ذخیره، فایل در پس‌زمینه پردازش می‌شود و می‌توانید صفحه را ببندید. پیشرفت کار همین‌جا نمایش داده می‌شود.', 'falnic-secure-hls' ) . '</p>';
+
+		self::render_target( $post );
 
 		self::render_subtitles( $name );
-		if ( '' !== $name ) {
+	}
+
+	/**
+	 * انتخاب دوره و درس LearnDash برای دسترسی.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @return void
+	 */
+	private static function render_target( $post ): void {
+		if ( ! Learn_Dash::is_active() ) {
+			return;
+		}
+
+		$course = (int) get_post_meta( $post->ID, Access::COURSE_META, true );
+		$lesson = (int) get_post_meta( $post->ID, Access::STEP_META, true );
+
+		echo '<hr><table class="form-table falnic-target"><tbody>';
+
+		echo '<tr><th scope="row"><label for="falnic_course_id">' . esc_html__( 'دوره', 'falnic-secure-hls' ) . '</label></th><td>';
+		echo '<select name="falnic_course_id" id="falnic_course_id" style="min-width:320px;">';
+		echo '<option value="0">' . esc_html__( '— انتخاب دوره —', 'falnic-secure-hls' ) . '</option>';
+
+		foreach ( self::courses() as $item ) {
 			printf(
-				'<p class="description">%1$s <code>%2$s</code></p>',
-				esc_html__( 'شناسه‌ی این ویدیو (نام فایل‌ها):', 'falnic-secure-hls' ),
-				esc_html( $name )
+				'<option value="%1$d"%2$s>%3$s</option>',
+				(int) $item->ID,
+				selected( $course, (int) $item->ID, false ),
+				esc_html( get_the_title( $item ) )
 			);
 		}
 
-		echo '<p class="description" style="color:#d63638;font-weight:bold;">';
-		echo esc_html__( '⚠️ عنوان ویدیو (کادر بالا) می‌تواند فارسی باشد؛ اما اگر انگلیسی و بدون فاصله بنویسید، شناسه‌ی خواناتری ساخته می‌شود. شناسه پس از اولین ذخیره تغییر نمی‌کند.', 'falnic-secure-hls' );
-		echo '</p>';
+		echo '</select></td></tr>';
+
+		echo '<tr><th scope="row"><label for="falnic_lesson_id">' . esc_html__( 'درس', 'falnic-secure-hls' ) . '</label></th><td>';
+		echo '<select name="falnic_lesson_id" id="falnic_lesson_id" style="min-width:320px;">';
+		echo '<option value="0">' . esc_html__( '— کل دوره —', 'falnic-secure-hls' ) . '</option>';
+
+		foreach ( self::lessons() as $item ) {
+			$label = get_the_title( $item );
+			$owner = (int) get_post_meta( $item->ID, 'course_id', true );
+
+			if ( $owner > 0 ) {
+				$label .= ' — ' . get_the_title( $owner );
+			}
+
+			printf(
+				'<option value="%1$d"%2$s>%3$s</option>',
+				(int) $item->ID,
+				selected( $lesson, (int) $item->ID, false ),
+				esc_html( $label )
+			);
+		}
+
+		echo '</select></td></tr>';
+		echo '</tbody></table>';
+	}
+
+	/**
+	 * دوره‌های LearnDash.
+	 *
+	 * @return array
+	 */
+	private static function courses(): array {
+		return (array) get_posts(
+			array(
+				'post_type'        => 'sfwd-courses',
+				'post_status'      => array( 'publish', 'private' ),
+				'posts_per_page'   => 200,
+				'orderby'          => 'title',
+				'order'            => 'ASC',
+				'suppress_filters' => true,
+				'no_found_rows'    => true,
+			)
+		);
+	}
+
+	/**
+	 * درس‌ها و مباحث LearnDash.
+	 *
+	 * @return array
+	 */
+	private static function lessons(): array {
+		return (array) get_posts(
+			array(
+				'post_type'        => Access::STEP_TYPES,
+				'post_status'      => array( 'publish', 'private' ),
+				'posts_per_page'   => 500,
+				'orderby'          => 'title',
+				'order'            => 'ASC',
+				'suppress_filters' => true,
+				'no_found_rows'    => true,
+			)
+		);
 	}
 
 	/**
@@ -207,13 +277,11 @@ final class Meta_Box {
 			}
 
 			echo '</ul>';
-			echo '<p class="description">' . esc_html__( 'برای حذف، تیک بزنید و ذخیره کنید.', 'falnic-secure-hls' ) . '</p>';
 		}
 
-		echo '<p><label for="falnic-subtitle-lang">' . esc_html__( 'زبان:', 'falnic-secure-hls' ) . '</label> ';
-		echo '<input type="text" id="falnic-subtitle-lang" name="falnic_subtitle_lang" value="fa" size="5" placeholder="fa"></p>';
-		echo '<input type="file" name="falnic_subtitle" accept=".vtt,text/vtt,text/plain">';
-		echo '<p class="description">' . esc_html__( 'فایل WebVTT (.vtt) را انتخاب کنید؛ دسترسی به آن هم از همان دروازه‌ی امن انجام می‌شود.', 'falnic-secure-hls' ) . '</p>';
+		echo '<p><label for="falnic-subtitle-lang">' . esc_html__( 'زبان', 'falnic-secure-hls' ) . '</label> ';
+		echo '<input type="text" id="falnic-subtitle-lang" name="falnic_subtitle_lang" value="fa" size="5" placeholder="fa"> ';
+		echo '<input type="file" name="falnic_subtitle" accept=".vtt,text/vtt,text/plain"></p>';
 	}
 
 	/**
@@ -255,6 +323,8 @@ final class Meta_Box {
 		if ( ! wp_verify_nonce( $nonce, 'falnic_video_upload' ) ) {
 			return;
 		}
+
+		self::save_target( (int) $post_id );
 
 		self::save_subtitles( $post, $name );
 
@@ -322,6 +392,43 @@ final class Meta_Box {
 		if ( empty( $queued['ok'] ) ) {
 			self::fail_upload( $queued['message'] );
 		}
+	}
+
+	/**
+	 * ذخیره‌ی اتصال ویدیو به دوره و درس.
+	 *
+	 * @param int $post_id شناسه‌ی پست.
+	 * @return void
+	 */
+	private static function save_target( int $post_id ): void {
+		if ( ! isset( $_POST['falnic_course_id'] ) && ! isset( $_POST['falnic_lesson_id'] ) ) {
+			return;
+		}
+
+		$course = isset( $_POST['falnic_course_id'] ) ? absint( wp_unslash( $_POST['falnic_course_id'] ) ) : 0;
+		$lesson = isset( $_POST['falnic_lesson_id'] ) ? absint( wp_unslash( $_POST['falnic_lesson_id'] ) ) : 0;
+
+		$course = 'sfwd-courses' === get_post_type( $course ) ? $course : 0;
+		$lesson = in_array( (string) get_post_type( $lesson ), Access::STEP_TYPES, true ) ? $lesson : 0;
+
+		// اگر فقط درس انتخاب شده باشد، دوره از خود درس گرفته می‌شود.
+		if ( 0 === $course && $lesson > 0 ) {
+			$course = (int) get_post_meta( $lesson, 'course_id', true );
+		}
+
+		if ( $course > 0 ) {
+			update_post_meta( $post_id, Access::COURSE_META, $course );
+		} else {
+			delete_post_meta( $post_id, Access::COURSE_META );
+		}
+
+		if ( $lesson > 0 ) {
+			update_post_meta( $post_id, Access::STEP_META, $lesson );
+		} else {
+			delete_post_meta( $post_id, Access::STEP_META );
+		}
+
+		Access::flush();
 	}
 
 	/**
@@ -401,7 +508,7 @@ final class Meta_Box {
 	 * @return void
 	 */
 	private static function fail_upload( string $message ): void {
-		set_transient( 'falnic_encode_error_' . get_current_user_id(), $message, 60 );
+		set_transient( 'falnic_encode_error_' . get_current_user_id(), $message, 5 * MINUTE_IN_SECONDS );
 	}
 
 	/**

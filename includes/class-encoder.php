@@ -54,7 +54,7 @@ final class Encoder {
 	 * @return string
 	 */
 	public static function ffmpeg_bin(): string {
-		$bin = defined( 'FALNIC_FFMPEG_BIN' ) ? FALNIC_FFMPEG_BIN : 'ffmpeg';
+		$bin = defined( 'FALNIC_FFMPEG_BIN' ) ? (string) FALNIC_FFMPEG_BIN : self::detect_binary( 'ffmpeg' );
 
 		/**
 		 * فیلتر مسیر باینری ffmpeg.
@@ -65,12 +65,82 @@ final class Encoder {
 	}
 
 	/**
+	 * یافتن خودکار باینری در مسیرهای رایج هاست.
+	 *
+	 * روی هاست‌های اشتراکی معمولاً PATH سرویس PHP شامل ffmpeg نیست و
+	 * نوشتن مسیر کامل در wp-config لازم می‌شود؛ این متد آن را خودکار می‌کند.
+	 *
+	 * @param string $name نام باینری (ffmpeg|ffprobe).
+	 * @return string مسیر یا نام خالی‌نشده.
+	 */
+	public static function detect_binary( string $name ): string {
+		// در محیط تست/بدون دسترسی shell، جست‌وجو انجام نمی‌شود.
+		if ( defined( 'FALNIC_SKIP_BINARY_PROBE' ) && FALNIC_SKIP_BINARY_PROBE ) {
+			return $name;
+		}
+
+		$cached = get_option( 'falnic_bin_' . $name, '' );
+
+		if ( is_string( $cached ) && '' !== $cached && ( false === strpos( $cached, '/' ) || is_executable( $cached ) ) ) {
+			return $cached;
+		}
+
+		$candidates = array(
+			'/usr/bin/' . $name,
+			'/usr/local/bin/' . $name,
+			'/opt/bin/' . $name,
+			'/opt/' . $name . '/bin/' . $name,
+			'/usr/local/ffmpeg/bin/' . $name,
+			'/home/*/bin/' . $name,
+		);
+
+		foreach ( $candidates as $path ) {
+			if ( false === strpos( $path, '*' ) && is_executable( $path ) ) {
+				update_option( 'falnic_bin_' . $name, $path, false );
+
+				return $path;
+			}
+		}
+
+		// نتیجه‌ی منفی یک ساعت کش می‌شود تا در هر درخواست جست‌وجو تکرار نشود.
+		$missing = (int) get_option( 'falnic_bin_missing_' . $name, 0 );
+
+		if ( $missing > 0 && ( time() - $missing ) < HOUR_IN_SECONDS ) {
+			return $name;
+		}
+
+		// جست‌وجوی shell فقط اگر php اجازه دهد (در برخی محیط‌ها exec خطا می‌دهد).
+		if ( function_exists( 'exec' ) ) {
+			try {
+				$output = array();
+				$code   = 1;
+
+				@exec( 'command -v ' . escapeshellarg( $name ) . ' 2>/dev/null', $output, $code ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec, WordPress.PHP.NoSilencedErrors.Discouraged
+
+				if ( 0 === $code && ! empty( $output[0] ) && is_executable( trim( (string) $output[0] ) ) ) {
+					$path = trim( (string) $output[0] );
+					update_option( 'falnic_bin_' . $name, $path, false );
+
+					return $path;
+				}
+			} catch ( \Throwable $error ) {
+				// محیطی که exec را نمی‌پذیرد؛ به نام باینری برمی‌گردیم.
+				unset( $error );
+			}
+		}
+
+		update_option( 'falnic_bin_missing_' . $name, time(), false );
+
+		return $name;
+	}
+
+	/**
 	 * مسیر باینری ffprobe (همراه ffmpeg نصب می‌شود).
 	 *
 	 * @return string
 	 */
 	public static function ffprobe_bin(): string {
-		$bin = defined( 'FALNIC_FFPROBE_BIN' ) ? FALNIC_FFPROBE_BIN : 'ffprobe';
+		$bin = defined( 'FALNIC_FFPROBE_BIN' ) ? (string) FALNIC_FFPROBE_BIN : self::detect_binary( 'ffprobe' );
 
 		/**
 		 * فیلتر مسیر باینری ffprobe.

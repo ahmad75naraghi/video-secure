@@ -30,6 +30,16 @@ final class Access {
 	public const LESSON_META = '_falnic_video_name';
 
 	/**
+	 * متای اتصال دستی ویدیو به دوره (روی خود پست ویدیو).
+	 */
+	public const COURSE_META = 'falnic_course_id';
+
+	/**
+	 * متای اتصال دستی ویدیو به درس/مبحث (روی خود پست ویدیو).
+	 */
+	public const STEP_META = 'falnic_lesson_id';
+
+	/**
 	 * پست‌تایپ‌هایی که ویدیو به آن‌ها متصل می‌شود.
 	 */
 	public const STEP_TYPES = array( 'sfwd-lessons', 'sfwd-topic' );
@@ -142,8 +152,9 @@ final class Access {
 		}
 
 		$lessons = self::linked_lesson_ids( $name );
+		$manual  = self::manual_target( $name );
 
-		if ( empty( $lessons ) ) {
+		if ( empty( $lessons ) && empty( $manual['course'] ) && empty( $manual['lesson'] ) ) {
 			if ( self::enrollment_required() ) {
 				return self::course_agnostic_allowed( $user_id, $name ) ? 'ok' : 'not_linked';
 			}
@@ -177,7 +188,48 @@ final class Access {
 			return 'ok';
 		}
 
+		// اتصال دستی از خود پست ویدیو: کافی است کاربر در دوره ثبت‌نام کرده باشد.
+		if ( ! empty( $manual['course'] ) || ! empty( $manual['lesson'] ) ) {
+			$course_id = (int) $manual['course'];
+
+			if ( $course_id <= 0 ) {
+				$course_id = self::course_id( (int) $manual['lesson'] );
+			}
+
+			if ( $course_id > 0 && self::is_enrolled( $course_id, $user_id ) ) {
+				if ( ! empty( $manual['lesson'] ) && self::is_locked( (int) $manual['lesson'], $course_id, $user_id ) ) {
+					return 'locked';
+				}
+
+				return 'ok';
+			}
+		}
+
 		return $locked ? 'locked' : 'not_enrolled';
+	}
+
+	/**
+	 * اتصال دستی ویدیو به دوره/درس (از صفحه‌ی ویرایش ویدیوی امن).
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return array{course: int, lesson: int}
+	 */
+	public static function manual_target( string $name ): array {
+		$empty = array(
+			'course' => 0,
+			'lesson' => 0,
+		);
+
+		$post_id = self::video_post_id( $name );
+
+		if ( $post_id <= 0 ) {
+			return $empty;
+		}
+
+		return array(
+			'course' => (int) get_post_meta( $post_id, self::COURSE_META, true ),
+			'lesson' => (int) get_post_meta( $post_id, self::STEP_META, true ),
+		);
 	}
 
 	/**
@@ -211,6 +263,42 @@ final class Access {
 		if ( function_exists( 'wp_cache_flush_group' ) ) {
 			wp_cache_flush_group( 'falnic' );
 		}
+	}
+
+	/**
+	 * شناسه‌ی پست ویدیو از روی نام پایدار.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return int
+	 */
+	private static function video_post_id( string $name ): int {
+		$cache_key = 'post_' . md5( $name );
+
+		if ( isset( self::$memo[ $cache_key ] ) ) {
+			return (int) self::$memo[ $cache_key ];
+		}
+
+		// مقادیر ثابت پست‌تایپ ویدیو (بدون وابستگی به بارگذاری Post_Type).
+		$posts = get_posts(
+			array(
+				'post_type'        => 'secure_video',
+				'post_status'      => 'any',
+				'posts_per_page'   => 1,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_key'         => 'falnic_video_name',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_value'       => $name,
+			)
+		);
+
+		$post_id = empty( $posts ) ? 0 : (int) $posts[0];
+
+		self::$memo[ $cache_key ] = $post_id;
+
+		return $post_id;
 	}
 
 	/**
@@ -338,6 +426,20 @@ final class Access {
 	 * @return int
 	 */
 	public static function course_for_name( string $name ): int {
+		$manual = self::manual_target( $name );
+
+		if ( $manual['course'] > 0 ) {
+			return (int) $manual['course'];
+		}
+
+		if ( $manual['lesson'] > 0 ) {
+			$course_id = self::course_id( (int) $manual['lesson'] );
+
+			if ( $course_id > 0 ) {
+				return $course_id;
+			}
+		}
+
 		foreach ( self::linked_lesson_ids( $name ) as $lesson_id ) {
 			$course_id = self::course_id( (int) $lesson_id );
 
@@ -357,11 +459,24 @@ final class Access {
 	 */
 	public static function courses_for( string $name ): array {
 		$courses = array();
+		$ids     = array();
+
+		$manual = self::manual_target( $name );
+
+		if ( $manual['course'] > 0 ) {
+			$ids[] = (int) $manual['course'];
+		}
+
+		if ( $manual['lesson'] > 0 ) {
+			$ids[] = self::course_id( (int) $manual['lesson'] );
+		}
 
 		foreach ( self::linked_lesson_ids( $name ) as $lesson_id ) {
-			$course_id = self::course_id( (int) $lesson_id );
+			$ids[] = self::course_id( (int) $lesson_id );
+		}
 
-			if ( $course_id <= 0 || isset( $courses[ $course_id ] ) ) {
+		foreach ( array_filter( array_unique( $ids ) ) as $course_id ) {
+			if ( isset( $courses[ $course_id ] ) ) {
 				continue;
 			}
 

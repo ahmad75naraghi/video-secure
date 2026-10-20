@@ -22,6 +22,8 @@
  * @var array  $status
  */
 
+use Falnic\SecureHLS\Admin_Tabs;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

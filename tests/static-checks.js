@@ -285,6 +285,82 @@ check(
 	'غیرفعال‌سازی افزونه رویدادهای زمان‌بندی‌شده را پاک می‌کند'
 );
 
+/* ۱۲.۳) نماها: هر کلاس نام‌فضایی باید use شده باشد (باگ واقعی: Class "Admin_Tabs" not found) */
+function ourClasses() {
+	const map = {};
+	[ 'includes', 'admin' ].forEach( ( dir ) => {
+		fs.readdirSync( path.join( ROOT, dir ) )
+			.filter( ( f ) => /^class-.*\.php$/.test( f ) )
+			.forEach( ( f ) => {
+				// قاعده‌ی نام‌گذاری وردپرس: class-meta-box.php → Meta_Box
+				const name = f.replace( /^class-/, '' ).replace( /\.php$/, '' )
+					.split( '-' ).map( ( p ) => p.charAt( 0 ).toUpperCase() + p.slice( 1 ) ).join( '_' );
+				map[ name ] = true;
+			} );
+	} );
+	return map;
+}
+
+const our = ourClasses();
+const viewDirs = [ 'admin/views', 'templates' ];
+const unresolved = [];
+
+viewDirs.forEach( ( dir ) => {
+	fs.readdirSync( path.join( ROOT, dir ) )
+		.filter( ( f ) => f.endsWith( '.php' ) )
+		.forEach( ( f ) => {
+			const rel = dir + '/' + f;
+			const code = read( rel );
+			const used = new Set( [ ...code.matchAll( /^\s*use\s+Falnic\\SecureHLS\\(\w+);/gm ) ].map( ( m ) => m[ 1 ] ) );
+			const re = /(?<![\\\w])([A-Z]\w+)::/g;
+			let m;
+			while ( ( m = re.exec( code ) ) !== null ) {
+				if ( our[ m[ 1 ] ] && ! used.has( m[ 1 ] ) ) {
+					unresolved.push( rel + ' → ' + m[ 1 ] );
+				}
+			}
+		} );
+} );
+
+check(
+	unresolved.length === 0,
+	'همه‌ی کلاس‌های نام‌فضایی در نماها use شده‌اند',
+	unresolved.join( ', ' )
+);
+
+/* ۱۲.۴) اتصال ویدیو به دوره/درس از صفحه‌ی ویرایش */
+const accessSrc = read( 'includes/class-access.php' );
+check(
+	/falnic_course_id/.test( accessSrc ) && /falnic_lesson_id/.test( accessSrc ),
+	'دسترسی، اتصال دستی ویدیو به دوره/درس را می‌شناسد'
+);
+check(
+	/name="falnic_course_id"/.test( metaBox ) && /name="falnic_lesson_id"/.test( metaBox ),
+	'صفحه‌ی ویرایش ویدیو انتخاب دوره و درس دارد'
+);
+check(
+	/manual_target/.test( accessSrc ) && /is_enrolled\(\s*\$course_id/.test( accessSrc ),
+	'دسترسی دستی بر پایه‌ی ثبت‌نام همان دوره است'
+);
+check(
+	!/falnic_video_upload\'\).*توضیح/s.test( metaBox ),
+	'متاباکس ویدیو بدون متن توضیحی است'
+);
+
+/* ۱۲.۵) تشخیص خودکار ffmpeg و اجرای فوری صف */
+check(
+	/detect_binary/.test( read( 'includes/class-encoder.php' ) ),
+	'مسیر ffmpeg/ffprobe خودکار تشخیص داده می‌شود'
+);
+check(
+	/falnic_run_queue/.test( read( 'admin/class-admin-menu.php' ) ) && /run_now/.test( queue ),
+	'دکمه‌ی «اجرای فوری صف» وجود دارد'
+);
+check(
+	/encoder_checks/.test( read( 'admin/class-admin-menu.php' ) ),
+	'صفحه‌ی انکودر پیش‌نیازها را بررسی می‌کند'
+);
+
 /* ۱۳) سازگاری با PHP 7.4 */
 const php74Banned = [
 	[ /\?\?=/, 'عملگر ??=' ],

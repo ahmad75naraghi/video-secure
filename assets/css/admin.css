@@ -319,3 +319,13 @@
 	font-size: 12px;
 	white-space: pre-wrap;
 }
+
+/* انتخاب دوره/درس در متاباکس ویدیو */
+.falnic-target th {
+	width: 90px;
+	font-weight: 600;
+}
+
+.falnic-target select {
+	max-width: 100%;
+}

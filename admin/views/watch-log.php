@@ -16,6 +16,9 @@
  * @var int    $watch_page    صفحه‌ی جاری.
  */
 
+use Falnic\SecureHLS\Admin_Tabs;
+use Falnic\SecureHLS\Post_Type;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

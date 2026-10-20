@@ -17,6 +17,7 @@ $GLOBALS['falnic_tmp'] = sys_get_temp_dir() . '/falnic-access-' . bin2hex( rando
 define( 'ABSPATH', $GLOBALS['falnic_tmp'] . '/wp/' );
 define( 'FALNIC_DIR', $falnic_root . '/' );
 define( 'FALNIC_VERSION', '3.3.0' );
+define( 'FALNIC_SKIP_BINARY_PROBE', true ); // جست‌وجوی shell در تست لازم نیست
 define( 'MINUTE_IN_SECONDS', 60 );
 
 /*
@@ -82,6 +83,8 @@ $GLOBALS['falnic_current']   = 7;
 $GLOBALS['falnic_caps']      = array();
 $GLOBALS['falnic_links']     = array();
 $GLOBALS['falnic_course_of'] = array();
+$GLOBALS['falnic_video_posts'] = array();
+$GLOBALS['falnic_post_meta']   = array();
 $GLOBALS['falnic_enrolled']  = array();
 $GLOBALS['falnic_locked']    = array();
 
@@ -136,12 +139,17 @@ function current_user_can( $cap ) {
 function get_posts( $args = array() ) {
 	$name = isset( $args['meta_value'] ) ? (string) $args['meta_value'] : '';
 
+	// جست‌وجوی پست ویدیو بر اساس نام پایدار.
+	if ( isset( $args['post_type'] ) && 'secure_video' === $args['post_type'] ) {
+		return $GLOBALS['falnic_video_posts'][ $name ] ?? array();
+	}
+
 	return $GLOBALS['falnic_links'][ $name ] ?? array();
 }
 
 /** @param int    $post_id @param string $key @param bool $single @return mixed */
 function get_post_meta( $post_id, $key = '', $single = false ) { // phpcs:ignore
-	return '';
+	return $GLOBALS['falnic_post_meta'][ (int) $post_id ][ $key ] ?? '';
 }
 
 /** @param int    $user_id @param string $key @param bool $single @return mixed */
@@ -524,6 +532,53 @@ update_option( 'falnic_ld_require_enrollment', 'no' );
 Falnic\SecureHLS\Access::flush();
 falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'free-video' ), 'حالت غیرالزامی، کاربر لاگین را می‌پذیرد' );
 update_option( 'falnic_ld_require_enrollment', 'yes' );
+Falnic\SecureHLS\Access::flush();
+
+/* -------------------------------------------------------------------------
+ * ۳.۱) اتصال دستی ویدیو به دوره/درس از صفحه‌ی ویرایش ویدیو
+ * ---------------------------------------------------------------------- */
+falnic_make_video( 'manual-video' );
+$GLOBALS['falnic_video_posts']['manual-video'] = array( 77 );
+$GLOBALS['falnic_post_meta'][77]               = array(
+	Falnic\SecureHLS\Access::COURSE_META => 900,
+);
+$GLOBALS['falnic_course_of'][900]              = 900;
+Falnic\SecureHLS\Access::flush();
+$GLOBALS['falnic_current'] = 7;
+
+if ( $GLOBALS['falnic_ld_off'] ) {
+	falnic_check( 'not_enrolled' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'بدون LearnDash اتصال دستی هم باز نمی‌شود' );
+} else {
+	$GLOBALS['falnic_enrolled'][900] = array();
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'not_enrolled' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'اتصال دستی بدون ثبت‌نام مسدود است' );
+
+	$GLOBALS['falnic_enrolled'][900] = array( 7 );
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'ثبت‌نام در دوره‌ی متصل‌شده دسترسی می‌دهد' );
+
+	// اتصال به درس: قفل Drip باید رعایت شود.
+	$GLOBALS['falnic_post_meta'][77][ Falnic\SecureHLS\Access::STEP_META ] = 502;
+	$GLOBALS['falnic_course_of'][502] = 900;
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'اتصال به درس دوره را از خود درس می‌گیرد' );
+
+	$GLOBALS['falnic_locked'][502] = true;
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'locked' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'درس بازنشده در اتصال دستی هم قفل است' );
+	$GLOBALS['falnic_locked'] = array();
+
+	// مدیر همیشه دسترسی دارد.
+	$GLOBALS['falnic_caps'][7] = array( 'manage_options' );
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'manual-video' ), 'مدیر به ویدیوی متصل دستی هم دسترسی دارد' );
+	$GLOBALS['falnic_caps'] = array();
+
+	falnic_check( 900 === Falnic\SecureHLS\Access::course_for_name( 'manual-video' ), 'دوره‌ی اتصال دستی در گزارش ثبت می‌شود' );
+}
+
+$GLOBALS['falnic_post_meta'][77] = array();
+$GLOBALS['falnic_video_posts']   = array();
 Falnic\SecureHLS\Access::flush();
 
 // ویدیوی انکودنشده
