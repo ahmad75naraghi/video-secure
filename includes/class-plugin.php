@@ -61,11 +61,15 @@ final class Plugin {
 
 		add_action( 'init', array( $this, 'load_textdomain' ) );
 
+		Installer::maybe_upgrade();
+
 		Assets::init();
 		Post_Type::init();
 		Meta_Box::init();
 		Player::init();
 		Embed::init();
+		Learn_Dash::init();
+		Stream::init();
 		Key_Server::init();
 		Session::init();
 

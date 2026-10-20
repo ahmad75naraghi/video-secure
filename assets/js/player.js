@@ -47,7 +47,9 @@
 			wmY: 40,
 			ctx: null,
 			moveTimer: 0,
-			destroyed: false
+			destroyed: false,
+			loading: false,
+			retried: false
 		};
 
 		var i18n = config.i18n || {};
@@ -217,6 +219,10 @@
 		 * نمایش خطا
 		 * ------------------------------------------------------------------ */
 		function showError( message ) {
+			if ( root.querySelector( '.falnic-error' ) ) {
+				return;
+			}
+
 			var box = document.createElement( 'div' );
 
 			box.className   = 'falnic-error';
@@ -254,42 +260,128 @@
 			video.controls = true;
 		}
 
-		if ( window.Hls && window.Hls.isSupported() ) {
-			state.hls = new window.Hls( {
-				xhrSetup: function ( xhr, url ) {
-					if ( url.indexOf( 'secure_hls_key' ) !== -1 ) {
+		/* ---------------------------------------------------------------------
+		 * نشست پخش: توکن کوتاه‌عمر پیش از هر بار بارگذاری
+		 * ------------------------------------------------------------------ */
+		function fetchSession() {
+			var body = 'video=' + encodeURIComponent( config.name || '' );
+
+			return fetch( config.sessionUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body
+			} ).then( function ( response ) {
+				return response.json().catch( function () {
+					return null;
+				} );
+			} ).then( function ( payload ) {
+				if ( ! payload || ! payload.success || ! payload.data || ! payload.data.src ) {
+					var message = payload && payload.data && payload.data.message
+						? payload.data.message
+						: ( i18n.sessionError || i18n.error );
+
+					throw new Error( message );
+				}
+
+				return payload.data;
+			} );
+		}
+
+		function startStream( src ) {
+			if ( ! src ) {
+				showError( i18n.error );
+				return;
+			}
+
+			if ( window.Hls && window.Hls.isSupported() ) {
+				state.hls = new window.Hls( {
+					xhrSetup: function ( xhr ) {
 						xhr.withCredentials = true;
 					}
-				}
-			} );
+				} );
 
-			state.hls.on( window.Hls.Events.ERROR, function ( event, data ) {
-				if ( ! data || ! data.fatal ) {
-					return;
-				}
+				state.hls.on( window.Hls.Events.ERROR, function ( event, data ) {
+					if ( ! data || ! data.fatal ) {
+						return;
+					}
 
-				if ( data.type === window.Hls.ErrorTypes.NETWORK_ERROR ) {
-					state.hls.startLoad();
+					if ( data.type === window.Hls.ErrorTypes.NETWORK_ERROR ) {
+						if ( ! state.retried && config.sessionUrl ) {
+							state.retried = true;
+							destroyStream();
+							loadStream();
+							return;
+						}
 
-					return;
-				}
+						state.hls.startLoad();
 
-				if ( data.type === window.Hls.ErrorTypes.MEDIA_ERROR ) {
-					state.hls.recoverMediaError();
+						return;
+					}
 
-					return;
-				}
+					if ( data.type === window.Hls.ErrorTypes.MEDIA_ERROR ) {
+						state.hls.recoverMediaError();
 
-				showError( i18n.error );
-			} );
+						return;
+					}
 
-			state.hls.loadSource( config.src );
-			state.hls.attachMedia( video );
-		} else if ( video.canPlayType( 'application/vnd.apple.mpegurl' ) ) {
-			video.src = config.src;
-		} else {
+					showError( i18n.error );
+				} );
+
+				state.hls.loadSource( src );
+				state.hls.attachMedia( video );
+
+				return;
+			}
+
+			if ( video.canPlayType( 'application/vnd.apple.mpegurl' ) ) {
+				video.src = src;
+
+				return;
+			}
+
 			showError( i18n.unsupported );
 		}
+
+		function destroyStream() {
+			if ( state.hls ) {
+				state.hls.destroy();
+				state.hls = null;
+			}
+		}
+
+		function applyWatermark( watermark ) {
+			if ( ! watermark || ! watermark.line1 ) {
+				return;
+			}
+
+			config.watermark = Object.assign( {}, config.watermark || {}, watermark );
+			draw();
+		}
+
+		function loadStream() {
+			if ( ! config.sessionUrl ) {
+				startStream( config.src );
+				return;
+			}
+
+			if ( state.loading || state.destroyed ) {
+				return;
+			}
+
+			state.loading = true;
+
+			fetchSession().then( function ( session ) {
+				state.loading = false;
+				applyWatermark( session.watermark );
+				startStream( session.src || config.src );
+			} ).catch( function ( error ) {
+				state.loading = false;
+				showError( error && error.message ? error.message : ( i18n.sessionError || i18n.error ) );
+			} );
+		}
+
+		loadStream();
 
 		var moveInterval = config.watermark && config.watermark.interval
 			? Math.max( 5000, parseInt( config.watermark.interval, 10 ) * 1000 )
@@ -312,9 +404,7 @@
 			window.removeEventListener( 'focus', onFocus );
 			window.removeEventListener( 'resize', resizeCanvas );
 
-			if ( state.hls ) {
-				state.hls.destroy();
-			}
+			destroyStream();
 
 			if ( pauseOverlay && pauseOverlay.parentNode ) {
 				pauseOverlay.parentNode.removeChild( pauseOverlay );

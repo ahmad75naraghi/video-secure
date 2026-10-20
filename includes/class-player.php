@@ -54,37 +54,40 @@ final class Player {
 			return '';
 		}
 
-		if ( ! Storage::is_encoded( $name ) ) {
-			return '';
-		}
+		$reason = Access::reason( $name );
 
 		Assets::enqueue();
+
+		if ( 'ok' !== $reason ) {
+			return self::render_notice( $reason, $name );
+		}
 
 		$html_id = wp_unique_id( 'secure-vid-' );
 
 		$template = Template_Settings::get();
 
-		$watermark = self::watermark_lines();
-
-		if ( 'no' === $template['wm_show_email'] ) {
-			$watermark['line2'] = '';
-		}
-
 		$config = array(
-			'id'        => $html_id,
-			'src'       => Storage::playlist_url( $name ),
-			'watermark' => array_merge(
-				$watermark,
+			'id'         => $html_id,
+			'name'       => $name,
+			'sessionUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_SESSION ),
+			// متن واترمارک عمداً در HTML نیست؛ از پاسخ نشست (مخصوص همان کاربر) می‌آید.
+			'watermark'  => array_merge(
+				array(
+					'line1' => '',
+					'line2' => '',
+				),
 				array(
 					'opacity'  => (float) $template['wm_opacity'],
 					'interval' => (int) $template['wm_interval'],
 					'scale'    => (float) $template['wm_font_scale'],
 				)
 			),
-			'i18n'      => array(
-				'resume'  => __( 'برای ادامه پخش روی صفحه کلیک کنید', 'falnic-secure-hls' ),
-				'error'   => __( 'خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
-				'unsupported' => __( 'مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.', 'falnic-secure-hls' ),
+			'i18n'       => array(
+				'resume'       => __( 'برای ادامه پخش روی صفحه کلیک کنید', 'falnic-secure-hls' ),
+				'error'        => __( 'خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'unsupported'  => __( 'مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.', 'falnic-secure-hls' ),
+				'sessionError' => __( 'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.', 'falnic-secure-hls' ),
+				'expired'      => __( 'زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
 			),
 		);
 
@@ -106,15 +109,15 @@ final class Player {
 		);
 
 		ob_start();
-		$template = FALNIC_DIR . 'templates/player.php';
+		$template_path = FALNIC_DIR . 'templates/player.php';
 
-		if ( is_readable( $template ) ) {
+		if ( is_readable( $template_path ) ) {
 			/**
 			 * متغیرهای موجود در قالب: $args
 			 *
 			 * @var array $args
 			 */
-			include $template;
+			include $template_path;
 		}
 
 		return (string) ob_get_clean();
@@ -125,7 +128,7 @@ final class Player {
 	 *
 	 * @return array
 	 */
-	private static function watermark_lines(): array {
+	public static function watermark_lines(): array {
 		$lines = array(
 			'line1' => '',
 			'line2' => '',
@@ -138,8 +141,10 @@ final class Player {
 		$user = wp_get_current_user();
 		$full = trim( $user->first_name . ' ' . $user->last_name );
 
+		$template = Template_Settings::get();
+
 		$lines['line1'] = '' !== $full ? sprintf( '%s (%s)', $full, $user->user_login ) : $user->user_login;
-		$lines['line2'] = (string) $user->user_email;
+		$lines['line2'] = 'no' === $template['wm_show_email'] ? '' : (string) $user->user_email;
 
 		/**
 		 * فیلتر خطوط واترمارک.
@@ -148,5 +153,76 @@ final class Player {
 		 * @param int   $user_id شناسه‌ی کاربر.
 		 */
 		return (array) apply_filters( 'falnic_watermark_lines', $lines, $user->ID );
+	}
+
+	/**
+	 * پیام حرفه‌ای عدم دسترسی (به‌جای پلیر).
+	 *
+	 * @param string $reason دلیل.
+	 * @param string $name   نام ویدیو.
+	 * @return string
+	 */
+	private static function render_notice( string $reason, string $name ): string {
+		$message  = Access::message( $reason );
+		$courses  = in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array();
+		$login    = 'guest' === $reason ? wp_login_url( self::current_url() ) : '';
+
+		ob_start();
+		?>
+		<div class="falnic-secure-container falnic-denied" dir="rtl" data-falnic-denied>
+			<div class="falnic-denied-inner">
+				<span class="falnic-denied-icon" aria-hidden="true">🔒</span>
+				<h3 class="falnic-denied-title"><?php esc_html_e( 'دسترسی محدود', 'falnic-secure-hls' ); ?></h3>
+				<p class="falnic-denied-text"><?php echo esc_html( $message ); ?></p>
+
+				<?php if ( ! empty( $courses ) ) : ?>
+					<p class="falnic-denied-links">
+						<?php foreach ( $courses as $course ) : ?>
+							<?php if ( ! empty( $course['url'] ) ) : ?>
+								<a class="falnic-denied-btn" href="<?php echo esc_url( $course['url'] ); ?>">
+									<?php
+									printf(
+										/* translators: %s: عنوان دوره */
+										esc_html__( 'مشاهده دوره: %s', 'falnic-secure-hls' ),
+										esc_html( (string) $course['title'] )
+									);
+									?>
+								</a>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</p>
+				<?php endif; ?>
+
+				<?php if ( '' !== $login ) : ?>
+					<p class="falnic-denied-links">
+						<a class="falnic-denied-btn" href="<?php echo esc_url( $login ); ?>">
+							<?php esc_html_e( 'ورود به حساب کاربری', 'falnic-secure-hls' ); ?>
+						</a>
+					</p>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * نشانی صفحه‌ی جاری برای بازگشت پس از ورود.
+	 *
+	 * @return string
+	 */
+	private static function current_url(): string {
+		$post_id = (int) get_the_ID();
+
+		if ( $post_id > 0 ) {
+			$permalink = get_permalink( $post_id );
+
+			if ( is_string( $permalink ) && '' !== $permalink ) {
+				return $permalink;
+			}
+		}
+
+		return home_url( '/' );
 	}
 }

@@ -118,7 +118,105 @@ check( ! /innerHTML/.test( adminJs ), 'در JS از innerHTML استفاده ن�
 check( /nonce/.test( adminJs ), 'درخواست‌های JS شامل nonce هستند' );
 check( /credentials:\s*'same-origin'/.test( adminJs ), 'درخواست‌های JS با کوکی same-origin ارسال می‌شوند' );
 
-/* ۱۱) سازگاری با PHP 7.4 */
+/* ۱۱) دروازه‌ی استریم و کنترل دسترسی */
+const stream = read( 'includes/class-stream.php' );
+const access = read( 'includes/class-access.php' );
+const token = read( 'includes/class-token.php' );
+const learnDash = read( 'includes/class-learn-dash.php' );
+const storage = read( 'includes/class-storage.php' );
+const player = read( 'includes/class-player.php' );
+const keyServer = read( 'includes/class-key-server.php' );
+const adminMenu = read( 'admin/class-admin-menu.php' );
+
+[ 'manifest', 'segment', 'key' ].forEach( ( method ) => {
+	const body = stream.slice(
+		stream.indexOf( 'public static function ' + method + '()' ),
+		stream.indexOf( 'public static function', stream.indexOf( 'public static function ' + method + '()' ) + 10 )
+	);
+	check( /Token::verify/.test( body ), 'دروازه‌ی ' + method + ': توکن بررسی می‌شود' );
+	check( /Access::reason/.test( body ), 'دروازه‌ی ' + method + ': دسترسی دوباره بررسی می‌شود' );
+} );
+
+check( /hash_equals/.test( token ) && /hash_hmac\(\s*'sha256'/.test( token ), 'امضای توکن با HMAC-SHA256 و مقایسه‌ی زمان‌ثابت' );
+check( ! /\b(md5|sha1)\s*\(/.test( token ), 'توکن از md5/sha1 استفاده نمی‌کند' );
+check( /'scope'|SCOPE_KEY/.test( token ), 'توکن دامنه (scope) دارد' );
+check( /falnic_token_user/.test( token ), 'توکن به کاربر گره می‌خورد' );
+
+check( /Require all denied/.test( storage ), 'دسترسی مستقیم به پوشه‌ی رسانه بسته است' );
+check( /realpath\(/.test( storage ), 'مسیر فایل با realpath بررسی می‌شود' );
+check( ! /playlist_url|videos_url/.test( storage ), 'هیچ URL عمومی برای پلی‌لیست ساخته نمی‌شود' );
+check( ! /playlist_url|videos_url/.test( player ), 'پلیر آدرس فیزیکی/عمومی ویدیو را در HTML نمی‌گذارد' );
+
+check( /sessionUrl/.test( player ), 'پلیر نشست را از سرور می‌گیرد' );
+check( /Access::reason/.test( player ), 'پلیر پیش از رندر دسترسی را بررسی می‌کند' );
+check( ! /'src'\s*=>/.test( player ), 'پلیر هیچ src عمومی در پیکربندی نمی‌گذارد' );
+
+check( /Access::reason/.test( keyServer ), 'اندپوینت سازگاری کلید هم دسترسی را بررسی می‌کند' );
+check( /sfwd_lms_has_access/.test( access ), 'بررسی ثبت‌نام با sfwd_lms_has_access انجام می‌شود' );
+check( /learndash_get_course_id/.test( access ), 'دوره از learndash_get_course_id خوانده می‌شود' );
+check( ! /post_meta\s*\(.*_sfwd|wpdb->query/.test( access ), 'هیچ کوئری SQL مستقیم در بررسی دسترسی نیست' );
+
+check( /wp_verify_nonce/.test( learnDash ) && /current_user_can\(\s*'edit_post'/.test( learnDash ), 'متاباکس درس nonce و دسترسی دارد' );
+check( /the_content/.test( learnDash ) && /falnic_lesson_video/.test( learnDash ), 'نمایش خودکار و شورت‌کد درس پیاده شده است' );
+
+check( /falnic_migrate_storage/.test( adminMenu ) && /check_admin_referer/.test( adminMenu ), 'مهاجرت فایل‌ها با nonce محافظت می‌شود' );
+
+check( ! /error_log\s*\(/.test( token + stream + access ), 'هیچ توکن/خطای حساسی لاگ نمی‌شود' );
+
+/* ۱۲) همه‌ی ارجاع‌های Class::method معتبرند (جلوگیری از خطای زمان اجرا) */
+const allPhp = [];
+( function walk( dir ) {
+	fs.readdirSync( dir ).forEach( ( name ) => {
+		if ( [ 'node_modules', '.git', 'vendor' ].includes( name ) ) return;
+		const full = path.join( dir, name );
+		const stat = fs.statSync( full );
+		if ( stat.isDirectory() ) { walk( full ); return; }
+		if ( name.endsWith( '.php' ) ) allPhp.push( full );
+	} );
+}( ROOT ) );
+
+const classSources = {};
+allPhp.forEach( ( file ) => {
+	const code = fs.readFileSync( file, 'utf8' );
+	const match = code.match( /\bclass\s+([A-Za-z_]\w*)/ );
+	if ( match ) classSources[ match[ 1 ] ] = code;
+} );
+
+const missing = [];
+let refs = 0;
+allPhp.forEach( ( file ) => {
+	const code = fs.readFileSync( file, 'utf8' );
+	const re = /\b([A-Z]\w+)::([a-zA-Z_]\w*)/g;
+	let m;
+	while ( ( m = re.exec( code ) ) !== null ) {
+		const cls = m[ 1 ];
+		if ( ! classSources[ cls ] || 'class' === m[ 2 ] ) continue;
+		refs++;
+		const body = classSources[ cls ];
+		const ok = new RegExp( 'function\\s+' + m[ 2 ] + '\\s*\\(' ).test( body )
+			|| new RegExp( 'const\\s+' + m[ 2 ] + '\\b' ).test( body );
+		if ( ! ok ) missing.push( cls + '::' + m[ 2 ] );
+	}
+} );
+
+check( missing.length === 0, 'همه‌ی ارجاع‌های ' + refs + ' موردی Class::method معتبرند', missing.join( ', ' ) );
+
+/* ۱۲.۱) شناسه‌ی پایدار ویدیو (بدون بازنویسی عنوان پست) */
+const metaBox = read( 'includes/class-meta-box.php' );
+check(
+	! /'post_title'\s*=>/.test( metaBox ),
+	'متاباکس عنوان پست را بازنویسی نمی‌کند (F-11)'
+);
+check(
+	/Post_Type::set_video_name/.test( metaBox ),
+	'متاباکس شناسه‌ی پایدار را در متا ذخیره می‌کند'
+);
+check(
+	/function\s+video_name/.test( read( 'includes/class-post-type.php' ) ),
+	'Post_Type::video_name برای خواندن شناسه وجود دارد'
+);
+
+/* ۱۳) سازگاری با PHP 7.4 */
 const php74Banned = [
 	[ /\?\?=/, 'عملگر ??=' ],
 	[ /\bmatch\s*\(\s*\$/, 'match expression' ],
@@ -126,8 +224,12 @@ const php74Banned = [
 	[ /\):\s*\w+\|\w+/, 'union type' ],
 	[ /\?->/, 'nullsafe operator' ]
 ];
+const newFiles = token + access + stream + learnDash + storage + player + keyServer;
 php74Banned.forEach( ( pair ) => {
-	check( ! pair[ 0 ].test( updater ) && ! pair[ 0 ].test( page ), 'سازگار با PHP 7.4: بدون ' + pair[ 1 ] );
+	check(
+		! pair[ 0 ].test( updater ) && ! pair[ 0 ].test( page ) && ! pair[ 0 ].test( newFiles ),
+		'سازگار با PHP 7.4: بدون ' + pair[ 1 ]
+	);
 } );
 
 console.log( '\nنتیجه: ' + pass + ' موفق، ' + fail + ' ناموفق\n' );

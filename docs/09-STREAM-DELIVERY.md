@@ -2,6 +2,48 @@
 
 این مهم‌ترین سند فنی پروژه است. اگر فقط یک چیز از کل مستندات اجرا شود، این است: **هیچ فایلی بدون توکن معتبر و بررسی دسترسی از سرور خارج نشود.**
 
+## ۰. پیاده‌سازی فعلی (نسخه ۳.۳)
+
+آنچه در کد پیاده شده است (کلاس‌های `Token`، `Access`، `Stream`، `Storage`):
+
+| بخش | پیاده‌سازی |
+|---|---|
+| ذخیره‌سازی | `FALNIC_STORAGE_DIR` یا `dirname(ABSPATH)/falnic-secure/` با زیرپوشه‌های `videos/` و `keys/` (بیرون از web root) |
+| اندپوینت‌ها | `admin-ajax.php` با اکشن‌های `falnic_stream_session`، `falnic_stream_manifest`، `falnic_stream_segment`، `falnic_stream_key` |
+| نشست | `POST action=falnic_stream_session&video={name}` → `{src, expires, watermark}` (فقط کاربر لاگین) |
+| توکن | `f1.<b64url(payload)>.<b64url(hmac-sha256)>` با `sc`، `vid`، `uid`، `exp` و اختیاری `ip` |
+| عمر توکن | manifest: ۶۰۰s (`falnic_token_ttl`)، segment: ۷۲۰۰s (`falnic_segment_token_ttl`)، key: ۳۰۰s |
+| بازنویسی manifest | `#EXT-X-KEY` و `#EXT-X-MAP` و هر خط سگمنت به URL امضاشده تبدیل می‌شود |
+| بررسی دوباره | در هر سه اندپوینت `Access::reason()` صدا زده می‌شود (کش ۶۰ ثانیه‌ای اختیاری) |
+| محدودیت نرخ | session ۳۰/دقیقه، key ۳۰/دقیقه، segment ۶۰۰/دقیقه برای هر کاربر |
+| Range | پشتیبانی کامل `Range`/`206` برای seek |
+| شتاب‌دهی | با تعریف `FALNIC_ACCEL_PREFIX` هدر `X-Accel-Redirect` ارسال می‌شود |
+| سازگاری | اکشن قدیمی `secure_hls_key` حفظ شده و همان بررسی دسترسی را دارد |
+
+> REST API (`/falnic/v1/...`) در نسخه‌ی بعدی روی همین منطق اضافه می‌شود؛ admin-ajax انتخاب شد تا در هاست‌هایی که REST یا permalink سفارشی محدود است هم کار کند و از nonce مخصوص کش صفحه عبور نکند.
+
+### بستن مسیر مستقیم در وب‌سرور
+
+```nginx
+# فایل‌ها فقط از PHP تحویل می‌شوند
+location ~* /(secure_videos|falnic-secure)/ { deny all; return 403; }
+
+# اگر FALNIC_ACCEL_PREFIX = '/falnic-internal' تعریف کرده‌اید
+location /falnic-internal/ {
+    internal;
+    alias /var/www/falnic-secure/;
+    add_header Accept-Ranges bytes;
+    add_header Cache-Control "private, no-store";
+    types { video/mp2t ts; application/vnd.apple.mpegurl m3u8; }
+}
+```
+
+Apache با `.htaccess` تولیدشده توسط افزونه (`Require all denied`) پوشش داده می‌شود.
+
+### مهاجرت فایل‌های قدیمی
+
+مسیر تب **تنظیمات امنیتی → محل ذخیره‌ی رسانه → انتقال ویدیوهای قدیمی**. هر اجرا حداکثر ۲۰ ویدیو را از `uploads/secure_videos` به ریشه‌ی امن منتقل می‌کند (کپی، سپس حذف مبدأ). تا زمانی که ویدیویی منتقل نشده، از همان محل قدیمی ولی **از طریق دروازه** سرو می‌شود.
+
 ---
 
 ## ۱. اصل طراحی

@@ -187,6 +187,11 @@
 	color: #0a4b16;
 }
 
+.falnic-admin .falnic-badge-warn {
+	background: #fcf3e6;
+	color: #8a4b00;
+}
+
 .falnic-admin .falnic-list {
 	margin: 6px 0;
 	padding-right: 20px;

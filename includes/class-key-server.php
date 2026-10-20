@@ -12,7 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * اندپوینت AJAX دریافت کلید AES.
+ * اندپوینت سازگاری برای دریافت کلید AES.
+ *
+ * پلیر جدید کلید را از دروازه‌ی Stream (توکن‌دار) می‌گیرد؛ این اندپوینت
+ * برای پلی‌لیست‌های قدیمی و سازگاری باقی مانده و همان بررسی دسترسی را دارد.
  */
 final class Key_Server {
 
@@ -45,6 +48,16 @@ final class Key_Server {
 
 		if ( '' === $name || ! Storage::is_valid_name( $name ) ) {
 			wp_die( esc_html__( 'درخواست نامعتبر است.', 'falnic-secure-hls' ), '', array( 'response' => 400 ) );
+		}
+
+		$reason = Access::reason( $name );
+
+		if ( 'ok' !== $reason ) {
+			wp_die(
+				esc_html( Access::message( $reason ) ),
+				'',
+				array( 'response' => 'guest' === $reason ? 401 : 403 )
+			);
 		}
 
 		if ( self::is_rate_limited() ) {

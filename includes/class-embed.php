@@ -37,27 +37,36 @@ final class Embed {
 
 		$name = sanitize_text_field( wp_unslash( $_GET['falnic_embed'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		if ( ! is_user_logged_in() ) {
-			wp_die(
-				esc_html__( 'شما دسترسی ندارید.', 'falnic-secure-hls' ),
-				esc_html__( 'عدم دسترسی', 'falnic-secure-hls' ),
-				array( 'response' => 403 )
-			);
-		}
-
+		$reason = Access::reason( $name );
 		$player = Player::render( $name );
 
 		if ( '' === $player ) {
 			wp_die(
-				esc_html__( 'ویدیویی با این نام یافت نشد یا هنوز آماده نیست.', 'falnic-secure-hls' ),
+				esc_html__( 'ویدیویی با این نام یافت نشد.', 'falnic-secure-hls' ),
 				esc_html__( 'ویدیو یافت نشد', 'falnic-secure-hls' ),
 				array( 'response' => 404 )
 			);
 		}
 
+		if ( 'ok' !== $reason ) {
+			// پیام عدم دسترسی با همان قالب و استایل پلیر نمایش داده می‌شود.
+			status_header( 'guest' === $reason ? 401 : 403 );
+		}
+
+		/**
+		 * اجازه‌ی embed از دامنه‌های دیگر.
+		 *
+		 * @param string $ancestors مقدار دایرکتیو frame-ancestors.
+		 */
+		$ancestors = (string) apply_filters( 'falnic_embed_frame_ancestors', "'self'" );
+
 		nocache_headers();
 		header( 'X-Content-Type-Options: nosniff' );
 		header( 'Referrer-Policy: no-referrer' );
+
+		if ( '' !== $ancestors ) {
+			header( "Content-Security-Policy: frame-ancestors {$ancestors}" );
+		}
 
 		ob_start();
 		$template = FALNIC_DIR . 'templates/embed.php';

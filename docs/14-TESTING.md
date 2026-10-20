@@ -4,7 +4,8 @@
 
 | لایه | ابزار | چه چیزی |
 |---|---|---|
-| واحد | PHPUnit + WP_Mock | `Token`, `Access`, `Storage`, بازنویسی manifest |
+| واحد (این ریپو) | PHP CLI + stubهای سبک | `Token`, `Access`, `Storage`, بازنویسی manifest — `php tests/access-tests.php` |
+| واحد | PHPUnit + WP_Mock | همان موارد در CI با وردپرس واقعی |
 | یکپارچه | WP-CLI + دیتابیس تست | صف انکود، متاها، حذف |
 | امنیتی | `curl` / `httpie` | کنترل دسترسی، IDOR، rate limit |
 | مرورگر | Playwright | واترمارک، فول‌اسکرین، خطاها |
@@ -32,66 +33,100 @@ wp post create --post_type=sfwd-lessons --post_title='درس ۱' --post_status=p
 
 ---
 
+## ۲.۵. تست‌های داخل مخزن
+
+```bash
+php tests/lint-all.php          # syntax همه‌ی فایل‌ها با TOKEN_PARSE
+php tests/access-tests.php      # ۵۹ assertion: توکن، دسترسی، مسیر، manifest، مهاجرت، شناسه‌ی پایدار
+php tests/run-tests.php         # ۸۱ assertion: موتور آپدیت از گیت
+node tests/static-checks.js     # ۶۶ بررسی امنیتی ایستا (بدون وابستگی)
+```
+
+این تست‌ها بدون نصب وردپرس اجرا می‌شوند (توابع لازم شبیه‌سازی شده‌اند) و روی PHP 7.4 تا 8.5 آزمایش شده‌اند.
+
 ## ۳. تست‌های امنیتی قابل اجرا
+
+اندپوینت‌ها همان‌هایی هستند که در [۰۶ — API](06-API.md) مستند شده‌اند (`admin-ajax.php`، اکشن‌های `falnic_stream_*`).
 
 ```bash
 BASE="https://staging.example.com"
-STUDENT_COOKIE="cookies-student.txt"
-FREE_COOKIE="cookies-free.txt"
-VIDEO="v_9f2c1a7b3d4e5f60"
+AJAX="$BASE/wp-admin/admin-ajax.php"
+STUDENT_COOKIE="cookies-student.txt"   # دانشجوی ثبت‌نام‌کرده
+FREE_COOKIE="cookies-free.txt"         # کاربر لاگین بدون ثبت‌نام
+VIDEO="lesson-108"
 
 pass() { echo "✅ $1"; }
 fail() { echo "❌ $1 (got: $2)"; }
 
 # S-01 مسیر عمومی قدیمی باید بسته باشد
-code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/wp-content/uploads/secure_videos/lesson-108/000.ts")
+code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/wp-content/uploads/secure_videos/$VIDEO/$VIDEO.m3u8")
 [ "$code" = "403" ] || [ "$code" = "404" ] && pass S-01 || fail S-01 "$code"
 
-# S-02 فایل روی دیسک جدید نباید مستقیم قابل دسترسی باشد
-code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/falnic-secure/videos/$VIDEO/720p/00001.ts")
+# S-02 ریشه‌ی جدید بیرون از web root است (نباید اصلاً سرو شود)
+code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/falnic-secure/videos/$VIDEO/$VIDEO.m3u8")
 [ "$code" = "403" ] || [ "$code" = "404" ] && pass S-02 || fail S-02 "$code"
 
-# S-03 manifest بدون توکن
-code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/wp-json/falnic/v1/manifest/$VIDEO")
+# S-03 manifest بدون توکن و بدون نشست → ۴۰۱ (هیچ مسیری بدون توکن باز نیست)
+code=$(curl -s -o /dev/null -w '%{http_code}' "$AJAX?action=falnic_stream_manifest&video=$VIDEO")
 [ "$code" = "401" ] && pass S-03 || fail S-03 "$code"
 
-# S-04 کاربر لاگین بدون ثبت‌نام
+# S-04 کاربر لاگین بدون ثبت‌نام → ۴۰۳ روی نشست
 code=$(curl -s -b "$FREE_COOKIE" -o /dev/null -w '%{http_code}' \
-  "$BASE/wp-json/falnic/v1/manifest/$VIDEO?t=$TOKEN_FREE")
+  -X POST -d "video=$VIDEO" "$AJAX?action=falnic_stream_session")
 [ "$code" = "403" ] && pass S-04 || fail S-04 "$code"
 
-# S-05 کلید برای ویدیوی دیگر با توکن همین کاربر
+# S-05 مهمان → ۴۰۱ روی نشست
+code=$(curl -s -o /dev/null -w '%{http_code}' \
+  -X POST -d "video=$VIDEO" "$AJAX?action=falnic_stream_session")
+[ "$code" = "401" ] && pass S-05 || fail S-05 "$code"
+
+# توکن معتبر را از تب Network همان دانشجو بردارید (پارامتر t در URL سگمنت).
+TOKEN="${TOKEN:?توکن سگمنت را از نشست دانشجو بگیرید}"
+OTHER="${OTHER_TOKEN:?توکن سگمنت دانشجوی دیگر}"
+
+# S-06 توکن دانشجو روی حساب دیگر → ۴۰۳ (uid گره‌خورده)
+code=$(curl -s -b "$FREE_COOKIE" -o /dev/null -w '%{http_code}' \
+  "$AJAX?action=falnic_stream_segment&video=$VIDEO&f=00001.ts&t=$TOKEN")
+[ "$code" = "403" ] && pass S-06 || fail S-06 "$code"
+
+# S-07 توکن سگمنت روی ویدیوی دیگر → ۴۰۳ (vid گره‌خورده)
 code=$(curl -s -b "$STUDENT_COOKIE" -o /dev/null -w '%{http_code}' \
-  "$BASE/wp-json/falnic/v1/key/v_0000000000000000/1?t=$TOKEN")
-[ "$code" = "403" ] && pass S-05 || fail S-05 "$code"
+  "$AJAX?action=falnic_stream_segment&video=another-video&f=00001.ts&t=$TOKEN")
+[ "$code" = "403" ] && pass S-07 || fail S-07 "$code"
 
-# S-06 path traversal
+# S-08 path traversal در نام فایل → ۴۰۴
 code=$(curl -s -b "$STUDENT_COOKIE" -o /dev/null -w '%{http_code}' \
-  "$BASE/wp-json/falnic/v1/manifest/..%2F..%2Fetc?t=$TOKEN")
-[ "$code" = "400" ] && pass S-06 || fail S-06 "$code"
+  "$AJAX?action=falnic_stream_segment&video=$VIDEO&f=..%2F..%2Fwp-config.php&t=$TOKEN")
+[ "$code" = "404" ] && pass S-08 || fail S-08 "$code"
 
-# S-07 توکن منقضی
-code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/wp-json/falnic/v1/manifest/$VIDEO?t=$EXPIRED")
-[ "$code" = "401" ] && pass S-07 || fail S-07 "$code"
-
-# S-08 rate limit (باید حداقل یک 429 بدهد)
-for i in $(seq 1 80); do
-  curl -s -o /dev/null -w '%{http_code}\n' -b "$STUDENT_COOKIE" \
-    "$BASE/wp-json/falnic/v1/segment/$VIDEO/720p/00001?t=$TOKEN"
-done | sort | uniq -c
-
-# S-09 CSRF روی تنظیمات
-code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
-  "$BASE/wp-admin/edit.php?post_type=secure_video&page=falnic_hls_settings" \
-  -d 'falnic_save_settings=1&max_sessions=99')
+# S-09 کلید بدون توکن → ۴۰۳
+code=$(curl -s -b "$STUDENT_COOKIE" -o /dev/null -w '%{http_code}' \
+  "$AJAX?action=falnic_stream_key&video=$VIDEO")
 [ "$code" = "403" ] && pass S-09 || fail S-09 "$code"
 
-# S-10 بدون eval در پلیر
-curl -s "$BASE/lesson/test/" | grep -E 'eval\(|debugger' && fail S-10 "found" || pass S-10
+# S-10 rate limit کلید (۳۰ در دقیقه) → باید ۴۲۹ بدهد
+for i in $(seq 1 40); do
+  curl -s -o /dev/null -w '%{http_code}\n' -b "$STUDENT_COOKIE" \
+    "$AJAX?action=falnic_stream_key&video=$VIDEO&t=$TOKEN"
+done | sort | uniq -c
 
-# S-11 yt-dlp
-yt-dlp "$BASE/lesson/test/" 2>&1 | grep -qi 'no video formats' && pass S-11 || fail S-11 "downloaded"
+# S-11 CSRF روی تنظیمات (بدون nonce) → ۴۰۳
+code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+  "$BASE/wp-admin/admin-post.php" -d 'action=falnic_save_settings&max_sessions=99')
+[ "$code" = "403" ] || [ "$code" = "400" ] && pass S-11 || fail S-11 "$code"
+
+# S-12 بدون eval در پلیر
+curl -s "$BASE/lesson/test/" | grep -E 'eval\(|debugger' && fail S-12 "found" || pass S-12
+
+# S-13 yt-dlp
+yt-dlp "$BASE/lesson/test/" 2>&1 | grep -qi 'no video formats' && pass S-13 || fail S-13 "downloaded"
+
+# S-14 لینک embed برای مهمان باز نمی‌شود
+code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/?falnic_embed=$VIDEO")
+[ "$code" = "401" ] && pass S-14 || fail S-14 "$code"
 ```
+
+> نکته: کد ۴۰۳ برای «توکن نامعتبر/منقضی» و «بدون ثبت‌نام» است و ۴۰۱ فقط برای مهمان. تفکیک پیام‌ها (`falnic_token_*`) در `Token::verify` دیده می‌شود.
 
 ---
 

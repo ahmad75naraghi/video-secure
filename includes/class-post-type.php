@@ -22,6 +22,11 @@ final class Post_Type {
 	public const SLUG = 'secure_video';
 
 	/**
+	 * کلید متایی که نام پایدار ویدیو (نام پوشه/شناسه‌ی استریم) را نگه می‌دارد.
+	 */
+	public const META_NAME = 'falnic_video_name';
+
+	/**
 	 * ثبت هوک‌ها.
 	 *
 	 * @return void
@@ -85,7 +90,7 @@ final class Post_Type {
 			return;
 		}
 
-		$name = $post->post_title;
+		$name = self::video_name( $post );
 
 		if ( 'falnic_shortcode' === $column ) {
 			printf(
@@ -97,9 +102,56 @@ final class Post_Type {
 		if ( 'falnic_embed' === $column ) {
 			$url = add_query_arg( 'falnic_embed', $name, home_url( '/' ) );
 			printf(
-				'<input type="text" readonly value="%s" style="width:100%%;font-size:11px;" onclick="this.select();">',
-				esc_url( $url )
+				'<input type="text" readonly value="%s" style="width:100%%;font-size:11px;" title="%s" onclick="this.select();">',
+				esc_url( $url ),
+				esc_attr__( 'این لینک فقط برای دانشجویان ثبت‌نام‌شده در دوره‌ی مرتبط باز می‌شود.', 'falnic-secure-hls' )
 			);
+		}
+	}
+
+	/**
+	 * نام پایدار ویدیو (شناسه‌ی پوشه و توکن‌ها).
+	 *
+	 * اگر متا موجود باشد از آن استفاده می‌شود تا تغییر عنوان پست، فایل‌های
+	 * رمزنگاری‌شده را از دسترس خارج نکند. برای نصب‌های قدیمی که متا ندارند،
+	 * عنوان پست مبنای محاسبه است (سازگاری کامل با ویدیوهای موجود).
+	 *
+	 * @param \WP_Post|int $post پست یا شناسه‌ی آن.
+	 * @return string
+	 */
+	public static function video_name( $post ): string {
+		$post = get_post( $post );
+
+		if ( ! $post ) {
+			return '';
+		}
+
+		$stored = (string) get_post_meta( $post->ID, self::META_NAME, true );
+		$stored = Storage::sanitize_name( $stored );
+
+		if ( '' !== $stored ) {
+			return $stored;
+		}
+
+		return Storage::sanitize_name( $post->post_title );
+	}
+
+	/**
+	 * ذخیره‌ی نام پایدار ویدیو.
+	 *
+	 * @param int    $post_id شناسه‌ی پست.
+	 * @param string $name    نام ویدیو.
+	 * @return void
+	 */
+	public static function set_video_name( int $post_id, string $name ): void {
+		$name = Storage::sanitize_name( $name );
+
+		if ( '' === $name ) {
+			return;
+		}
+
+		if ( $name !== (string) get_post_meta( $post_id, self::META_NAME, true ) ) {
+			update_post_meta( $post_id, self::META_NAME, $name );
 		}
 	}
 }

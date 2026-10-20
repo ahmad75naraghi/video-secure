@@ -26,6 +26,7 @@ final class Admin_Menu {
 		add_action( 'admin_post_falnic_save_settings', array( __CLASS__, 'handle_settings' ) );
 		add_action( 'admin_post_falnic_run_encoder', array( __CLASS__, 'handle_encoder' ) );
 		add_action( 'admin_post_falnic_save_template', array( __CLASS__, 'handle_template' ) );
+		add_action( 'admin_post_falnic_migrate_storage', array( __CLASS__, 'handle_migrate_storage' ) );
 	}
 
 	/**
@@ -135,11 +136,29 @@ final class Admin_Menu {
 
 		check_admin_referer( 'falnic_settings' );
 
-		$max_sessions = isset( $_POST['max_sessions'] ) ? absint( wp_unslash( $_POST['max_sessions'] ) ) : 1;
-		$bind_ip      = isset( $_POST['bind_ip'] ) ? 'yes' : 'no';
+		$max_sessions  = isset( $_POST['max_sessions'] ) ? absint( wp_unslash( $_POST['max_sessions'] ) ) : 1;
+		$bind_ip       = isset( $_POST['bind_ip'] ) ? 'yes' : 'no';
+		$auto_embed    = isset( $_POST['ld_auto_embed_present'] )
+			? ( isset( $_POST['ld_auto_embed'] ) ? 'yes' : 'no' )
+			: (string) get_option( 'falnic_ld_auto_embed', 'yes' );
+		$position      = isset( $_POST['ld_position'] ) ? sanitize_key( wp_unslash( $_POST['ld_position'] ) ) : 'before';
+		$require_enrol = isset( $_POST['ld_require_enrollment_present'] )
+			? ( isset( $_POST['ld_require_enrollment'] ) ? 'yes' : 'no' )
+			: (string) get_option( 'falnic_ld_require_enrollment', 'yes' );
+
+		if ( ! in_array( $position, array( 'before', 'after' ), true ) ) {
+			$position = 'before';
+		}
 
 		update_option( 'falnic_hls_max_sessions', max( 1, $max_sessions ) );
 		update_option( 'falnic_hls_bind_ip', $bind_ip );
+		update_option( 'falnic_ld_auto_embed', $auto_embed );
+		update_option( 'falnic_ld_position', $position );
+		update_option( 'falnic_ld_require_enrollment', $require_enrol );
+
+		if ( isset( $_POST['max_upload_mb'] ) ) {
+			update_option( 'falnic_max_upload_mb', max( 1, absint( wp_unslash( $_POST['max_upload_mb'] ) ) ) );
+		}
 
 		wp_safe_redirect(
 			add_query_arg(
@@ -206,6 +225,38 @@ final class Admin_Menu {
 	}
 
 	/**
+	 * انتقال فایل‌های قدیمی از uploads به پوشه‌ی امن.
+	 *
+	 * @return void
+	 */
+	public static function handle_migrate_storage(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'دسترسی ندارید.', 'falnic-secure-hls' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'falnic_migrate_storage' );
+
+		if ( function_exists( 'set_time_limit' ) ) {
+			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
+
+		$result = Storage::migrate_all( 20 );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'      => 'falnic_hls_settings',
+					'migrated'  => (int) $result['moved'],
+					'failed'    => (int) $result['failed'],
+					'pending'   => (int) $result['remaining'],
+				),
+				admin_url( 'edit.php?post_type=' . Post_Type::SLUG )
+			)
+		);
+		exit;
+	}
+
+	/**
 	 * صفحه‌ی تنظیمات.
 	 *
 	 * @return void
@@ -215,10 +266,18 @@ final class Admin_Menu {
 			return;
 		}
 
-		$max_sessions = (int) get_option( 'falnic_hls_max_sessions', 1 );
-		$bind_ip      = get_option( 'falnic_hls_bind_ip', 'no' );
-		$status       = self::system_status();
-		$page_slug    = 'falnic_hls_settings';
+		$max_sessions   = (int) get_option( 'falnic_hls_max_sessions', 1 );
+		$bind_ip        = get_option( 'falnic_hls_bind_ip', 'no' );
+		$auto_embed     = get_option( 'falnic_ld_auto_embed', 'yes' );
+		$ld_position    = get_option( 'falnic_ld_position', 'before' );
+		$require_enrol  = get_option( 'falnic_ld_require_enrollment', 'yes' );
+		$max_upload_mb  = (int) get_option( 'falnic_max_upload_mb', 2048 );
+		$ld_active      = Learn_Dash::is_active();
+		$legacy_pending = Storage::legacy_pending();
+		$storage_root   = Storage::root();
+		$outside_root   = Storage::is_outside_webroot();
+		$status         = self::system_status();
+		$page_slug      = 'falnic_hls_settings';
 
 		include FALNIC_DIR . 'admin/views/settings.php';
 	}
@@ -251,8 +310,16 @@ final class Admin_Menu {
 				'ok'    => function_exists( 'exec' ),
 			),
 			array(
-				'label' => __( 'پوشه‌ی کلیدها خارج از web root', 'falnic-secure-hls' ),
-				'ok'    => 0 !== strpos( wp_normalize_path( $secure_dir ), wp_normalize_path( ABSPATH ) ),
+				'label' => __( 'پوشه‌ی رسانه خارج از web root', 'falnic-secure-hls' ),
+				'ok'    => Storage::is_outside_webroot(),
+			),
+			array(
+				'label' => __( 'همه‌ی ویدیوها به پوشه‌ی امن منتقل شده‌اند', 'falnic-secure-hls' ),
+				'ok'    => empty( Storage::legacy_pending() ),
+			),
+			array(
+				'label' => __( 'LearnDash فعال است', 'falnic-secure-hls' ),
+				'ok'    => Learn_Dash::is_active(),
 			),
 			array(
 				'label' => __( 'پوشه‌ی کلیدها قابل نوشتن', 'falnic-secure-hls' ),

@@ -1,6 +1,23 @@
 # ۰۶ — رابط برنامه‌نویسی (API)
 
-## بخش الف: اندپوینت‌های فعلی
+## بخش الف: API فعلی (نسخه ۳.۳)
+
+### ۰. اندپوینت‌های دروازه (پیاده‌شده در ۳.۳)
+
+| اندپوینت | متد | احراز هویت | خروجی |
+|---|---|---|---|
+| `admin-ajax.php?action=falnic_stream_session` | POST `video` | کوکی وردپرس + `Access::reason` | JSON `{src, expires, watermark, name}` |
+| `admin-ajax.php?action=falnic_stream_manifest&video=&t=` | GET | توکن `sc=manifest` + دسترسی | `application/vnd.apple.mpegurl` |
+| `admin-ajax.php?action=falnic_stream_segment&video=&f=&t=` | GET | توکن `sc=segment` + دسترسی | بایت سگمنت (Range/206) |
+| `admin-ajax.php?action=falnic_stream_key&video=&t=` | GET | توکن `sc=key` + دسترسی | ۱۶ بایت کلید AES |
+| `admin-ajax.php?action=secure_hls_key&video=` | GET | سازگاری: کوکی + دسترسی | ۱۶ بایت کلید AES |
+
+توکن: `f1.<b64url(payload)>.<b64url(hmac_sha256)>` با ادعاهای `sc`، `vid`، `uid`، `iat`، `exp` و اختیاری `ip`.
+خطاها متن ساده با کد ۴۰۱ (مهمان)، ۴۰۳ (بدون ثبت‌نام/دسترسی)، ۴۰۴ (فایل) و ۴۲۹ (نرخ) هستند.
+
+---
+
+## بخش الف-۲: وضعیت ۳.۲ (تاریخی)
 
 ### ۱. دریافت کلید AES
 
@@ -51,7 +68,11 @@ GET /wp-content/uploads/secure_videos/{name}/{nnn}.ts
 
 ---
 
-## بخش ب: API هدف (نسخه ۴)
+## بخش ب: API هدف (نسخه ۴ — طراحی، پیاده‌سازی نشده)
+
+> در ۳.۳ همان قابلیت‌ها با `admin-ajax.php` پیاده شدند (بخش الف). تفاوت‌ها: بدون `X-WP-Nonce` (توکن کوتاه‌عمر جای آن را می‌گیرد)، بدون heartbeat، و مسیر فایل در URL نیست.
+
+## بخش ب-۲: جزئیات طراحی REST (مرجع آینده)
 
 ### ۱. اصول
 

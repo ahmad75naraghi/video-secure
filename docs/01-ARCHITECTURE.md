@@ -65,7 +65,9 @@ sequenceDiagram
 - **قفل ندارد.** دو ذخیره‌ی هم‌زمان = دو ffmpeg روی یک پوشه = سگمنت‌های خراب.
 - **عنوان پست را بازنویسی می‌کند** (L120–L131). عنوان فارسی حذف می‌شود و به `video-{ID}` تبدیل می‌شود؛ این هم داده از دست می‌دهد و هم شورت‌کد‌های قبلی را می‌شکند.
 
-### ۴. جریان پخش (وضعیت فعلی)
+### ۴. جریان پخش (وضعیت ۳.۲ — تاریخی)
+
+> در ۳.۳ این جریان کاملاً بازنویسی شد؛ بخش بعدی را ببینید.
 
 ```mermaid
 sequenceDiagram
@@ -92,6 +94,42 @@ sequenceDiagram
 2. **کلید برای هر کاربر لاگین‌کرده و هر ویدیویی** قابل دریافت است (L280–L302). هیچ ارتباطی بین کاربر و دوره بررسی نمی‌شود.
 3. **embed هیچ کنترل دسترسی‌ای ندارد** جز لاگین (L264).
 
+### ۴.۱. جریان پخش در ۳.۳ (فعلی)
+
+```mermaid
+sequenceDiagram
+    participant U as مرورگر (دانشجو)
+    participant W as WordPress
+    participant A as Access::reason
+    participant G as Stream (دروازه)
+    participant F as falnic-secure/ (خارج از web root)
+
+    U->>W: GET /lesson/...
+    W->>A: دسترسی برای کاربر جاری؟
+    A-->>W: ok / not_enrolled / locked / guest
+    W-->>U: HTML پلیر (بدون src، فقط sessionUrl)
+    U->>G: POST admin-ajax?action=falnic_stream_session&video=lesson-108
+    G->>A: بررسی دوباره + محدودیت نرخ
+    G-->>U: {src: manifest?...توکن، expires، watermark}
+    U->>G: GET manifest?t=... (توکن sc=manifest)
+    G->>A: بررسی دوباره
+    G->>F: خواندن m3u8
+    G-->>U: m3u8 با URI امضاشده‌ی کلید و سگمنت‌ها
+    U->>G: GET segment&f=00001.ts&t=...
+    G->>A: بررسی دوباره
+    G->>F: sendfile / range
+    G-->>U: بایت سگمنت (یا X-Accel-Redirect)
+    U->>G: GET key?t=...
+    G-->>U: ۱۶ بایت کلید AES
+```
+
+نکات:
+
+- هیچ‌جا مسیر فیزیکی در HTML یا manifest نمی‌آید.
+- توکن‌ها به `uid`، `vid`، `scope` و زمان بسته‌اند؛ در مرورگر یا حساب دیگر کار نمی‌کنند.
+- دسترسی در هر سه اندپوینت دوباره بررسی می‌شود (نه فقط لحظه‌ی صدور توکن).
+- `.htaccess` هر دو مسیر (ریشه‌ی جدید و `uploads/secure_videos`) را می‌بندد.
+
 ### ۵. مرزهای اعتماد (Trust boundaries)
 
 ```
@@ -99,10 +137,10 @@ sequenceDiagram
 │  wp-admin (ادمین)  ──►  CPT secure_video  ──►  ffmpeg        │
 │         │                                        │           │
 │         ▼                                        ▼           │
-│  secure_keys/  (خارج از web root ✔)      uploads/secure_videos/  (عمومی ✘)
+│  falnic-secure/keys  (خارج از web root ✔)   falnic-secure/videos  (خارج از web root ✔)
 │         ▲                                        ▲           │
 └─────────┼────────────────────────────────────────┼───────────┘
-          │ admin-ajax (فقط لاگین)                 │ HTTP عمومی
+          │ admin-ajax (توکن + بررسی ثبت‌نام)        │ فقط از دروازه
 ┌─────────┴────────────────────────────────────────┴───────────┐
 │                        مرورگر کاربر                          │
 └───────────────────────────────────────────────────────────────┘
@@ -178,6 +216,8 @@ falnic-secure-hls/
 ```
 
 ### ۳. جریان هدف برای یک درخواست پخش
+
+> این بخش **طراحی اولیه** است (REST با مسیر `/falnic/v1/`). پیاده‌سازی ۳.۳ همان منطق را با اکشن‌های `admin-ajax.php` انجام می‌دهد (بخش ۴.۱) تا در هاست‌هایی که REST مسدود/کند است هم کار کند.
 
 ```mermaid
 sequenceDiagram

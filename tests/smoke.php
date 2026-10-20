@@ -10,9 +10,13 @@
  * @package Falnic\SecureHLS
  */
 
+use Falnic\SecureHLS\Access;
 use Falnic\SecureHLS\Assets;
 use Falnic\SecureHLS\Encoder;
+use Falnic\SecureHLS\Learn_Dash;
 use Falnic\SecureHLS\Storage;
+use Falnic\SecureHLS\Stream;
+use Falnic\SecureHLS\Token;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	fwrite( STDERR, "این فایل را با wp eval-file اجرا کنید.\n" );
@@ -58,6 +62,22 @@ falnic_smoke_assert(
 );
 falnic_smoke_assert( is_dir( $secure_dir ) && wp_is_writable( $secure_dir ), 'پوشه‌ی کلیدها قابل نوشتن است', $secure_dir );
 falnic_smoke_assert( is_dir( Storage::videos_dir() ) && wp_is_writable( Storage::videos_dir() ), 'پوشه‌ی ویدیوها قابل نوشتن است', Storage::videos_dir() );
+
+// دروازه‌ی استریم.
+falnic_smoke_assert( class_exists( Stream::class ) && class_exists( Token::class ) && class_exists( Access::class ), 'کلاس‌های دروازه و دسترسی بارگذاری می‌شوند' );
+falnic_smoke_assert( Storage::is_outside_webroot(), 'ریشه‌ی رسانه بیرون از web root است', Storage::root() );
+falnic_smoke_assert( file_exists( Storage::root() . '.htaccess' ), 'فایل .htaccess محافظ ریشه‌ی رسانه موجود است' );
+
+$token = Token::issue( Token::SCOPE_MANIFEST, 'smoke-test' );
+falnic_smoke_assert( is_array( Token::verify( $token, Token::SCOPE_MANIFEST, 'smoke-test' ) ), 'صدور و بررسی توکن کار می‌کند' );
+falnic_smoke_assert( is_wp_error( Token::verify( $token, Token::SCOPE_KEY, 'smoke-test' ) ), 'توکن با scope اشتباه رد می‌شود' );
+
+if ( ! Learn_Dash::is_active() ) {
+	echo "WARN  LearnDash فعال نیست؛ ویدیوهای متصل به درس فقط برای مدیران باز می‌شوند.\n";
+}
+
+$pending = Storage::legacy_pending();
+falnic_smoke_assert( empty( $pending ), 'همه‌ی ویدیوها در پوشه‌ی امن هستند', implode( ', ', $pending ) );
 
 // دارایی‌های محلی.
 foreach ( array( 'assets/vendor/hls/hls.min.js', 'assets/vendor/plyr/plyr.min.js', 'assets/vendor/plyr/plyr.css', 'assets/js/player.js', 'assets/css/player.css' ) as $asset ) {

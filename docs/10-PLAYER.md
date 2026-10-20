@@ -13,6 +13,26 @@
 
 ---
 
+## ۱.۱. وضعیت پیاده‌شده (۳.۳)
+
+پیکربندی واقعی که به `assets/js/player.js` می‌رسد این شکل است:
+
+```json
+{
+  "id": "secure-vid-1",
+  "name": "lesson-108",
+  "sessionUrl": "https://example.com/wp-admin/admin-ajax.php?action=falnic_stream_session",
+  "watermark": { "line1": "", "line2": "", "opacity": 0.18, "interval": 3000, "scale": 1 },
+  "i18n": { "resume": "…", "error": "…", "unsupported": "…", "sessionError": "…", "expired": "…" }
+}
+```
+
+- **هیچ `src`، توکن یا متنی از کاربر در HTML نیست.** فقط `name` و آدرس اندپوینت نشست.
+- `player.js` با `POST` به `sessionUrl` می‌رود؛ پاسخ شامل `src` امضاشده، `expires` و خطوط واترمارک همان کاربر است.
+- بخش ۴ این سند (پایین) طراحی اولیه بر پایه‌ی REST است؛ پیاده‌سازی نهایی به دلیل سازگاری با کش و `admin-ajax` از همان الگو ولی با اکشن‌های `falnic_stream_*` استفاده می‌کند ([۰۶](06-API.md)).
+
+---
+
 ## ۲. پشته
 
 | لایه | انتخاب | دلیل |

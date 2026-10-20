@@ -65,9 +65,9 @@ final class Meta_Box {
 	public static function render( $post ): void {
 		wp_nonce_field( 'falnic_video_upload', 'falnic_video_upload_nonce' );
 
-		$name = $post->post_title;
+		$name = Post_Type::video_name( $post );
 
-		if ( $name && Storage::is_encoded( $name ) ) {
+		if ( '' !== $name && Storage::is_encoded( $name ) ) {
 			echo '<div style="background:#e7f5ea;border-left:4px solid #46b450;padding:12px;margin-bottom:15px;">';
 			echo '<h4 style="margin:0 0 10px;color:#0a4b16;">' . esc_html__( '✅ ویدیو با موفقیت انکود شده است.', 'falnic-secure-hls' ) . '</h4>';
 			printf(
@@ -81,8 +81,16 @@ final class Meta_Box {
 		}
 
 		echo '<input type="file" name="falnic_video_file" accept="video/mp4,video/x-m4v" style="width:100%;padding:10px;border:1px dashed #ccc;">';
+		if ( '' !== $name ) {
+			printf(
+				'<p class="description">%1$s <code>%2$s</code></p>',
+				esc_html__( 'شناسه‌ی این ویدیو (نام فایل‌ها):', 'falnic-secure-hls' ),
+				esc_html( $name )
+			);
+		}
+
 		echo '<p class="description" style="color:#d63638;font-weight:bold;">';
-		echo esc_html__( '⚠️ عنوان ویدیو (کادر بالا) باید کاملاً انگلیسی و بدون فاصله باشد (مثال: lesson-108). اگر فارسی تایپ کنید، سیستم آن را به یک کد اتوماتیک تبدیل می‌کند.', 'falnic-secure-hls' );
+		echo esc_html__( '⚠️ عنوان ویدیو (کادر بالا) می‌تواند فارسی باشد؛ اما اگر انگلیسی و بدون فاصله بنویسید، شناسه‌ی خواناتری ساخته می‌شود. شناسه پس از اولین ذخیره تغییر نمی‌کند.', 'falnic-secure-hls' );
 		echo '</p>';
 	}
 
@@ -97,16 +105,7 @@ final class Meta_Box {
 			return;
 		}
 
-		if ( ! isset( $_POST['falnic_video_upload_nonce'] ) ) {
-			return;
-		}
-
-		$nonce = sanitize_text_field( wp_unslash( $_POST['falnic_video_upload_nonce'] ) );
-		if ( ! wp_verify_nonce( $nonce, 'falnic_video_upload' ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( wp_is_post_revision( $post_id ) ) {
 			return;
 		}
 
@@ -115,21 +114,22 @@ final class Meta_Box {
 			return;
 		}
 
-		$name = self::normalize_name( $post->post_title, $post_id );
-
-		if ( $post->post_title !== $name ) {
-			remove_action( 'save_post_' . Post_Type::SLUG, array( __CLASS__, 'save' ) );
-			wp_update_post(
-				array(
-					'ID'        => $post_id,
-					'post_title' => $name,
-					'post_name'  => $name,
-				)
-			);
-			add_action( 'save_post_' . Post_Type::SLUG, array( __CLASS__, 'save' ) );
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
 		}
 
-		if ( ! isset( $_FILES['falnic_video_file'] ) ) {
+		// عنوان پست هرگز بازنویسی نمی‌شود؛ شناسه‌ی پایدار در متا نگه داشته می‌شود (F-11).
+		// این کار به nonce نیاز ندارد چون فقط از عنوانِ خودِ پست مشتق می‌شود.
+		$name = self::resolve_name( $post );
+
+		Post_Type::set_video_name( $post_id, $name );
+
+		if ( ! isset( $_POST['falnic_video_upload_nonce'], $_FILES['falnic_video_file'] ) ) {
+			return;
+		}
+
+		$nonce = sanitize_text_field( wp_unslash( $_POST['falnic_video_upload_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'falnic_video_upload' ) ) {
 			return;
 		}
 
@@ -142,14 +142,12 @@ final class Meta_Box {
 		}
 
 		if ( UPLOAD_ERR_OK !== $error ) {
-			set_transient(
-				'falnic_encode_error_' . get_current_user_id(),
+			self::fail_upload(
 				sprintf(
 					/* translators: %d: کد خطای آپلود */
 					__( 'آپلود فایل ناموفق بود (کد خطا: %d).', 'falnic-secure-hls' ),
 					$error
-				),
-				60
+				)
 			);
 
 			return;
@@ -158,6 +156,35 @@ final class Meta_Box {
 		$tmp_name = isset( $file['tmp_name'] ) ? $file['tmp_name'] : '';
 
 		if ( '' === $tmp_name || ! is_uploaded_file( $tmp_name ) ) {
+			return;
+		}
+
+		$max_mb = max( 1, (int) get_option( 'falnic_max_upload_mb', 2048 ) );
+		$size   = isset( $file['size'] ) ? (int) $file['size'] : 0;
+
+		if ( $size > $max_mb * MB_IN_BYTES ) {
+			self::fail_upload(
+				sprintf(
+					/* translators: %s: حداکثر حجم به مگابایت */
+					__( 'حجم فایل بیش از حد مجاز است (حداکثر %s مگابایت).', 'falnic-secure-hls' ),
+					number_format_i18n( $max_mb )
+				)
+			);
+
+			return;
+		}
+
+		$allowed = array(
+			'mp4' => 'video/mp4',
+			'm4v' => 'video/x-m4v',
+			'mov' => 'video/quicktime',
+		);
+
+		$type = wp_check_filetype_and_ext( $tmp_name, (string) ( $file['name'] ?? '' ), $allowed );
+
+		if ( empty( $type['ext'] ) || ! isset( $allowed[ $type['ext'] ] ) ) {
+			self::fail_upload( __( 'فقط فایل‌های ویدیویی MP4/M4V/MOV پذیرفته می‌شوند.', 'falnic-secure-hls' ) );
+
 			return;
 		}
 
@@ -174,6 +201,16 @@ final class Meta_Box {
 	}
 
 	/**
+	 * ثبت خطای آپلود برای نمایش به ادمین.
+	 *
+	 * @param string $message پیام.
+	 * @return void
+	 */
+	private static function fail_upload( string $message ): void {
+		set_transient( 'falnic_encode_error_' . get_current_user_id(), $message, 60 );
+	}
+
+	/**
 	 * تبدیل عنوان پست به نام امن برای ffmpeg و پوشه.
 	 *
 	 * @param string $title   عنوان پست.
@@ -181,12 +218,36 @@ final class Meta_Box {
 	 * @return string
 	 */
 	public static function normalize_name( string $title, int $post_id ): string {
-		$name = preg_replace( '/[^a-z0-9\-]/', '', strtolower( urldecode( sanitize_title( $title ) ) ) );
+		$name = Storage::sanitize_name( $title );
 
-		if ( ! is_string( $name ) || '' === $name ) {
+		if ( '' === $name ) {
 			$name = 'video-' . $post_id;
 		}
 
 		return $name;
+	}
+
+	/**
+	 * تعیین نام قطعی ویدیو هنگام ذخیره.
+	 *
+	 * قاعده: اگر ویدیو قبلاً انکود شده باشد، شناسه‌ی موجود حفظ می‌شود تا با
+	 * تغییر عنوان، فایل‌های رمزنگاری‌شده گم نشوند. در غیر این صورت شناسه از
+	 * روی عنوان ساخته می‌شود.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @return string
+	 */
+	private static function resolve_name( $post ): string {
+		$existing = Post_Type::video_name( $post );
+
+		if ( '' !== $existing && Storage::is_encoded( $existing ) ) {
+			return $existing;
+		}
+
+		if ( '' !== $existing && '' === Storage::sanitize_name( $post->post_title ) ) {
+			return $existing;
+		}
+
+		return self::normalize_name( (string) $post->post_title, (int) $post->ID );
 	}
 }

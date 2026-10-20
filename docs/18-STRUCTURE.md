@@ -22,7 +22,11 @@ falnic-secure-hls/
 │   ├── class-player.php         ← شورت‌کد و ساخت پیکربندی پلیر
 │   ├── class-assets.php         ← ثبت/بارگذاری CSS و JS
 │   ├── class-embed.php          ← اندپوینت ?falnic_embed=
-│   ├── class-key-server.php     ← تحویل کلید AES
+│   ├── class-key-server.php     ← سازگاری: تحویل کلید AES (با بررسی دسترسی)
+│   ├── class-token.php          ← توکن امضاشده‌ی دسترسی (HMAC)
+│   ├── class-access.php         ← تصمیم واحد دسترسی (LearnDash/Drip/نقش)
+│   ├── class-stream.php         ← دروازه‌ی manifest/سگمنت/کلید + بازنویسی m3u8
+│   ├── class-learn-dash.php     ← متاباکس درس، نمایش خودکار، شورت‌کد
 │   ├── class-session.php        ← کنترل نشست
 │   ├── class-installer.php      ← فعال/غیرفعال‌سازی
 │   ├── class-template-settings.php ← تنظیمات ظاهری پلیر (گردی، رنگ، نسبت، واترمارک)
@@ -55,6 +59,7 @@ falnic-secure-hls/
 ├── languages/                   ← فایل‌های ترجمه
 ├── tests/
 │   ├── smoke.php                ← تست دود با wp eval-file
+│   ├── access-tests.php         ← ۵۹ تست دسترسی/توکن/manifest/مهاجرت (PHP CLI، بدون وردپرس)
 │   ├── run-tests.php            ← تست‌های واحد موتور آپدیت (PHP CLI، بدون وردپرس)
 │   ├── lint-all.php             ← بررسی syntax همهٔ فایل‌ها با TOKEN_PARSE
 │   └── static-checks.js         ← بررسی‌های امنیتی ایستا (Node، بدون وابستگی)

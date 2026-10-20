@@ -105,3 +105,81 @@
 		transition-duration: 0.001ms !important;
 	}
 }
+
+/* -------------------------------------------------------------------------
+ * پیام عدم دسترسی (دوره/ثبت‌نام)
+ * ---------------------------------------------------------------------- */
+.falnic-secure-container.falnic-denied {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: auto;
+	min-height: 240px;
+	height: auto;
+	background: radial-gradient(circle at 50% 20%, #1d2530 0%, #0b0f14 70%);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.falnic-denied-inner {
+	max-width: 460px;
+	text-align: center;
+	color: #e8eef6;
+	font-family: Tahoma, Arial, sans-serif;
+	line-height: 1.9;
+}
+
+.falnic-denied-icon {
+	display: inline-block;
+	font-size: 34px;
+	line-height: 1;
+	margin-bottom: 6px;
+	opacity: 0.9;
+}
+
+.falnic-denied-title {
+	margin: 0 0 6px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.falnic-denied-text {
+	margin: 0 0 14px;
+	font-size: 14px;
+	color: #b9c6d6;
+}
+
+.falnic-denied-links {
+	margin: 0 0 8px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: center;
+}
+
+.falnic-denied-btn {
+	display: inline-block;
+	padding: 8px 16px;
+	border-radius: 6px;
+	background: var(--falnic-accent, #2271b1);
+	color: #fff !important;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	border: 0;
+	transition: filter 0.15s ease-in-out;
+}
+
+.falnic-denied-btn:hover,
+.falnic-denied-btn:focus {
+	filter: brightness(1.12);
+	color: #fff;
+}
+
+@media (max-width: 480px) {
+	.falnic-denied-text {
+		font-size: 13px;
+	}
+}

@@ -14,7 +14,8 @@
 | ثابت | نوع | پیش‌فرض | توضیح |
 |---|---|---|---|
 | `FALNIC_STORAGE_DIR` | path | `dirname(ABSPATH)/falnic-secure` | ریشه‌ی رسانه |
-| `FALNIC_TOKEN_SECRET` | string | `wp_salt('falnic_secure_hls')` | کلید امضای توکن — **در تولید تعریف کنید** |
+| `FALNIC_TOKEN_SECRET` | string | `wp_salt('falnic_secure_hls')` | کلید امضای توکن — **در تولید تعریف کنید** (حداقل ۳۲ کاراکتر) |
+| `FALNIC_ACCEL_PREFIX` | path | خالی | پیشوند `X-Accel-Redirect` برای سرو سگمنت با Nginx (مثل `/falnic-internal`) |
 | `FALNIC_FFMPEG_BIN` | path | `ffmpeg` | مسیر باینری ffmpeg |
 | `FALNIC_FFPROBE_BIN` | path | `ffprobe` | مسیر ffprobe |
 | `FALNIC_CDN_BASE` | url | خالی | دامنه‌ی CDN برای سگمنت‌ها |
@@ -31,6 +32,8 @@
 |---|---|---|---|
 | `falnic_token_ttl` | int (ثانیه) | `600` | عمر توکن manifest |
 | `falnic_segment_token_ttl` | int | `7200` | عمر توکن سگمنت (برای پخش طولانی) |
+| `falnic_max_upload_mb` | int | `2048` | حداکثر حجم فایل MP4 برای انکود |
+| `falnic_db_version` | string | — | نسخه‌ی ساختار؛ مبنای مهاجرت یک‌باره |
 | `falnic_key_rotation_segments` | int | `40` | تعداد سگمنت هر کلید |
 | `falnic_max_concurrent` | int | `2` | پخش هم‌زمان هر کاربر |
 | `falnic_heartbeat_timeout` | int | `90` | قطع نشست بی‌فعالیت |
@@ -44,8 +47,10 @@
 | `falnic_watermark_session` | bool | `true` | نمایش شناسه‌ی نشست |
 | `falnic_log_retention_days` | int | `90` | نگهداری لاگ |
 | `falnic_log_segments` | bool | `false` | لاگ هر سگمنت (حجم زیاد) |
-| `falnic_ld_auto_embed` | `yes`/`no` | `yes` | نمایش خودکار در درس |
+| `falnic_ld_auto_embed` | `yes`/`no` | `yes` | نمایش خودکار پلیر در درس/مبحث |
 | `falnic_ld_position` | enum | `before` | `before`/`after` |
+| `falnic_ld_require_enrollment` | `yes`/`no` | `yes` | ویدیوی بدون درس فقط با قابلیت `falnic_watch_videos` |
+| `falnic_db_version` | string | نسخه‌ی افزونه | برای اجرای یک‌باره‌ی مهاجرت ساختار |
 | `falnic_ld_lesson_locked_message` | string | «این درس هنوز باز نشده است.» | پیام Drip |
 | `falnic_delete_data_on_uninstall` | bool | `false` | حذف کامل هنگام حذف پلاگین |
 | `falnic_max_upload_mb` | int | `4096` | سقف آپلود |
