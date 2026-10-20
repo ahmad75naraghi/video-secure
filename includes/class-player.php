@@ -166,13 +166,31 @@ final class Player {
 		$message  = Access::message( $reason );
 		$courses  = in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array();
 		$login    = 'guest' === $reason ? wp_login_url( self::current_url() ) : '';
+		$icons    = array(
+			'guest'        => '🔐',
+			'not_ready'    => '⏳',
+			'not_linked'   => '⚠️',
+			'not_enrolled' => '🔒',
+			'locked'       => '⏰',
+			'invalid'      => '⚠️',
+		);
+		$titles   = array(
+			'guest'        => __( 'ورود لازم است', 'falnic-secure-hls' ),
+			'not_ready'    => __( 'ویدیو آماده نیست', 'falnic-secure-hls' ),
+			'not_linked'   => __( 'ویدیو به دوره متصل نشده', 'falnic-secure-hls' ),
+			'not_enrolled' => __( 'دسترسی محدود', 'falnic-secure-hls' ),
+			'locked'       => __( 'درس هنوز باز نشده', 'falnic-secure-hls' ),
+			'invalid'      => __( 'درخواست نامعتبر', 'falnic-secure-hls' ),
+		);
+		$icon     = isset( $icons[ $reason ] ) ? $icons[ $reason ] : '🔒';
+		$title    = isset( $titles[ $reason ] ) ? $titles[ $reason ] : __( 'دسترسی محدود', 'falnic-secure-hls' );
 
 		ob_start();
 		?>
 		<div class="falnic-secure-container falnic-denied" dir="rtl" data-falnic-denied>
 			<div class="falnic-denied-inner">
-				<span class="falnic-denied-icon" aria-hidden="true">🔒</span>
-				<h3 class="falnic-denied-title"><?php esc_html_e( 'دسترسی محدود', 'falnic-secure-hls' ); ?></h3>
+				<span class="falnic-denied-icon" aria-hidden="true"><?php echo esc_html( $icon ); ?></span>
+				<h3 class="falnic-denied-title"><?php echo esc_html( $title ); ?></h3>
 				<p class="falnic-denied-text"><?php echo esc_html( $message ); ?></p>
 
 				<?php if ( ! empty( $courses ) ) : ?>
