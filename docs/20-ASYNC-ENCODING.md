@@ -123,5 +123,6 @@ wp cron event run falnic_encode_cleanup   # پاک‌سازی روزانه‌ی 
 | `ffmpeg یافت نشد` | PATH سرویس PHP | `define('FALNIC_FFMPEG_BIN', '/usr/local/bin/ffmpeg');` |
 | خطای `proc_open` | `disable_functions` در php.ini | از هاست بخواهید `proc_open` و `exec` را فعال کند |
 | خطای مجوز | `falnic-secure/` قابل نوشتن نیست | مجوز ۷۵۵ برای پوشه‌ها و مالکیت درست |
+| فایل آپلود شد ولی هیچ کاری ساخته نشد | `post_max_size`/`upload_max_filesize` کوچک‌تر از فایل | در صفحه‌ی ویرایش ویدیو هشدار قرمز نمایش داده می‌شود؛ سقف PHP را بالا ببرید |
 
 اگر رویداد Cron گم شود، «نگهبان صف» با اولین ورود مدیر به پنل آن را دوباره زمان‌بندی می‌کند.

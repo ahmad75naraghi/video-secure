@@ -70,7 +70,7 @@ msgstr ""
 msgid "✅ ویدیو رمزنگاری شد:"
 msgstr ""
 
-#: admin/class-admin-notices.php:54
+#: admin/class-admin-notices.php:121
 msgid "✅ ویدیوی"
 msgstr ""
 
@@ -208,7 +208,7 @@ msgstr ""
 msgid "آلمانی"
 msgstr ""
 
-#: admin/class-admin-notices.php:56
+#: admin/class-admin-notices.php:123
 msgid "آماده پخش است."
 msgstr ""
 
@@ -808,7 +808,7 @@ msgstr ""
 msgid "خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: admin/class-admin-notices.php:44
+#: admin/class-admin-notices.php:109
 msgid "خطا در پردازش ویدیو:"
 msgstr ""
 
@@ -1056,6 +1056,11 @@ msgstr ""
 
 #: includes/class-watch-log.php:559
 msgid "سایر"
+msgstr ""
+
+#. translators: 1: سقف سرور، 2: سقف تنظیم‌شده
+#: admin/class-admin-notices.php:56
+msgid "سقف آپلود سرور (%1$s) از سقف تنظیم‌شده‌ی افزونه (%2$s) کم‌تر است؛ فایل‌های بزرگ‌تر بی‌صدا رد می‌شوند. مقدار post_max_size و upload_max_filesize را افزایش دهید یا فایل را کوچک‌تر کنید."
 msgstr ""
 
 #: includes/class-git-updater.php:602

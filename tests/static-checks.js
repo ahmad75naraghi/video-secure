@@ -360,6 +360,10 @@ check(
 	/encoder_checks/.test( read( 'admin/class-admin-menu.php' ) ),
 	'صفحه‌ی انکودر پیش‌نیازها را بررسی می‌کند'
 );
+check(
+	/post_max_size/.test( read( 'admin/class-admin-notices.php' ) ) && /upload_max_filesize/.test( read( 'admin/class-admin-notices.php' ) ),
+	'کم‌بودن سقف آپلود PHP به مدیر هشدار داده می‌شود'
+);
 
 /* ۱۳) سازگاری با PHP 7.4 */
 const php74Banned = [
