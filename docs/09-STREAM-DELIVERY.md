@@ -9,11 +9,14 @@
 | بخش | پیاده‌سازی |
 |---|---|
 | ذخیره‌سازی | `FALNIC_STORAGE_DIR` یا `dirname(ABSPATH)/falnic-secure/` با زیرپوشه‌های `videos/` و `keys/` (بیرون از web root) |
-| اندپوینت‌ها | `admin-ajax.php` با اکشن‌های `falnic_stream_session`، `falnic_stream_manifest`، `falnic_stream_segment`، `falnic_stream_key` |
-| نشست | `POST action=falnic_stream_session&video={name}` → `{src, expires, watermark}` (فقط کاربر لاگین) |
+| اندپوینت‌ها | `admin-ajax.php` با اکشن‌های `falnic_stream_session`، `falnic_stream_manifest`، `falnic_stream_segment`، `falnic_stream_key`، `falnic_stream_subtitle`، `falnic_stream_heartbeat`، `falnic_stream_end` |
+| نشست | `POST action=falnic_stream_session&video={name}` → `{src, sid, expires, watermark, subtitles, heartbeat}` (فقط کاربر لاگین) |
+| نشست پخش | `sid` در همه‌ی توکن‌ها تکرار می‌شود؛ `Play_Registry` سقف پخش هم‌زمان و پایان نشست را کنترل می‌کند ([۲۱](21-WATCH-LOG.md)) |
+| زیرنویس | `falnic_stream_subtitle&l=fa` با توکن `sc=subtitle`؛ `.vtt` هرگز مستقیم سرو نمی‌شود |
+| گزارش | هر نشست یک ردیف در `{prefix}falnic_watch_log` با هش IP می‌سازد |
 | توکن | `f1.<b64url(payload)>.<b64url(hmac-sha256)>` با `sc`، `vid`، `uid`، `exp` و اختیاری `ip` |
 | عمر توکن | manifest: ۶۰۰s (`falnic_token_ttl`)، segment: ۷۲۰۰s (`falnic_segment_token_ttl`)، key: ۳۰۰s |
-| بازنویسی manifest | `#EXT-X-KEY` و `#EXT-X-MAP` و هر خط سگمنت به URL امضاشده تبدیل می‌شود |
+| بازنویسی manifest | `#EXT-X-KEY`، `#EXT-X-MAP`، `#EXT-X-MEDIA` (زیرنویس)، پلی‌لیست کیفیت‌ها و هر خط سگمنت به URL امضاشده تبدیل می‌شود |
 | بررسی دوباره | در هر سه اندپوینت `Access::reason()` صدا زده می‌شود (کش ۶۰ ثانیه‌ای اختیاری) |
 | محدودیت نرخ | session ۳۰/دقیقه، key ۳۰/دقیقه، segment ۶۰۰/دقیقه برای هر کاربر |
 | Range | پشتیبانی کامل `Range`/`206` برای seek |

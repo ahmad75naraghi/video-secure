@@ -33,7 +33,7 @@ foreach ( $iterator as $file ) {
 	// پوشه‌های وابستگی و حافظه‌های موقت را نادیده بگیر.
 	$path = str_replace( '\\', '/', $file->getPathname() );
 
-	if ( preg_match( '#/(node_modules|vendor|\.git)/#', $path ) ) {
+	if ( preg_match( '#/(node_modules|vendor|\.git|dist|bin)/#', $path ) ) {
 		continue;
 	}
 

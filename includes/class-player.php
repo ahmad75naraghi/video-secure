@@ -67,9 +67,11 @@ final class Player {
 		$template = Template_Settings::get();
 
 		$config = array(
-			'id'         => $html_id,
-			'name'       => $name,
-			'sessionUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_SESSION ),
+			'id'           => $html_id,
+			'name'         => $name,
+			'sessionUrl'   => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_SESSION ),
+			'heartbeatUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_HEARTBEAT ),
+			'endUrl'       => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_END ),
 			// متن واترمارک عمداً در HTML نیست؛ از پاسخ نشست (مخصوص همان کاربر) می‌آید.
 			'watermark'  => array_merge(
 				array(
@@ -88,6 +90,8 @@ final class Player {
 				'unsupported'  => __( 'مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.', 'falnic-secure-hls' ),
 				'sessionError' => __( 'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.', 'falnic-secure-hls' ),
 				'expired'      => __( 'زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'sessionEnded' => __( 'این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'multiDevice'  => __( 'این حساب در دستگاه دیگری در حال پخش است. ابتدا پخش قبلی را ببندید.', 'falnic-secure-hls' ),
 			),
 		);
 

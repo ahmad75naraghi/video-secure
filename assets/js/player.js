@@ -49,7 +49,10 @@
 			moveTimer: 0,
 			destroyed: false,
 			loading: false,
-			retried: false
+			retried: false,
+			session: null,
+			heartbeatTimer: 0,
+			beatFailures: 0
 		};
 
 		var i18n = config.i18n || {};
@@ -281,6 +284,10 @@
 						? payload.data.message
 						: ( i18n.sessionError || i18n.error );
 
+					if ( payload && payload.data && 'falnic_too_many_plays' === payload.data.reason ) {
+						message = payload.data.message || i18n.multiDevice || message;
+					}
+
 					throw new Error( message );
 				}
 
@@ -359,6 +366,137 @@
 			draw();
 		}
 
+		/* ---------------------------------------------------------------------
+		 * زیرنویس‌ها: هر بار پس از نشست، با نشانی امضاشده تازه ساخته می‌شوند
+		 * ------------------------------------------------------------------ */
+		function setSubtitles( subtitles ) {
+			Array.prototype.forEach.call(
+				video.querySelectorAll( 'track[data-falnic]' ),
+				function ( track ) {
+					if ( track.parentNode ) {
+						track.parentNode.removeChild( track );
+					}
+				}
+			);
+
+			if ( ! subtitles || ! subtitles.length ) {
+				return;
+			}
+
+			subtitles.forEach( function ( item, index ) {
+				if ( ! item || ! item.src ) {
+					return;
+				}
+
+				var track = document.createElement( 'track' );
+
+				track.kind    = 'captions';
+				track.label   = item.label || item.lang || '';
+				track.srclang = item.lang || '';
+				track.src     = item.src;
+				track.setAttribute( 'data-falnic', '1' );
+
+				if ( 0 === index ) {
+					track.default = true;
+				}
+
+				video.appendChild( track );
+			} );
+		}
+
+		/* ---------------------------------------------------------------------
+		 * ضربان نشست: اگر مدیر پخش را قطع کند یا دستگاه دیگری جلو بزند،
+		 * پلیر همان لحظه متوقف می‌شود.
+		 * ------------------------------------------------------------------ */
+		function stopHeartbeat() {
+			if ( state.heartbeatTimer ) {
+				window.clearInterval( state.heartbeatTimer );
+				state.heartbeatTimer = 0;
+			}
+		}
+
+		function sendEnd() {
+			var session = state.session;
+
+			if ( ! session || ! session.sid || ! config.endUrl ) {
+				return;
+			}
+
+			var body = 'video=' + encodeURIComponent( config.name || '' ) +
+				'&sid=' + encodeURIComponent( session.sid ) +
+				'&t=' + encodeURIComponent( session.heartbeat || '' );
+
+			if ( navigator.sendBeacon ) {
+				try {
+					navigator.sendBeacon( config.endUrl, new Blob( [ body ], { type: 'application/x-www-form-urlencoded' } ) );
+					return;
+				} catch ( e ) {}
+			}
+
+			fetch( config.endUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				keepalive: true,
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body
+			} ).catch( function () {} );
+		}
+
+		function startHeartbeat( session ) {
+			stopHeartbeat();
+
+			if ( ! session || ! session.sid || ! session.heartbeat || ! config.heartbeatUrl ) {
+				return;
+			}
+
+			state.beatFailures = 0;
+
+			state.heartbeatTimer = window.setInterval( function () {
+				var body = 'video=' + encodeURIComponent( config.name || '' ) +
+					'&sid=' + encodeURIComponent( session.sid ) +
+					'&t=' + encodeURIComponent( session.heartbeat );
+
+				fetch( config.heartbeatUrl, {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+					body: body
+				} ).then( function ( response ) {
+					return response.json().catch( function () {
+						return null;
+					} );
+				} ).then( function ( payload ) {
+					if ( payload && payload.success && payload.data && payload.data.alive ) {
+						state.beatFailures = 0;
+						return;
+					}
+
+					var message = payload && payload.data && payload.data.message
+						? payload.data.message
+						: ( i18n.sessionEnded || i18n.error );
+
+					stopHeartbeat();
+					destroyStream();
+
+					try {
+						video.pause();
+					} catch ( e ) {}
+
+					showError( message );
+				} ).catch( function () {
+					// خطای شبکه‌ی گذرا؛ چند بار دیگر تلاش می‌شود.
+					state.beatFailures++;
+
+					if ( state.beatFailures >= 4 ) {
+						stopHeartbeat();
+					}
+				} );
+			}, 30000 );
+		}
+
+		window.addEventListener( 'pagehide', sendEnd );
+		window.addEventListener( 'beforeunload', sendEnd );
+
 		function loadStream() {
 			if ( ! config.sessionUrl ) {
 				startStream( config.src );
@@ -373,7 +511,10 @@
 
 			fetchSession().then( function ( session ) {
 				state.loading = false;
+				state.session = session;
 				applyWatermark( session.watermark );
+				setSubtitles( session.subtitles );
+				startHeartbeat( session );
 				startStream( session.src || config.src );
 			} ).catch( function ( error ) {
 				state.loading = false;
@@ -399,6 +540,8 @@
 
 			state.destroyed = true;
 			stopLoop();
+			stopHeartbeat();
+			sendEnd();
 			window.clearInterval( state.moveTimer );
 			window.removeEventListener( 'blur', onBlur );
 			window.removeEventListener( 'focus', onFocus );

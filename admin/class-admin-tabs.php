@@ -35,6 +35,10 @@ final class Admin_Tabs {
 				'label' => __( 'انکودر دستی', 'falnic-secure-hls' ),
 				'cap'   => 'manage_options',
 			),
+			'falnic_watch_log'         => array(
+				'label' => __( 'گزارش تماشا', 'falnic-secure-hls' ),
+				'cap'   => 'manage_options',
+			),
 			'falnic-git-update'        => array(
 				'label' => __( 'آپدیت از گیت', 'falnic-secure-hls' ),
 				'cap'   => 'update_plugins',

@@ -332,6 +332,24 @@ final class Access {
 	}
 
 	/**
+	 * شناسه‌ی نخستین دوره‌ی مرتبط با یک ویدیو (برای گزارش تماشا).
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return int
+	 */
+	public static function course_for_name( string $name ): int {
+		foreach ( self::linked_lesson_ids( $name ) as $lesson_id ) {
+			$course_id = self::course_id( (int) $lesson_id );
+
+			if ( $course_id > 0 ) {
+				return $course_id;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
 	 * دوره‌های مرتبط با یک ویدیو (برای نمایش لینک در پیام رد دسترسی).
 	 *
 	 * @param string $name نام ویدیو.

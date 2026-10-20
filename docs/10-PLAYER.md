@@ -22,13 +22,18 @@
   "id": "secure-vid-1",
   "name": "lesson-108",
   "sessionUrl": "https://example.com/wp-admin/admin-ajax.php?action=falnic_stream_session",
+  "heartbeatUrl": "https://example.com/wp-admin/admin-ajax.php?action=falnic_stream_heartbeat",
+  "endUrl": "https://example.com/wp-admin/admin-ajax.php?action=falnic_stream_end",
   "watermark": { "line1": "", "line2": "", "opacity": 0.18, "interval": 3000, "scale": 1 },
-  "i18n": { "resume": "…", "error": "…", "unsupported": "…", "sessionError": "…", "expired": "…" }
+  "i18n": { "resume": "…", "error": "…", "unsupported": "…", "sessionError": "…", "expired": "…", "sessionEnded": "…", "multiDevice": "…" }
 }
 ```
 
 - **هیچ `src`، توکن یا متنی از کاربر در HTML نیست.** فقط `name` و آدرس اندپوینت نشست.
 - `player.js` با `POST` به `sessionUrl` می‌رود؛ پاسخ شامل `src` امضاشده، `expires` و خطوط واترمارک همان کاربر است.
+- **ضربان نشست:** هر ۳۰ ثانیه `heartbeatUrl` با `sid` و توکن ضربان فراخوانی می‌شود. اگر پاسخ `alive=false` باشد (پخش از دستگاه دیگر یا «قطع پخش» مدیر)، پخش متوقف و پیام فارسی نشان داده می‌شود. با `pagehide`/`beforeunload` یک `sendBeacon` به `endUrl` می‌رود تا نشست فوری آزاد شود.
+- **زیرنویس:** پاسخ نشست آرایه‌ی `subtitles` را می‌دهد؛ پلیر برای هر مورد یک `<track kind="captions" data-falnic>` می‌سازد (بدون HTML خام).
+- **کیفیت:** پلیر `master.m3u8` را می‌گیرد؛ منوی کیفیت hls.js از پله‌های ساخته‌شده پر می‌شود و در DevTools هم می‌توان `f=720p/index.m3u8` را دید — هر دو مسیر توکن می‌خواهند.
 - بخش ۴ این سند (پایین) طراحی اولیه بر پایه‌ی REST است؛ پیاده‌سازی نهایی به دلیل سازگاری با کش و `admin-ajax` از همان الگو ولی با اکشن‌های `falnic_stream_*` استفاده می‌کند ([۰۶](06-API.md)).
 
 ---

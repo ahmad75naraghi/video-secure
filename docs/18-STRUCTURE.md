@@ -18,7 +18,10 @@ falnic-secure-hls/
 │   ├── class-storage.php        ← تنها نقطه‌ی دسترسی به فایل‌سیستم
 │   ├── class-post-type.php      ← CPT و ستون‌های لیست
 │   ├── class-meta-box.php       ← آپلود و ذخیره‌ی پست
-│   ├── class-encoder.php        ← ffmpeg، کلید، keyinfo
+│   ├── class-encoder.php        ← ffmpeg ABR، کلید، keyinfo، پیشرفت
+│   ├── class-encode-queue.php   ← صف WP-Cron، وضعیت/لغو/تلاش دوباره، AJAX مدیریتی
+│   ├── class-play-registry.php  ← نشست‌های فعال پخش و سقف هم‌زمانی
+│   ├── class-watch-log.php      ← جدول گزارش تماشا، هش IP، آمار و پاک‌سازی دوره‌ای
 │   ├── class-player.php         ← شورت‌کد و ساخت پیکربندی پلیر
 │   ├── class-assets.php         ← ثبت/بارگذاری CSS و JS
 │   ├── class-embed.php          ← اندپوینت ?falnic_embed=
@@ -41,6 +44,7 @@ falnic-secure-hls/
 │       ├── settings.php
 │       ├── template.php
 │       ├── git-update.php
+│       ├── watch-log.php        ← گزارش تماشا، حساب‌های مشکوک، «قطع پخش»، خروجی CSV
 │       └── encoder.php
 │
 ├── templates/                   ← مارک‌آپ قابل بازنویسی
@@ -52,6 +56,7 @@ falnic-secure-hls/
 │   ├── css/admin.css            ← استایل پنل (محدود به .falnic-admin)
 │   ├── js/player.js
 │   ├── js/admin-git.js          ← کلاینت AJAX صفحهٔ آپدیت
+│   ├── js/admin-encode.js       ← نوار پیشرفت/لغو صف در متاباکس ویدیو
 │   └── vendor/                  ← کتابخانه‌های شخص ثالث، محلی
 │       ├── hls/{hls.min.js, LICENSE}
 │       └── plyr/{plyr.min.js, plyr.css, LICENSE.md}
@@ -61,8 +66,12 @@ falnic-secure-hls/
 │   ├── smoke.php                ← تست دود با wp eval-file
 │   ├── access-tests.php         ← ۵۹ تست دسترسی/توکن/manifest/مهاجرت (PHP CLI، بدون وردپرس)
 │   ├── run-tests.php            ← تست‌های واحد موتور آپدیت (PHP CLI، بدون وردپرس)
+│   ├── queue-tests.php          ← ۱۰۶ تست صف انکود، کیفیت، رجیستری پخش، گزارش، زیرنویس
 │   ├── lint-all.php             ← بررسی syntax همهٔ فایل‌ها با TOKEN_PARSE
 │   └── static-checks.js         ← بررسی‌های امنیتی ایستا (Node، بدون وابستگی)
+│
+├── .github/workflows/ci.yml     ← lint + تست‌ها + ساخت ZIP + انتشار روی تگ v*
+├── bin/                         ← make-pot.js (قالب ترجمه) و build-release.sh (ZIP نصب)
 └── docs/                        ← مستندات (همین پوشه)
 ```
 

@@ -10,10 +10,43 @@
 | `admin-ajax.php?action=falnic_stream_manifest&video=&t=` | GET | توکن `sc=manifest` + دسترسی | `application/vnd.apple.mpegurl` |
 | `admin-ajax.php?action=falnic_stream_segment&video=&f=&t=` | GET | توکن `sc=segment` + دسترسی | بایت سگمنت (Range/206) |
 | `admin-ajax.php?action=falnic_stream_key&video=&t=` | GET | توکن `sc=key` + دسترسی | ۱۶ بایت کلید AES |
+| `admin-ajax.php?action=falnic_stream_subtitle&video=&l=&t=` | GET | توکن `sc=subtitle` + دسترسی | `text/vtt` |
+| `admin-ajax.php?action=falnic_stream_heartbeat&video=&sid=&t=` | POST | توکن `sc=heartbeat` | JSON `{alive, sid, expires}` |
+| `admin-ajax.php?action=falnic_stream_end&video=&sid=&t=` | POST (sendBeacon) | توکن `sc=heartbeat` | `204` |
 | `admin-ajax.php?action=secure_hls_key&video=` | GET | سازگاری: کوکی + دسترسی | ۱۶ بایت کلید AES |
 
-توکن: `f1.<b64url(payload)>.<b64url(hmac_sha256)>` با ادعاهای `sc`، `vid`، `uid`، `iat`، `exp` و اختیاری `ip`.
-خطاها متن ساده با کد ۴۰۱ (مهمان)، ۴۰۳ (بدون ثبت‌نام/دسترسی)، ۴۰۴ (فایل) و ۴۲۹ (نرخ) هستند.
+توکن: `f1.<b64url(payload)>.<b64url(hmac_sha256)>` با ادعاهای `sc`، `vid`، `uid`، `iat`، `exp`، اختیاری `ip`
+و `sid` (شناسه‌ی نشست پخش). خطاها متن ساده با کد ۴۰۱ (مهمان)، ۴۰۳ (بدون ثبت‌نام/دسترسی یا نشست بسته‌شده)،
+۴۰۴ (فایل) و ۴۲۹ (نرخ) هستند.
+
+### ۰.۱. نشست پخش
+
+`falnic_stream_session` علاوه بر `src` این‌ها را برمی‌گرداند:
+
+```json
+{
+  "name": "lesson-108",
+  "sid": "9f2c1ab34d5e6f70",
+  "src": "…/admin-ajax.php?action=falnic_stream_manifest&video=lesson-108&t=…",
+  "expires": 1760000000,
+  "watermark": { "lines": [ … ] },
+  "subtitles": [ { "lang": "fa", "label": "فارسی", "src": "…action=falnic_stream_subtitle&l=fa&t=…" } ],
+  "heartbeat": "f1.…"
+}
+```
+
+- اگر کاربر به سقف پخش هم‌زمان رسیده باشد: `409` با `reason: falnic_too_many_plays` و فهرست نشست‌های فعال.
+- هر درخواست سگمنت/کلید/manifest با بررسی `sid` انجام می‌شود؛ نشستِ بسته‌شده بلافاصله ۴۰۳ می‌گیرد.
+
+### ۰.۲. AJAX مدیریتی صف و گزارش
+
+| اکشن | دسترسی | توضیح |
+|---|---|---|
+| `falnic_encode_status` | `edit_post` + nonce `falnic_encode_status` | وضعیت، درصد، پیام و خطای کار صف |
+| `falnic_encode_cancel` | همان | لغو کار در صف/در حال اجرا |
+| `falnic_encode_retry` | همان | تلاش دوباره روی کار ناموفق |
+
+گزارش تماشا و «قطع پخش» از `admin-post.php` با اکشن `falnic_watch_log_action` و capability `manage_options` انجام می‌شود.
 
 ---
 

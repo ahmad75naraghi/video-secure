@@ -27,6 +27,22 @@ final class Admin_Menu {
 		add_action( 'admin_post_falnic_run_encoder', array( __CLASS__, 'handle_encoder' ) );
 		add_action( 'admin_post_falnic_save_template', array( __CLASS__, 'handle_template' ) );
 		add_action( 'admin_post_falnic_migrate_storage', array( __CLASS__, 'handle_migrate_storage' ) );
+		add_action( 'admin_post_falnic_watch_log_action', array( __CLASS__, 'handle_watch_log' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
+	}
+
+	/**
+	 * بارگذاری استایل مشترک در همه‌ی صفحه‌های افزونه.
+	 *
+	 * @param string $hook پسوند صفحه‌ی جاری.
+	 * @return void
+	 */
+	public static function enqueue_assets( $hook ): void {
+		if ( false === strpos( (string) $hook, 'falnic_' ) && false === strpos( (string) $hook, 'falnic-git-update' ) ) {
+			return;
+		}
+
+		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
 	}
 
 	/**
@@ -60,6 +76,15 @@ final class Admin_Menu {
 			'manage_options',
 			'falnic_template_settings',
 			array( __CLASS__, 'render_template_page' )
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=' . Post_Type::SLUG,
+			__( 'گزارش تماشا', 'falnic-secure-hls' ),
+			__( 'گزارش تماشا', 'falnic-secure-hls' ),
+			'manage_options',
+			'falnic_watch_log',
+			array( __CLASS__, 'render_watch_log_page' )
 		);
 
 		add_submenu_page(
@@ -160,6 +185,27 @@ final class Admin_Menu {
 			update_option( 'falnic_max_upload_mb', max( 1, absint( wp_unslash( $_POST['max_upload_mb'] ) ) ) );
 		}
 
+		$quality = isset( $_POST['hls_quality'] ) ? sanitize_key( wp_unslash( $_POST['hls_quality'] ) ) : 'auto';
+		$quality = in_array( $quality, array( 'auto', 'single' ), true ) ? $quality : 'auto';
+
+		update_option( 'falnic_hls_quality', $quality );
+		update_option(
+			'falnic_hls_max_renditions',
+			isset( $_POST['max_renditions'] ) ? max( 1, min( 3, absint( wp_unslash( $_POST['max_renditions'] ) ) ) ) : 2
+		);
+		update_option(
+			'falnic_hls_segment_seconds',
+			isset( $_POST['segment_seconds'] ) ? max( 2, min( 10, absint( wp_unslash( $_POST['segment_seconds'] ) ) ) ) : 6
+		);
+		update_option(
+			'falnic_max_concurrent',
+			isset( $_POST['max_concurrent'] ) ? min( 10, absint( wp_unslash( $_POST['max_concurrent'] ) ) ) : 1
+		);
+		update_option(
+			'falnic_watch_log_days',
+			isset( $_POST['watch_log_days'] ) ? max( 7, min( 365, absint( wp_unslash( $_POST['watch_log_days'] ) ) ) ) : 90
+		);
+
 		wp_safe_redirect(
 			add_query_arg(
 				array(
@@ -202,22 +248,12 @@ final class Admin_Menu {
 			exit;
 		}
 
-		if ( function_exists( 'set_time_limit' ) ) {
-			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		}
-		ignore_user_abort( true );
+		$queued = Encode_Queue::enqueue( $name, $input_file, 0, (int) get_current_user_id(), true );
 
-		if ( Encoder::encode( $input_file, $name ) ) {
-			if ( ! post_exists( $name ) ) {
-				wp_insert_post(
-					array(
-						'post_type'   => Post_Type::SLUG,
-						'post_title'  => $name,
-						'post_status' => 'publish',
-					)
-				);
-			}
-			$redirect['encoded'] = $name;
+		if ( ! empty( $queued['ok'] ) ) {
+			$redirect['queued'] = $name;
+		} else {
+			$redirect['error'] = 'queue_failed';
 		}
 
 		wp_safe_redirect( add_query_arg( $redirect, admin_url( 'edit.php?post_type=' . Post_Type::SLUG ) ) );
@@ -272,6 +308,11 @@ final class Admin_Menu {
 		$ld_position    = get_option( 'falnic_ld_position', 'before' );
 		$require_enrol  = get_option( 'falnic_ld_require_enrollment', 'yes' );
 		$max_upload_mb  = (int) get_option( 'falnic_max_upload_mb', 2048 );
+		$hls_quality    = (string) get_option( 'falnic_hls_quality', 'auto' );
+		$max_renditions = (int) get_option( 'falnic_hls_max_renditions', 2 );
+		$segment_secs   = (int) get_option( 'falnic_hls_segment_seconds', 6 );
+		$max_concurrent = (int) get_option( 'falnic_max_concurrent', 1 );
+		$watch_log_days = (int) get_option( 'falnic_watch_log_days', 90 );
 		$ld_active      = Learn_Dash::is_active();
 		$legacy_pending = Storage::legacy_pending();
 		$storage_root   = Storage::root();
@@ -293,6 +334,156 @@ final class Admin_Menu {
 		}
 
 		include FALNIC_DIR . 'admin/views/encoder.php';
+	}
+
+	/**
+	 * صفحه‌ی گزارش تماشا.
+	 *
+	 * @return void
+	 */
+	public static function render_watch_log_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$watch_days = max( 1, (int) ( $_GET['days'] ?? 7 ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$watch_video = isset( $_GET['video'] ) ? sanitize_text_field( wp_unslash( $_GET['video'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$watch_user  = isset( $_GET['user_id'] ) ? absint( wp_unslash( $_GET['user_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$watch_page  = max( 1, (int) ( $_GET['paged'] ?? 1 ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$watch_args  = array(
+			'days'     => $watch_days,
+			'video'    => $watch_video,
+			'user_id'  => $watch_user,
+			'per_page' => 25,
+			'page'     => $watch_page,
+		);
+
+		$watch_rows    = Watch_Log::query( $watch_args );
+		$watch_total   = Watch_Log::count( $watch_args );
+		$watch_summary = Watch_Log::summary();
+		$watch_shared  = Watch_Log::shared_accounts( 3 );
+		$watch_denied  = Watch_Log::denials_today();
+		$watch_exists  = Watch_Log::exists();
+
+		include FALNIC_DIR . 'admin/views/watch-log.php';
+	}
+
+	/**
+	 * پردازش عملیات گزارش تماشا (قطع پخش / خروجی CSV).
+	 *
+	 * @return void
+	 */
+	public static function handle_watch_log(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'دسترسی ندارید.', 'falnic-secure-hls' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'falnic_watch_log_action' );
+
+		$op      = isset( $_POST['falnic_op'] ) ? sanitize_key( wp_unslash( $_POST['falnic_op'] ) ) : '';
+		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
+		$video   = isset( $_POST['video'] ) ? sanitize_text_field( wp_unslash( $_POST['video'] ) ) : '';
+
+		if ( 'revoke' === $op && $user_id > 0 ) {
+			$count = Play_Registry::terminate_all( $user_id );
+
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'post_type' => Post_Type::SLUG,
+						'page'      => 'falnic_watch_log',
+						'falnic'    => 'revoked',
+						'count'     => $count,
+					),
+					admin_url( 'edit.php' )
+				)
+			);
+			exit;
+		}
+
+		if ( 'export' === $op ) {
+			self::export_watch_log( $video );
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'post_type' => Post_Type::SLUG,
+					'page'      => 'falnic_watch_log',
+				),
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * خروجی CSV از گزارش تماشا (حداکثر ۵۰۰۰ ردیف).
+	 *
+	 * @param string $video فیلتر ویدیو.
+	 * @return void
+	 */
+	private static function export_watch_log( string $video ): void {
+		$rows = Watch_Log::query(
+			array(
+				'video'    => $video,
+				'days'     => 90,
+				'per_page' => 5000,
+				'page'     => 1,
+			)
+		);
+
+		$filename = 'falnic-watch-log-' . gmdate( 'Ymd-His' ) . '.csv';
+
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+
+		$out = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+
+		if ( false === $out ) {
+			exit;
+		}
+
+		// BOM برای نمایش صحیح فارسی در Excel.
+		fwrite( $out, "ï»¿" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite
+
+		fputcsv(
+			$out,
+			array(
+				__( 'کاربر', 'falnic-secure-hls' ),
+				__( 'ویدیو', 'falnic-secure-hls' ),
+				__( 'شروع', 'falnic-secure-hls' ),
+				__( 'آخرین فعالیت', 'falnic-secure-hls' ),
+				__( 'مدت (ثانیه)', 'falnic-secure-hls' ),
+				__( 'سگمنت', 'falnic-secure-hls' ),
+				__( 'دستگاه', 'falnic-secure-hls' ),
+				__( 'اثر انگشت IP', 'falnic-secure-hls' ),
+				__( 'نشست', 'falnic-secure-hls' )
+			)
+		);
+
+		foreach ( $rows as $row ) {
+			$user = get_userdata( (int) $row['user_id'] );
+
+			fputcsv(
+				$out,
+				array(
+					$user ? $user->user_login : (string) $row['user_id'],
+					$row['video'],
+					$row['started_at'],
+					$row['last_seen'],
+					(int) $row['seconds'],
+					(int) $row['segments'],
+					$row['agent'],
+					$row['ip_hash'],
+					$row['session_id'],
+				)
+			);
+		}
+
+		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+		exit;
 	}
 
 	/**

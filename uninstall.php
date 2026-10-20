@@ -24,6 +24,15 @@ delete_option( 'falnic_token_ttl' );
 delete_option( 'falnic_segment_token_ttl' );
 delete_option( 'falnic_db_version' );
 delete_option( 'falnic_max_upload_mb' );
+delete_option( 'falnic_hls_quality' );
+delete_option( 'falnic_hls_max_renditions' );
+delete_option( 'falnic_hls_segment_seconds' );
+delete_option( 'falnic_max_concurrent' );
+delete_option( 'falnic_watch_log_days' );
+delete_option( 'falnic_log_db_version' );
+delete_option( 'falnic_log_salt' );
+delete_option( 'falnic_deny_stats' );
+delete_option( 'falnic_encode_jobs' );
 
 // تنظیمات آپدیت از گیت (شامل توکن).
 delete_option( 'falnic_git_repo' );
@@ -41,8 +50,18 @@ delete_metadata( 'user', 0, 'falnic_last_login_ip', '', true );
 delete_metadata( 'post', 0, 'falnic_video_name', '', true );
 delete_metadata( 'post', 0, '_falnic_video_name', '', true );
 
-// transient های باقی‌مانده.
+// جدول گزارش تماشا و رویدادهای زمان‌بندی‌شده.
+wp_clear_scheduled_hook( 'falnic_encode_run' );
+wp_clear_scheduled_hook( 'falnic_encode_cleanup' );
+wp_clear_scheduled_hook( 'falnic_watch_log_purge' );
+
 global $wpdb;
+
+$falnic_watch_table = $wpdb->prefix . 'falnic_watch_log';
+
+$wpdb->query( "DROP TABLE IF EXISTS {$falnic_watch_table}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+// transient های باقی‌مانده.
 
 $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	"DELETE FROM {$wpdb->options}

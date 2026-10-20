@@ -216,6 +216,75 @@ check(
 	'Post_Type::video_name برای خواندن شناسه وجود دارد'
 );
 
+/* ۱۲.۲) صف انکود، گزارش تماشا و محدودیت پخش */
+const queue = read( 'includes/class-encode-queue.php' );
+const watchLog = read( 'includes/class-watch-log.php' );
+const registry = read( 'includes/class-play-registry.php' );
+const plugin = read( 'includes/class-plugin.php' );
+const installer = read( 'includes/class-installer.php' );
+const adminEncode = read( 'assets/js/admin-encode.js' );
+
+check(
+	/Encode_Queue::init\(\)/.test( plugin ) && /Watch_Log::init\(\)/.test( plugin ),
+	'صف انکود و گزارش تماشا در بوت افزونه ثبت می‌شوند'
+);
+check(
+	/wp_schedule_single_event\(/.test( queue ) && /CRON_HOOK/.test( queue ),
+	'انکود از طریق WP-Cron اجرا می‌شود، نه درخواست آپلود'
+);
+check(
+	!/\bEncoder::encode\s*\(/.test( metaBox ) && /Encode_Queue::enqueue\s*\(/.test( metaBox ),
+	'متاباکس ویدیو را همگام انکود نمی‌کند و به صف می‌سپارد'
+);
+check(
+	!/(shell_exec|system|passthru|popen|pcntl_exec)\s*\(/.test( queue ) && !/(shell_exec|system|passthru|popen|pcntl_exec)\s*\(/.test( read( 'includes/class-encoder.php' ) ),
+	'موتور انکود هیچ فرمان shell اجرا نمی‌کند'
+);
+check(
+	/check_ajax_referer\(\s*'falnic_encode_status'/.test( queue ) && /current_user_can\(\s*'edit_post'/.test( queue ),
+	'AJAX صف انکود nonce و capability را بررسی می‌کند'
+);
+check(
+	/'ip_hash'/.test( watchLog ) && !/INSERT[^;]*REMOTE_ADDR/s.test( watchLog ),
+	'گزارش تماشا IP خام را ذخیره نمی‌کند'
+);
+check(
+	/hash_hmac\(\s*'sha256'/.test( watchLog ),
+	'اثر انگشت IP با HMAC-SHA256 ساخته می‌شود'
+);
+check(
+	/delete_transient\(\s*self::key\(/.test( registry ) && /terminate_all/.test( registry ),
+	'قطع پخش، نشست‌های فعال کاربر را پاک می‌کند'
+);
+check(
+	/Play_Registry::check\(/.test( stream ),
+	'تحویل هر سگمنت منوط به نشست پخش فعال است'
+);
+check(
+	/Token::SCOPE_SUBTITLE/.test( stream ) && /falnic_stream_subtitle/.test( stream ),
+	'زیرنویس‌ها با توکن اختصاصی و همان دروازه تحویل می‌شوند'
+);
+check(
+	/sendBeacon/.test( playerJs ) && /heartbeatUrl/.test( playerJs ) && /stopHeartbeat/.test( playerJs ),
+	'پلیر ضربان نشست را می‌فرستد و پخش را در صورت قطع می‌بندد'
+);
+check(
+	/document\.createElement\(\s*'track'/.test( playerJs ) && /data-falnic/.test( playerJs ),
+	'زیرنویس‌ها با نشانی امضاشده به پلیر اضافه می‌شوند'
+);
+check(
+	/textContent/.test( adminEncode ) && !/innerHTML/.test( adminEncode ),
+	'پنل پیشرفت انکود از innerHTML استفاده نمی‌کند'
+);
+check(
+	/Watch_Log::install\(\)/.test( installer ) && /schedule_events\(\)/.test( installer ),
+	'فعال‌سازی افزونه جدول گزارش و رویدادهای دوره‌ای را می‌سازد'
+);
+check(
+	/wp_clear_scheduled_hook\(\s*Encode_Queue::CLEANUP_HOOK/.test( installer ),
+	'غیرفعال‌سازی افزونه رویدادهای زمان‌بندی‌شده را پاک می‌کند'
+);
+
 /* ۱۳) سازگاری با PHP 7.4 */
 const php74Banned = [
 	[ /\?\?=/, 'عملگر ??=' ],
@@ -224,7 +293,9 @@ const php74Banned = [
 	[ /\):\s*\w+\|\w+/, 'union type' ],
 	[ /\?->/, 'nullsafe operator' ]
 ];
-const newFiles = token + access + stream + learnDash + storage + player + keyServer;
+const newFiles = token + access + stream + learnDash + storage + player + keyServer
+	+ queue + watchLog + registry + plugin + installer + metaBox + read( 'admin/class-admin-menu.php' )
+	+ read( 'admin/views/watch-log.php' ) + read( 'admin/views/settings.php' ) + adminEncode;
 php74Banned.forEach( ( pair ) => {
 	check(
 		! pair[ 0 ].test( updater ) && ! pair[ 0 ].test( page ) && ! pair[ 0 ].test( newFiles ),

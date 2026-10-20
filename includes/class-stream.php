@@ -4,7 +4,8 @@
  *
  * پلی‌لیست، سگمنت و کلید هیچ‌گاه مستقیم از وب‌سرور تحویل نمی‌شوند؛
  * هر درخواست باید توکن امضاشده‌ی کوتاه‌عمر داشته باشد و دسترسی کاربر
- * دوباره بررسی می‌شود.
+ * دوباره بررسی می‌شود. هر نشست پخش یک شناسه (sid) دارد که در توکن‌ها
+ * تکرار می‌شود تا محدودیت پخش هم‌زمان و ثبت گزارش تماشا ممکن باشد.
  *
  * @package Falnic\SecureHLS
  */
@@ -41,6 +42,21 @@ final class Stream {
 	public const ACTION_KEY = 'falnic_stream_key';
 
 	/**
+	 * اکشن زیرنویس.
+	 */
+	public const ACTION_SUBTITLE = 'falnic_stream_subtitle';
+
+	/**
+	 * اکشن ضربان نشست.
+	 */
+	public const ACTION_HEARTBEAT = 'falnic_stream_heartbeat';
+
+	/**
+	 * اکشن پایان نشست.
+	 */
+	public const ACTION_END = 'falnic_stream_end';
+
+	/**
 	 * سقف درخواست کلید در دقیقه.
 	 */
 	private const KEY_LIMIT = 30;
@@ -56,16 +72,29 @@ final class Stream {
 	private const SESSION_LIMIT = 30;
 
 	/**
+	 * سقف درخواست ضربان در دقیقه.
+	 */
+	private const HEARTBEAT_LIMIT = 120;
+
+	/**
+	 * فاصله‌ی ثبت به‌روزرسانی گزارش (ثانیه).
+	 */
+	private const LOG_INTERVAL = 20;
+
+	/**
 	 * ثبت هوک‌ها.
 	 *
 	 * @return void
 	 */
 	public static function init(): void {
 		$actions = array(
-			self::ACTION_SESSION  => 'session',
-			self::ACTION_MANIFEST => 'manifest',
-			self::ACTION_SEGMENT  => 'segment',
-			self::ACTION_KEY      => 'key',
+			self::ACTION_SESSION   => 'session',
+			self::ACTION_MANIFEST  => 'manifest',
+			self::ACTION_SEGMENT   => 'segment',
+			self::ACTION_KEY       => 'key',
+			self::ACTION_SUBTITLE  => 'subtitle',
+			self::ACTION_HEARTBEAT => 'heartbeat',
+			self::ACTION_END       => 'end_session',
 		);
 
 		foreach ( $actions as $action => $method ) {
@@ -80,9 +109,11 @@ final class Stream {
 	 * @return void
 	 */
 	public static function session(): void {
-		$name = isset( $_REQUEST['video'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['video'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- توکن/احراز هویت جای nonce را می‌گیرد.
+		$name = self::request_name();
 
 		if ( ! is_user_logged_in() ) {
+			Watch_Log::log_denial( 'guest', $name );
+
 			wp_send_json_error(
 				array(
 					'reason'    => 'guest',
@@ -96,11 +127,13 @@ final class Stream {
 		$reason = Access::reason( $name );
 
 		if ( 'ok' !== $reason ) {
+			Watch_Log::log_denial( $reason, $name );
+
 			wp_send_json_error(
 				array(
-					'reason'   => $reason,
-					'message'  => Access::message( $reason ),
-					'courses'  => 'not_enrolled' === $reason || 'locked' === $reason ? Access::courses_for( $name ) : array(),
+					'reason'  => $reason,
+					'message' => Access::message( $reason ),
+					'courses' => in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array(),
 				),
 				403
 			);
@@ -110,20 +143,47 @@ final class Stream {
 			wp_send_json_error( array( 'message' => __( 'درخواست‌های بیش از حد. کمی بعد تلاش کنید.', 'falnic-secure-hls' ) ), 429 );
 		}
 
-		$ttl = max( 60, (int) get_option( 'falnic_token_ttl', 600 ) );
+		$user_id = (int) get_current_user_id();
+		$sid     = Play_Registry::start( $user_id, $name );
+
+		if ( is_wp_error( $sid ) ) {
+			wp_send_json_error(
+				array(
+					'reason'   => $sid->get_error_code(),
+					'message'  => $sid->get_error_message(),
+					'sessions' => (array) ( $sid->get_error_data()['sessions'] ?? array() ),
+				),
+				409
+			);
+		}
+
+		$ttl   = max( 60, (int) get_option( 'falnic_token_ttl', 600 ) );
+		$extra = array( 'sid' => $sid );
+
+		Watch_Log::record(
+			array(
+				'user_id'    => $user_id,
+				'video'      => $name,
+				'course_id'  => Access::course_for_name( $name ),
+				'session_id' => $sid,
+			)
+		);
 
 		wp_send_json_success(
 			array(
 				'name'      => $name,
-				'src'       => Token::url( self::ACTION_MANIFEST, $name, Token::SCOPE_MANIFEST, array(), $ttl ),
+				'sid'       => $sid,
+				'src'       => Token::url( self::ACTION_MANIFEST, $name, Token::SCOPE_MANIFEST, $extra, $ttl ),
 				'expires'   => time() + $ttl,
 				'watermark' => Player::watermark_lines(),
+				'subtitles' => self::subtitle_sources( $name, $extra, $ttl ),
+				'heartbeat' => Token::issue( Token::SCOPE_HEARTBEAT, $name, $extra, max( $ttl, 900 ) ),
 			)
 		);
 	}
 
 	/**
-	 * AJAX: تحویل manifest بازنویسی‌شده.
+	 * AJAX: تحویل manifest (اصلی یا یکی از کیفیت‌ها).
 	 *
 	 * @return void
 	 */
@@ -143,31 +203,51 @@ final class Stream {
 			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
 		}
 
-		$path = Storage::playlist_path( $name );
+		if ( ! self::session_alive( $claims ) ) {
+			self::fail( __( 'این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ), 403 );
+		}
 
-		if ( ! is_readable( $path ) ) {
+		$relative = self::request_file();
+		$path     = '' === $relative ? Storage::playlist_path( $name ) : Storage::resolve_file( $name, $relative );
+
+		if ( null === $path || ! is_readable( $path ) ) {
 			self::fail( __( 'پلی‌لیست این ویدیو پیدا نشد.', 'falnic-secure-hls' ), 404 );
 		}
 
-		$handle = fopen( $path, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+		if ( 'm3u8' !== strtolower( (string) pathinfo( $path, PATHINFO_EXTENSION ) ) ) {
+			self::fail( __( 'درخواست معتبر نیست.', 'falnic-secure-hls' ), 404 );
+		}
 
-		if ( false === $handle ) {
+		$lines = file( $path, FILE_IGNORE_NEW_LINES ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file
+
+		if ( ! is_array( $lines ) ) {
 			self::fail( __( 'پلی‌لیست قابل خواندن نیست.', 'falnic-secure-hls' ), 500 );
 		}
 
-		$body = '';
+		$base        = '' === $relative ? '' : self::dir_of( $relative );
+		$expect_var = false;
+		$body       = '';
 
-		while ( ! feof( $handle ) ) {
-			$line = fgets( $handle );
+		foreach ( $lines as $line ) {
+			$line = (string) $line;
 
-			if ( false === $line ) {
-				break;
+			if ( '' === trim( $line ) ) {
+				continue;
 			}
 
-			$body .= self::rewrite_line( rtrim( $line, "\r\n" ), $name ) . "\n";
-		}
+			$variant = false;
 
-		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			if ( $expect_var && '#' !== $line[0] ) {
+				$variant   = true;
+				$expect_var = false;
+			}
+
+			if ( 0 === strpos( $line, '#EXT-X-STREAM-INF' ) ) {
+				$expect_var = true;
+			}
+
+			$body .= self::rewrite_line( $line, $name, $base, $variant, $claims ) . "\n";
+		}
 
 		self::clean_buffers();
 
@@ -201,17 +281,23 @@ final class Stream {
 			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
 		}
 
+		if ( ! self::session_alive( $claims ) ) {
+			self::fail( __( 'این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ), 403 );
+		}
+
 		if ( self::rate_limited( 'segment', self::SEGMENT_LIMIT ) ) {
 			header( 'Retry-After: 5' );
 			self::fail( __( 'درخواست‌های بیش از حد. کمی بعد تلاش کنید.', 'falnic-secure-hls' ), 429 );
 		}
 
-		$relative = isset( $_GET['f'] ) ? sanitize_text_field( wp_unslash( $_GET['f'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$relative = self::request_file();
 		$path     = Storage::resolve_file( $name, $relative );
 
 		if ( null === $path ) {
 			self::fail( __( 'فایل درخواستی معتبر نیست.', 'falnic-secure-hls' ), 404 );
 		}
+
+		self::log_activity( (string) ( $claims['sid'] ?? '' ), (int) filesize( $path ) );
 
 		self::serve_file( $path, 'video/mp2t', 'videos/' . $name . '/' . str_replace( '\\', '/', $relative ) );
 	}
@@ -235,6 +321,10 @@ final class Stream {
 
 		if ( 'ok' !== $reason ) {
 			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+		}
+
+		if ( ! self::session_alive( $claims ) ) {
+			self::fail( __( 'این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ), 403 );
 		}
 
 		if ( self::rate_limited( 'key', self::KEY_LIMIT ) ) {
@@ -266,6 +356,123 @@ final class Stream {
 		exit;
 	}
 
+	/**
+	 * AJAX: تحویل فایل زیرنویس (VTT).
+	 *
+	 * @return void
+	 */
+	public static function subtitle(): void {
+		$name  = self::request_name();
+		$token = self::request_token();
+
+		$claims = Token::verify( $token, Token::SCOPE_SUBTITLE, $name );
+
+		if ( is_wp_error( $claims ) ) {
+			self::fail( $claims->get_error_message(), self::token_status() );
+		}
+
+		$reason = Access::reason( $name );
+
+		if ( 'ok' !== $reason ) {
+			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+		}
+
+		if ( ! self::session_alive( $claims ) ) {
+			self::fail( __( 'این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ), 403 );
+		}
+
+		$lang = Storage::sanitize_lang( (string) ( $_GET['l'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( '' === $lang ) {
+			self::fail( __( 'درخواست معتبر نیست.', 'falnic-secure-hls' ), 404 );
+		}
+
+		$path = Storage::resolve_file( $name, 'captions/' . $lang . '.vtt' );
+
+		if ( null === $path ) {
+			self::fail( __( 'زیرنویس یافت نشد.', 'falnic-secure-hls' ), 404 );
+		}
+
+		self::serve_file( $path, 'text/vtt; charset=utf-8', 'videos/' . $name . '/captions/' . $lang . '.vtt' );
+	}
+
+	/**
+	 * AJAX: ضربان نشست.
+	 *
+	 * @return void
+	 */
+	public static function heartbeat(): void {
+		$name  = self::request_name();
+		$token = self::request_token();
+
+		$claims = Token::verify( $token, Token::SCOPE_HEARTBEAT, $name );
+
+		if ( is_wp_error( $claims ) ) {
+			wp_send_json_error(
+				array(
+					'alive'   => false,
+					'reason'  => $claims->get_error_code(),
+					'message' => $claims->get_error_message(),
+				),
+				403
+			);
+		}
+
+		if ( self::rate_limited( 'heartbeat', self::HEARTBEAT_LIMIT ) ) {
+			wp_send_json_error( array( 'alive' => false, 'message' => __( 'درخواست‌های بیش از حد.', 'falnic-secure-hls' ) ), 429 );
+		}
+
+		$sid = (string) ( $claims['sid'] ?? '' );
+
+		if ( ! Play_Registry::check( (int) get_current_user_id(), $sid ) ) {
+			wp_send_json_error(
+				array(
+					'alive'   => false,
+					'reason'  => 'ended',
+					'message' => __( 'نشست پخش پایان یافت. اگر در دستگاه دیگری وارد شده‌اید، همان پخش فعال است.', 'falnic-secure-hls' ),
+				),
+				403
+			);
+		}
+
+		Play_Registry::touch( (int) get_current_user_id(), $sid );
+
+		wp_send_json_success(
+			array(
+				'alive'   => true,
+				'sid'     => $sid,
+				'expires' => time() + Play_Registry::TTL,
+			)
+		);
+	}
+
+	/**
+	 * AJAX: پایان دادن به نشست (هنگام بستن صفحه).
+	 *
+	 * @return void
+	 */
+	public static function end_session(): void {
+		$name  = self::request_name();
+		$token = self::request_token();
+
+		$claims = Token::verify( $token, Token::SCOPE_HEARTBEAT, $name );
+
+		if ( is_wp_error( $claims ) ) {
+			status_header( 204 );
+			exit;
+		}
+
+		$sid = (string) ( $claims['sid'] ?? '' );
+
+		if ( '' !== $sid ) {
+			Play_Registry::end( (int) get_current_user_id(), $sid );
+			Watch_Log::end( $sid );
+		}
+
+		status_header( 204 );
+		exit;
+	}
+
 	/* ---------------------------------------------------------------------
 	 * بازنویسی manifest
 	 * ------------------------------------------------------------------ */
@@ -273,22 +480,31 @@ final class Stream {
 	/**
 	 * بازنویسی یک خط از manifest.
 	 *
-	 * @param string $line خط.
-	 * @param string $name نام ویدیو.
+	 * @param string $line     خط.
+	 * @param string $name     نام ویدیو.
+	 * @param string $base     پوشه‌ی نسبی پلی‌لیست جاری (برای کیفیت‌ها).
+	 * @param bool   $variant  آیا این خط، آدرس یک پلی‌لیست کیفیت است.
+	 * @param array  $claims   ادعاهای توکن جاری.
 	 * @return string
 	 */
-	public static function rewrite_line( string $line, string $name ): string {
+	public static function rewrite_line( string $line, string $name, string $base = '', bool $variant = false, array $claims = array() ): string {
 		$line = trim( $line );
 
 		if ( '' === $line ) {
 			return '';
 		}
 
+		$extra = array();
+
+		if ( ! empty( $claims['sid'] ) ) {
+			$extra['sid'] = (string) $claims['sid'];
+		}
+
 		if ( 0 === strpos( $line, '#EXT-X-KEY' ) || 0 === strpos( $line, '#EXT-X-SESSION-KEY' ) ) {
 			return (string) preg_replace_callback(
 				'/URI="([^"]*)"/',
-				static function ( $matches ) use ( $name ) {
-					return 'URI="' . Token::url( self::ACTION_KEY, $name, Token::SCOPE_KEY ) . '"';
+				static function () use ( $name, $extra ) {
+					return 'URI="' . Token::url( self::ACTION_KEY, $name, Token::SCOPE_KEY, $extra ) . '"';
 				},
 				$line
 			);
@@ -297,8 +513,26 @@ final class Stream {
 		if ( 0 === strpos( $line, '#EXT-X-MAP' ) ) {
 			return (string) preg_replace_callback(
 				'/URI="([^"]*)"/',
-				static function ( $matches ) use ( $name ) {
-					return 'URI="' . self::segment_url( $name, (string) $matches[1] ) . '"';
+				static function ( $matches ) use ( $name, $base, $extra ) {
+					return 'URI="' . self::segment_url( $name, self::join_relative( $base, (string) $matches[1] ), $extra ) . '"';
+				},
+				$line
+			);
+		}
+
+		if ( 0 === strpos( $line, '#EXT-X-MEDIA' ) ) {
+			return (string) preg_replace_callback(
+				'/URI="([^"]*)"/',
+				static function ( $matches ) use ( $name, $base, $extra ) {
+					$uri = (string) $matches[1];
+
+					if ( 'vtt' === strtolower( (string) pathinfo( (string) parse_url( $uri, PHP_URL_PATH ), PATHINFO_EXTENSION ) ) ) {
+						$lang = (string) pathinfo( (string) parse_url( $uri, PHP_URL_PATH ), PATHINFO_FILENAME );
+
+						return 'URI="' . self::subtitle_url( $name, $lang, $extra ) . '"';
+					}
+
+					return 'URI="' . self::variant_url( $name, self::join_relative( $base, $uri ), $extra ) . '"';
 				},
 				$line
 			);
@@ -308,7 +542,19 @@ final class Stream {
 			return $line;
 		}
 
-		return self::segment_url( $name, $line );
+		$extension = strtolower( (string) pathinfo( (string) parse_url( $line, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+
+		if ( $variant || 'm3u8' === $extension ) {
+			return self::variant_url( $name, self::join_relative( $base, $line ), $extra );
+		}
+
+		if ( 'vtt' === $extension ) {
+			$lang = (string) pathinfo( (string) parse_url( $line, PHP_URL_PATH ), PATHINFO_FILENAME );
+
+			return self::subtitle_url( $name, $lang, $extra );
+		}
+
+		return self::segment_url( $name, self::join_relative( $base, $line ), $extra );
 	}
 
 	/**
@@ -316,9 +562,10 @@ final class Stream {
 	 *
 	 * @param string $name     نام ویدیو.
 	 * @param string $relative مسیر نسبی.
+	 * @param array  $extra    ادعاهای اضافی.
 	 * @return string
 	 */
-	private static function segment_url( string $name, string $relative ): string {
+	private static function segment_url( string $name, string $relative, array $extra = array() ): string {
 		$ttl = max( 300, (int) get_option( 'falnic_segment_token_ttl', 7200 ) );
 
 		return add_query_arg(
@@ -326,10 +573,103 @@ final class Stream {
 				'action' => self::ACTION_SEGMENT,
 				'video'  => $name,
 				'f'      => $relative,
-				't'      => Token::issue( Token::SCOPE_SEGMENT, $name, array(), $ttl ),
+				't'      => Token::issue( Token::SCOPE_SEGMENT, $name, $extra, $ttl ),
 			),
-			admin_url( 'admin-ajax.php' )
+			Token::base_url()
 		);
+	}
+
+	/**
+	 * نشانی امضاشده‌ی یک پلی‌لیست کیفیت.
+	 *
+	 * @param string $name     نام ویدیو.
+	 * @param string $relative مسیر نسبی.
+	 * @param array  $extra    ادعاهای اضافی.
+	 * @return string
+	 */
+	private static function variant_url( string $name, string $relative, array $extra = array() ): string {
+		return add_query_arg(
+			array(
+				'action' => self::ACTION_MANIFEST,
+				'video'  => $name,
+				'f'      => $relative,
+				't'      => Token::issue( Token::SCOPE_MANIFEST, $name, $extra ),
+			),
+			Token::base_url()
+		);
+	}
+
+	/**
+	 * نشانی امضاشده‌ی یک زیرنویس.
+	 *
+	 * @param string $name  نام ویدیو.
+	 * @param string $lang  کد زبان.
+	 * @param array  $extra ادعاهای اضافی.
+	 * @return string
+	 */
+	private static function subtitle_url( string $name, string $lang, array $extra = array() ): string {
+		$lang = Storage::sanitize_lang( $lang );
+
+		return add_query_arg(
+			array(
+				'action' => self::ACTION_SUBTITLE,
+				'video'  => $name,
+				'l'      => $lang,
+				't'      => Token::issue( Token::SCOPE_SUBTITLE, $name, $extra ),
+			),
+			Token::base_url()
+		);
+	}
+
+	/**
+	 * فهرست زیرنویس‌ها با نشانی امضاشده.
+	 *
+	 * @param string $name  نام ویدیو.
+	 * @param array  $extra ادعاهای اضافی.
+	 * @param int    $ttl   عمر توکن.
+	 * @return array
+	 */
+	private static function subtitle_sources( string $name, array $extra, int $ttl ): array {
+		$out = array();
+
+		foreach ( Storage::subtitles( $name ) as $item ) {
+			$out[] = array(
+				'lang'  => $item['lang'],
+				'label' => $item['label'],
+				'src'   => add_query_arg(
+					array(
+						'action' => self::ACTION_SUBTITLE,
+						'video'  => $name,
+						'l'      => $item['lang'],
+						't'      => Token::issue( Token::SCOPE_SUBTITLE, $name, $extra, $ttl ),
+					),
+					Token::base_url()
+				),
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * پیوند مسیر پایه با مسیر نسبی.
+	 *
+	 * @param string $base     پوشه‌ی نسبی (ممکن است خالی باشد).
+	 * @param string $relative مسیر.
+	 * @return string
+	 */
+	public static function join_relative( string $base, string $relative ): string {
+		$relative = ltrim( str_replace( '\\', '/', $relative ), '/' );
+
+		if ( '' === $base ) {
+			return $relative;
+		}
+
+		if ( 0 === strpos( $relative, $base . '/' ) ) {
+			return $relative;
+		}
+
+		return $base . '/' . $relative;
 	}
 
 	/* ---------------------------------------------------------------------
@@ -360,8 +700,8 @@ final class Stream {
 			exit;
 		}
 
-		$start = 0;
-		$end   = max( 0, $size - 1 );
+		$start   = 0;
+		$end     = max( 0, $size - 1 );
 		$partial = false;
 
 		if ( isset( $_SERVER['HTTP_RANGE'] ) ) {
@@ -439,6 +779,105 @@ final class Stream {
 	 * ------------------------------------------------------------------ */
 
 	/**
+	 * نام ویدیو از درخواست.
+	 *
+	 * @return string
+	 */
+	private static function request_name(): string {
+		if ( isset( $_GET['video'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return sanitize_text_field( wp_unslash( $_GET['video'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		if ( isset( $_POST['video'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return sanitize_text_field( wp_unslash( $_POST['video'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		return '';
+	}
+
+	/**
+	 * توکن از درخواست (پارامتر یا بدنه، برای sendBeacon).
+	 *
+	 * @return string
+	 */
+	private static function request_token(): string {
+		if ( isset( $_GET['t'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return sanitize_text_field( wp_unslash( $_GET['t'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		if ( isset( $_POST['t'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return sanitize_text_field( wp_unslash( $_POST['t'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		return '';
+	}
+
+	/**
+	 * مسیر فایل درخواستی (برای کیفیت‌ها/سگمنت).
+	 *
+	 * @return string
+	 */
+	private static function request_file(): string {
+		if ( isset( $_GET['f'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return sanitize_text_field( wp_unslash( $_GET['f'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
+		return '';
+	}
+
+	/**
+	 * پوشه‌ی یک مسیر نسبی.
+	 *
+	 * @param string $relative مسیر.
+	 * @return string
+	 */
+	private static function dir_of( string $relative ): string {
+		$relative = str_replace( '\\', '/', $relative );
+		$dir      = dirname( $relative );
+
+		return ( '.' === $dir || '/' === $dir ) ? '' : trim( $dir, '/' );
+	}
+
+	/**
+	 * آیا نشست پخش هنوز معتبر است؟
+	 *
+	 * @param array $claims ادعاهای توکن.
+	 * @return bool
+	 */
+	private static function session_alive( array $claims ): bool {
+		if ( ! Play_Registry::enabled() ) {
+			return true;
+		}
+
+		$sid = isset( $claims['sid'] ) ? (string) $claims['sid'] : '';
+
+		return '' !== $sid && Play_Registry::check( (int) get_current_user_id(), $sid );
+	}
+
+	/**
+	 * ثبت محدودشده‌ی فعالیت تماشا.
+	 *
+	 * @param string $sid   شناسه‌ی نشست.
+	 * @param int    $bytes حجم تقریبی.
+	 * @return void
+	 */
+	private static function log_activity( string $sid, int $bytes ): void {
+		if ( '' === $sid ) {
+			return;
+		}
+
+		$key = 'falnic_wl_' . md5( $sid );
+
+		if ( false !== get_transient( $key ) ) {
+			return;
+		}
+
+		set_transient( $key, 1, self::LOG_INTERVAL );
+
+		Watch_Log::touch( $sid, $bytes );
+	}
+
+	/**
 	 * کد وضعیت برای خطای توکن: مهمان ۴۰۱، کاربر لاگین‌کرده ۴۰۳.
 	 *
 	 * @return int
@@ -448,21 +887,14 @@ final class Stream {
 	}
 
 	/**
-	 * نام ویدیو از درخواست.
+	 * آدرس صفحه‌ی جاری (برای بازگشت پس از ورود).
 	 *
 	 * @return string
 	 */
-	private static function request_name(): string {
-		return isset( $_GET['video'] ) ? sanitize_text_field( wp_unslash( $_GET['video'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	}
+	private static function current_url(): string {
+		$referer = wp_get_referer();
 
-	/**
-	 * توکن از درخواست.
-	 *
-	 * @return string
-	 */
-	private static function request_token(): string {
-		return isset( $_GET['t'] ) ? sanitize_text_field( wp_unslash( $_GET['t'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return $referer ? $referer : home_url( '/' );
 	}
 
 	/**
@@ -526,16 +958,5 @@ final class Stream {
 		set_transient( $key, $data, MINUTE_IN_SECONDS );
 
 		return false;
-	}
-
-	/**
-	 * نشانی جاری برای بازگشت پس از ورود.
-	 *
-	 * @return string
-	 */
-	private static function current_url(): string {
-		$uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
-
-		return home_url( $uri );
 	}
 }

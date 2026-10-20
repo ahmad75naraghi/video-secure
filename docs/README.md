@@ -47,6 +47,8 @@ flowchart LR
 | 17 | [ADR](17-ADR.md) | چرا این تصمیم‌ها گرفته شد؟ |
 | 18 | [STRUCTURE](18-STRUCTURE.md) | فایل‌ها کجا هستند و چطور کلاس جدید اضافه کنم؟ |
 | 19 | [GIT UPDATER](19-GIT-UPDATER.md) | آپدیت امن از گیت‌هاب، پشتیبان، بازگردانی و تست‌ها |
+| 20 | [ASYNC ENCODING](20-ASYNC-ENCODING.md) | آپلود فوری، صف WP-Cron، پیشرفت، کیفیت ABR |
+| 21 | [WATCH LOG](21-WATCH-LOG.md) | گزارش تماشا، سقف پخش هم‌زمان، «قطع پخش»، زیرنویس |
 
 ## اصطلاحات
 

@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // phpcs:disable WordPress.Security.NonceVerification.Recommended -- فقط نمایش پیام.
 $encoded      = isset( $_GET['encoded'] ) ? sanitize_text_field( wp_unslash( $_GET['encoded'] ) ) : '';
+$queued       = isset( $_GET['queued'] ) ? sanitize_text_field( wp_unslash( $_GET['queued'] ) ) : '';
 $error        = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 // phpcs:enable
 ?>
@@ -21,6 +22,20 @@ $error        = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error
 
 	<?php if ( 'file_not_found' === $error ) : ?>
 		<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'خطا: فایل در مسیر داده‌شده یافت نشد.', 'falnic-secure-hls' ); ?></p></div>
+	<?php endif; ?>
+
+	<?php if ( 'queue_failed' === $error ) : ?>
+		<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'خطا: افزودن به صف انکود ناموفق بود. مجوز پوشه‌ی موقت و مسیر فایل را بررسی کنید.', 'falnic-secure-hls' ); ?></p></div>
+	<?php endif; ?>
+
+	<?php if ( $queued ) : ?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php esc_html_e( '✅ در صف انکود قرار گرفت:', 'falnic-secure-hls' ); ?>
+				<strong><?php echo esc_html( $queued ); ?></strong>
+			</p>
+			<p><?php esc_html_e( 'پردازش در پس‌زمینه انجام می‌شود؛ وضعیت را در صفحه‌ی ویدیوهای امن ببینید.', 'falnic-secure-hls' ); ?></p>
+		</div>
 	<?php endif; ?>
 
 	<?php if ( $encoded ) : ?>
@@ -53,6 +68,6 @@ $error        = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error
 	</form>
 
 	<p class="description">
-		<?php esc_html_e( 'توجه: انکود در همان درخواست انجام می‌شود و برای فایل‌های بزرگ ممکن است زمان‌بر باشد. برای فایل‌های حجیم از WP-CLI استفاده کنید.', 'falnic-secure-hls' ); ?>
+		<?php esc_html_e( 'فایل روی سرور کپی می‌شود و انکود در صف پس‌زمینه (WP-Cron) انجام می‌گیرد؛ صفحه بلافاصله برمی‌گردد. برای صف مطمئن، WP-Cron را با یک cron سیستمی هر دقیقه اجرا کنید.', 'falnic-secure-hls' ); ?>
 	</p>
 </div>

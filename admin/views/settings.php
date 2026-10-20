@@ -10,6 +10,11 @@
  * @var string $ld_position
  * @var string $require_enrol
  * @var int    $max_upload_mb
+ * @var string $hls_quality
+ * @var int    $max_renditions
+ * @var int    $segment_secs
+ * @var int    $max_concurrent
+ * @var int    $watch_log_days
  * @var bool   $ld_active
  * @var array  $legacy_pending
  * @var string $storage_root
@@ -84,6 +89,51 @@ $falnic_failed   = isset( $_GET['failed'] ) ? absint( wp_unslash( $_GET['failed'
 					<td>
 						<input name="bind_ip" type="checkbox" id="bind_ip" value="yes" <?php checked( $bind_ip, 'yes' ); ?>>
 						<p class="description"><?php esc_html_e( 'توکن پخش به IP گره می‌خورد. برای کاربران موبایل توصیه نمی‌شود.', 'falnic-secure-hls' ); ?></p>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="falnic-card">
+			<h2><?php esc_html_e( 'کیفیت پخش و پخش هم‌زمان', 'falnic-secure-hls' ); ?></h2>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="hls_quality"><?php esc_html_e( 'حالت کیفیت', 'falnic-secure-hls' ); ?></label></th>
+					<td>
+						<select name="hls_quality" id="hls_quality">
+							<option value="auto" <?php selected( $hls_quality, 'auto' ); ?>><?php esc_html_e( 'تطبیقی (چند کیفیت + انتخاب خودکار)', 'falnic-secure-hls' ); ?></option>
+							<option value="single" <?php selected( $hls_quality, 'single' ); ?>><?php esc_html_e( 'تک‌کیفیت (سبک‌تر، مصرف CPU کمتر)', 'falnic-secure-hls' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( 'در حالت تطبیقی، یک پلی‌لیست اصلی (master) ساخته می‌شود و پلیر بر اساس سرعت اینترنت کیفیت را عوض می‌کند.', 'falnic-secure-hls' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="max_renditions"><?php esc_html_e( 'حداکثر تعداد کیفیت', 'falnic-secure-hls' ); ?></label></th>
+					<td>
+						<input name="max_renditions" type="number" min="1" max="3" step="1" id="max_renditions" value="<?php echo esc_attr( (string) $max_renditions ); ?>" class="small-text">
+						<p class="description"><?php esc_html_e( 'از بالاترین کیفیت موجود در فایل منبع انتخاب می‌شود (۱۰۸۰ / ۷۲۰ / ۴۸۰ / ۳۶۰). هر کیفیت بیشتر یعنی زمان انکود بیشتر.', 'falnic-secure-hls' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="segment_seconds"><?php esc_html_e( 'طول هر سگمنت (ثانیه)', 'falnic-secure-hls' ); ?></label></th>
+					<td>
+						<input name="segment_seconds" type="number" min="2" max="10" step="1" id="segment_seconds" value="<?php echo esc_attr( (string) $segment_secs ); ?>" class="small-text">
+						<p class="description"><?php esc_html_e( 'مقدار کمتر = شروع سریع‌تر و تعویض کیفیت روان‌تر، اما درخواست‌های بیشتر. پیشنهاد: ۶.', 'falnic-secure-hls' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="max_concurrent"><?php esc_html_e( 'حداکثر پخش هم‌زمان هر حساب', 'falnic-secure-hls' ); ?></label></th>
+					<td>
+						<input name="max_concurrent" type="number" min="0" max="10" step="1" id="max_concurrent" value="<?php echo esc_attr( (string) $max_concurrent ); ?>" class="small-text">
+						<p class="description"><?php esc_html_e( 'مقدار ۰ یعنی بدون محدودیت. با ۱، پخش دوم همان حساب تا بسته‌شدن پخش اول خطای ۴۰۹ می‌گیرد. مدیران سایت مستثنا هستند.', 'falnic-secure-hls' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="watch_log_days"><?php esc_html_e( 'نگه‌داری گزارش تماشا (روز)', 'falnic-secure-hls' ); ?></label></th>
+					<td>
+						<input name="watch_log_days" type="number" min="7" max="365" step="1" id="watch_log_days" value="<?php echo esc_attr( (string) $watch_log_days ); ?>" class="small-text">
+						<p class="description"><?php esc_html_e( 'ردیف‌های قدیمی‌تر روزانه به‌صورت خودکار حذف می‌شوند.', 'falnic-secure-hls' ); ?></p>
 					</td>
 				</tr>
 			</table>

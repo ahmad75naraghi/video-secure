@@ -222,3 +222,100 @@
 	padding: 8px 12px;
 	margin-top: 10px;
 }
+
+/* --- گزارش تماشا و صف انکود --- */
+.falnic-admin.falnic-wide,
+.wrap.falnic-admin .falnic-cards {
+	max-width: 1200px;
+}
+
+.falnic-admin .falnic-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 12px;
+	margin: 18px 0;
+}
+
+.falnic-admin .falnic-card-value {
+	display: block;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.4;
+	color: #1d2327;
+}
+
+.falnic-admin .falnic-card-label {
+	display: block;
+	color: #646970;
+	font-size: 12px;
+}
+
+.falnic-admin .falnic-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: flex-end;
+	margin: 12px 0;
+}
+
+.falnic-admin .falnic-denials {
+	margin: 0 0 18px;
+	padding-right: 18px;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-denials li {
+	margin: 2px 0;
+}
+
+.falnic-admin .falnic-subtitle-list {
+	margin: 0 0 8px;
+}
+
+/* نوار پیشرفت صف انکود */
+.falnic-admin .falnic-encode {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 14px 16px;
+	margin: 0 0 14px;
+}
+
+.falnic-admin .falnic-encode-bar {
+	height: 12px;
+	background: #e0e0e0;
+	border-radius: 999px;
+	overflow: hidden;
+	margin-bottom: 8px;
+}
+
+.falnic-admin .falnic-encode-bar span {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: linear-gradient(90deg, #2271b1, #135e96);
+	border-radius: 999px;
+	transition: width 0.4s ease;
+}
+
+.falnic-admin .falnic-encode-message {
+	margin: 0 0 8px;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-encode-actions {
+	margin: 0;
+}
+
+.falnic-admin .falnic-encode-log pre {
+	max-height: 220px;
+	overflow: auto;
+	background: #1d2327;
+	color: #f0f0f1;
+	padding: 10px;
+	border-radius: 6px;
+	direction: ltr;
+	text-align: left;
+	font-size: 12px;
+	white-space: pre-wrap;
+}

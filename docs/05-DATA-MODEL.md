@@ -36,6 +36,36 @@ register_post_type( 'secure_video', [
 | `falnic_encode_success_{user_id}` | ۶۰ ثانیه | پیام موفقیت |
 | `falnic_encode_error_{user_id}` | ۶۰ ثانیه | پیام خطا |
 
+### ۴.۱. جدول گزارش تماشا (پیاده‌شده در ۳.۴)
+
+برخلاف بخش «هدف» پایین که جدول نشست‌ها با `ended_at` را پیشنهاد می‌کرد، پیاده‌سازی نهایی یک جدول
+تک‌ردیفی برای هر پخش با به‌روزرسانی درجا است (ساده‌تر برای گزارش و سازگار با `dbDelta`):
+
+```sql
+CREATE TABLE {$prefix}falnic_watch_log (
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  video         VARCHAR(100)    NOT NULL DEFAULT '',
+  course_id     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  session_id    VARCHAR(40)     NOT NULL DEFAULT '',     -- sid توکن
+  ip_hash       CHAR(32)        NOT NULL DEFAULT '',     -- HMAC-SHA256 کوتاه‌شده
+  agent         VARCHAR(40)     NOT NULL DEFAULT '',     -- خانواده‌ی دستگاه
+  started_at    DATETIME        NOT NULL,
+  last_seen     DATETIME        NOT NULL,
+  seconds       INT UNSIGNED    NOT NULL DEFAULT 0,
+  segments      INT UNSIGNED    NOT NULL DEFAULT 0,
+  bytes         BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY  (id),
+  KEY user_video (user_id,video),
+  KEY started_at (started_at),
+  KEY session_id (session_id)
+) {$charset_collate};
+```
+
+- نسخه‌ی ساختار در `falnic_log_db_version` نگه داشته می‌شود؛ ساخت/ارتقا با `Watch_Log::install()`.
+- نگه‌داری: `falnic_watch_log_days` (پیش‌فرض ۹۰) و هوک روزانه‌ی `falnic_watch_log_purge`.
+- نشست‌های فعال پخش در transient `falnic_plays_<uid>` هستند، نه در دیتابیس (داده‌ی گذرا و پرنوسان).
+
 ### ۵. ساختار فایل‌ها (فعلی)
 
 ```

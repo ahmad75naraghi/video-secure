@@ -36,11 +36,20 @@ wp post create --post_type=sfwd-lessons --post_title='درس ۱' --post_status=p
 ## ۲.۵. تست‌های داخل مخزن
 
 ```bash
-php tests/lint-all.php          # syntax همه‌ی فایل‌ها با TOKEN_PARSE
+php tests/lint-all.php          # syntax ۳۹ فایل با TOKEN_PARSE
 php tests/access-tests.php      # ۵۹ assertion: توکن، دسترسی، مسیر، manifest، مهاجرت، شناسه‌ی پایدار
-php tests/run-tests.php         # ۸۱ assertion: موتور آپدیت از گیت
-node tests/static-checks.js     # ۶۶ بررسی امنیتی ایستا (بدون وابستگی)
+php tests/run-tests.php         # ۸۱ assertion: موتور آپدیت از گیت، پشتیبان و بازگردانی
+php tests/queue-tests.php       # ۱۰۶ assertion: صف انکود، کیفیت ABR، رجیستری پخش، گزارش تماشا، زیرنویس
+FALNIC_TEST_LD=off php tests/access-tests.php   # همان مسیر بدون LearnDash
+node tests/static-checks.js     # ۸۱ بررسی امنیتی/ساختاری ایستا (بدون وابستگی)
+node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۷۴ رشته)
+bash bin/build-release.sh       # ساخت ZIP نصب
 ```
+
+CI مخزن (`.github/workflows/ci.yml`) این‌ها را روی PHP‌های ۷.۴/۸.۱/۸.۳/۸.۵ اجرا می‌کند، به‌همراه
+بررسی syntax همه‌ی فایل‌های JS و ساخت بسته. برای اطمینان از اینکه CI واقعاً خطا را می‌گیرد:
+`hash_equals` را در `includes/class-token.php` با `strcmp` عوض کنید — `tests/static-checks.js` باید قرمز شود
+(بررسی «امضای توکن با HMAC-SHA256 و مقایسه‌ی زمان‌ثابت»).
 
 این تست‌ها بدون نصب وردپرس اجرا می‌شوند (توابع لازم شبیه‌سازی شده‌اند) و روی PHP 7.4 تا 8.5 آزمایش شده‌اند.
 

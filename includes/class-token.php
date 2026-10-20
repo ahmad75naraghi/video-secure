@@ -38,6 +38,8 @@ final class Token {
 	public const SCOPE_MANIFEST  = 'manifest';
 	public const SCOPE_SEGMENT   = 'segment';
 	public const SCOPE_KEY       = 'key';
+	public const SCOPE_SUBTITLE  = 'subtitle';
+	public const SCOPE_HEARTBEAT = 'heartbeat';
 
 	/**
 	 * ساخت توکن.
@@ -166,7 +168,7 @@ final class Token {
 	 *
 	 * @return string
 	 */
-	private static function base_url(): string {
+	public static function base_url(): string {
 		if ( null === self::$base_url ) {
 			self::$base_url = admin_url( 'admin-ajax.php' );
 		}
@@ -191,6 +193,14 @@ final class Token {
 
 		if ( self::SCOPE_KEY === $scope ) {
 			return 300;
+		}
+
+		if ( self::SCOPE_SUBTITLE === $scope ) {
+			return max( 60, (int) get_option( 'falnic_token_ttl', 600 ) );
+		}
+
+		if ( self::SCOPE_HEARTBEAT === $scope ) {
+			return 900;
 		}
 
 		return 600;

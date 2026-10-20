@@ -1,0 +1,13 @@
+# بسته‌های ساخته‌شده
+/dist/
+*.zip
+
+# وابستگی‌ها
+/vendor/
+/node_modules/
+
+# ابزار محلی
+.phpunit.result.cache
+.phpcs-cache
+*.log
+.DS_Store

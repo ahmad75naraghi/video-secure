@@ -138,13 +138,127 @@ final class Storage {
 	}
 
 	/**
-	 * مسیر پلی‌لیست.
+	 * مسیر پلی‌لیست اصلی (در صورت وجود، master چندکیفیتی).
 	 *
 	 * @param string $name نام ویدیو.
 	 * @return string
 	 */
 	public static function playlist_path( string $name ): string {
-		return self::video_dir( $name ) . $name . '.m3u8';
+		$dir = self::video_dir( $name );
+
+		if ( is_readable( $dir . 'master.m3u8' ) ) {
+			return $dir . 'master.m3u8';
+		}
+
+		return $dir . $name . '.m3u8';
+	}
+
+	/**
+	 * آیا این ویدیو پلی‌لیست چندکیفیتی (master) دارد؟
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return bool
+	 */
+	public static function is_master( string $name ): bool {
+		$dir = self::video_dir( $name );
+
+		return is_readable( $dir . 'master.m3u8' );
+	}
+
+	/**
+	 * پوشه‌ی زیرنویس‌های یک ویدیو.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return string
+	 */
+	public static function subtitle_dir( string $name ): string {
+		return self::video_dir( $name ) . 'captions/';
+	}
+
+	/**
+	 * مسیر فایل زیرنویس.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @param string $lang کد زبان.
+	 * @return string
+	 */
+	public static function subtitle_path( string $name, string $lang ): string {
+		$lang = self::sanitize_lang( $lang );
+
+		return '' === $lang ? '' : self::subtitle_dir( $name ) . $lang . '.vtt';
+	}
+
+	/**
+	 * زیرنویس‌های موجود یک ویدیو.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return array<int, array{lang: string, label: string}>
+	 */
+	public static function subtitles( string $name ): array {
+		if ( ! self::is_valid_name( $name ) ) {
+			return array();
+		}
+
+		$dir = self::subtitle_dir( $name );
+
+		if ( ! is_dir( $dir ) ) {
+			return array();
+		}
+
+		$files = glob( $dir . '*.vtt' );
+		$out   = array();
+
+		foreach ( is_array( $files ) ? $files : array() as $file ) {
+			$lang = self::sanitize_lang( (string) pathinfo( $file, PATHINFO_FILENAME ) );
+
+			if ( '' === $lang ) {
+				continue;
+			}
+
+			$out[] = array(
+				'lang'  => $lang,
+				'label' => self::language_label( $lang ),
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * پاک‌سازی کد زبان (fa، en، fa-IR …).
+	 *
+	 * @param string $lang کد.
+	 * @return string
+	 */
+	public static function sanitize_lang( string $lang ): string {
+		$lang = strtolower( str_replace( '_', '-', trim( $lang ) ) );
+		$lang = (string) preg_replace( '/[^a-z\-]/', '', $lang );
+
+		return preg_match( '/^[a-z]{2,3}(-[a-z]{2,4})?$/', $lang ) ? $lang : '';
+	}
+
+	/**
+	 * نام نمایشی زبان برای منوی پلیر.
+	 *
+	 * @param string $lang کد زبان.
+	 * @return string
+	 */
+	private static function language_label( string $lang ): string {
+		$map = array(
+			'fa'    => __( 'فارسی', 'falnic-secure-hls' ),
+			'en'    => __( 'انگلیسی', 'falnic-secure-hls' ),
+			'ar'    => __( 'عربی', 'falnic-secure-hls' ),
+			'de'    => __( 'آلمانی', 'falnic-secure-hls' ),
+			'tr'    => __( 'ترکی', 'falnic-secure-hls' ),
+		);
+
+		$base = substr( $lang, 0, 2 );
+
+		if ( isset( $map[ $base ] ) ) {
+			return $map[ $base ];
+		}
+
+		return strtoupper( $lang );
 	}
 
 	/**
@@ -303,10 +417,11 @@ final class Storage {
 	/**
 	 * حذف امن پوشه‌ی یک ویدیو (در هر دو محل).
 	 *
-	 * @param string $name نام ویدیو.
+	 * @param string   $name نام ویدیو.
+	 * @param string[] $keep زیرپوشه‌هایی که حفظ می‌شوند (مثل captions).
 	 * @return void
 	 */
-	public static function purge( string $name ): void {
+	public static function purge( string $name, array $keep = array() ): void {
 		if ( ! self::is_valid_name( $name ) ) {
 			return;
 		}
@@ -319,7 +434,7 @@ final class Storage {
 				self::legacy_keys_dir() . $name . '/',
 			) as $dir
 		) {
-			self::remove_dir( $dir );
+			self::remove_dir( $dir, $keep );
 		}
 	}
 
@@ -506,10 +621,11 @@ final class Storage {
 	/**
 	 * حذف بازگشتی یک پوشه (فقط محتوای شناخته‌شده).
 	 *
-	 * @param string $dir پوشه.
+	 * @param string   $dir  پوشه.
+	 * @param string[] $keep نام زیرپوشه‌هایی که نباید حذف شوند.
 	 * @return void
 	 */
-	private static function remove_dir( string $dir ): void {
+	private static function remove_dir( string $dir, array $keep = array() ): void {
 		if ( ! is_dir( $dir ) ) {
 			return;
 		}
@@ -519,6 +635,10 @@ final class Storage {
 		if ( is_array( $items ) ) {
 			foreach ( $items as $item ) {
 				if ( is_dir( $item ) ) {
+					if ( in_array( basename( $item ), $keep, true ) ) {
+						continue;
+					}
+
 					self::remove_dir( trailingslashit( $item ) );
 					continue;
 				}
@@ -527,6 +647,11 @@ final class Storage {
 			}
 		}
 
-		@rmdir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		// اگر چیزی برای نگه‌داشتن مانده، پوشه حذف نمی‌شود.
+		$remaining = glob( $dir . '*', GLOB_MARK );
+
+		if ( empty( $remaining ) ) {
+			@rmdir( $dir ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		}
 	}
 }

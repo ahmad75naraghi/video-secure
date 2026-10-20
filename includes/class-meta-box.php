@@ -25,6 +25,28 @@ final class Meta_Box {
 		add_action( 'post_edit_form_tag', array( __CLASS__, 'form_enctype' ) );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'register' ) );
 		add_action( 'save_post_' . Post_Type::SLUG, array( __CLASS__, 'save' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
+	}
+
+	/**
+	 * بارگذاری اسکریپت وضعیت صف در صفحه‌ی ویرایش ویدیو.
+	 *
+	 * @param string $hook صفحه‌ی جاری.
+	 * @return void
+	 */
+	public static function enqueue( $hook ): void {
+		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen || Post_Type::SLUG !== (string) $screen->post_type ) {
+			return;
+		}
+
+		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
+		wp_enqueue_script( 'falnic-admin-encode', FALNIC_URL . 'assets/js/admin-encode.js', array(), FALNIC_VERSION, true );
 	}
 
 	/**
@@ -80,7 +102,12 @@ final class Meta_Box {
 			echo '<p>' . esc_html__( 'فایل MP4 خود را انتخاب کنید تا به صورت خودکار رمزنگاری شود:', 'falnic-secure-hls' ) . '</p>';
 		}
 
+		self::render_status( $post, $name );
+
 		echo '<input type="file" name="falnic_video_file" accept="video/mp4,video/x-m4v" style="width:100%;padding:10px;border:1px dashed #ccc;">';
+		echo '<p class="description">' . esc_html__( 'پس از ذخیره، فایل در پس‌زمینه پردازش می‌شود و می‌توانید صفحه را ببندید. پیشرفت کار همین‌جا نمایش داده می‌شود.', 'falnic-secure-hls' ) . '</p>';
+
+		self::render_subtitles( $name );
 		if ( '' !== $name ) {
 			printf(
 				'<p class="description">%1$s <code>%2$s</code></p>',
@@ -92,6 +119,101 @@ final class Meta_Box {
 		echo '<p class="description" style="color:#d63638;font-weight:bold;">';
 		echo esc_html__( '⚠️ عنوان ویدیو (کادر بالا) می‌تواند فارسی باشد؛ اما اگر انگلیسی و بدون فاصله بنویسید، شناسه‌ی خواناتری ساخته می‌شود. شناسه پس از اولین ذخیره تغییر نمی‌کند.', 'falnic-secure-hls' );
 		echo '</p>';
+	}
+
+	/**
+	 * نمایش وضعیت صف انکود با نوار پیشرفت.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @param string   $name نام ویدیو.
+	 * @return void
+	 */
+	private static function render_status( $post, string $name ): void {
+		if ( '' === $name ) {
+			return;
+		}
+
+		$status = Encode_Queue::status( $name );
+		$active = in_array( $status['state'], array( 'queued', 'running' ), true );
+
+		printf(
+			'<div class="falnic-encode" data-falnic-encode data-post="%1$d" data-nonce="%2$s" data-status-url="%3$s" data-cancel-url="%4$s" data-retry-url="%5$s" data-active="%6$s">',
+			(int) $post->ID,
+			esc_attr( wp_create_nonce( 'falnic_encode_status' ) ),
+			esc_url( admin_url( 'admin-ajax.php?action=falnic_encode_status' ) ),
+			esc_url( admin_url( 'admin-ajax.php?action=falnic_encode_cancel' ) ),
+			esc_url( admin_url( 'admin-ajax.php?action=falnic_encode_retry' ) ),
+			$active ? '1' : '0'
+		);
+
+		printf(
+			'<div class="falnic-encode-bar"><span style="width:%d%%"></span></div>',
+			(int) $status['percent']
+		);
+
+		printf(
+			'<p class="falnic-encode-message">%s</p>',
+			esc_html( (string) $status['message'] )
+		);
+
+		echo '<p class="falnic-encode-actions">';
+		printf(
+			'<button type="button" class="button falnic-encode-cancel"%s>%s</button> ',
+			$active ? '' : ' hidden',
+			esc_html__( 'لغو انکود', 'falnic-secure-hls' )
+		);
+		printf(
+			'<button type="button" class="button falnic-encode-retry"%s>%s</button>',
+			in_array( $status['state'], array( 'failed', 'canceled' ), true ) ? '' : ' hidden',
+			esc_html__( 'تلاش دوباره', 'falnic-secure-hls' )
+		);
+		echo '</p>';
+
+		if ( ! empty( $status['errors'] ) && 'failed' === $status['state'] ) {
+			printf(
+				'<details class="falnic-encode-log"><summary>%s</summary><pre>%s</pre></details>',
+				esc_html__( 'جزئیات خطا', 'falnic-secure-hls' ),
+				esc_html( (string) $status['errors'] )
+			);
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * بخش زیرنویس‌ها.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return void
+	 */
+	private static function render_subtitles( string $name ): void {
+		if ( '' === $name ) {
+			return;
+		}
+
+		$existing = Storage::subtitles( $name );
+
+		echo '<hr><h4>' . esc_html__( 'زیرنویس (اختیاری)', 'falnic-secure-hls' ) . '</h4>';
+
+		if ( ! empty( $existing ) ) {
+			echo '<ul class="falnic-subtitle-list">';
+
+			foreach ( $existing as $item ) {
+				printf(
+					'<li><label><input type="checkbox" name="falnic_subtitle_delete[]" value="%1$s"> %2$s</label></li>',
+					esc_attr( $item['lang'] ),
+					esc_html( $item['label'] . ' — ' . $item['lang'] . '.vtt' )
+				);
+			}
+
+			echo '</ul>';
+			echo '<p class="description">' . esc_html__( 'برای حذف، تیک بزنید و ذخیره کنید.', 'falnic-secure-hls' ) . '</p>';
+		}
+
+		echo '<p><label for="falnic-subtitle-lang">' . esc_html__( 'زبان:', 'falnic-secure-hls' ) . '</label> ';
+		echo '<input type="text" id="falnic-subtitle-lang" name="falnic_subtitle_lang" value="fa" size="5" placeholder="fa"></p>';
+		echo '<input type="file" name="falnic_subtitle" accept=".vtt,text/vtt,text/plain">';
+		echo '<p class="description">' . esc_html__( 'فایل WebVTT (.vtt) را انتخاب کنید؛ دسترسی به آن هم از همان دروازه‌ی امن انجام می‌شود.', 'falnic-secure-hls' ) . '</p>';
 	}
 
 	/**
@@ -124,12 +246,19 @@ final class Meta_Box {
 
 		Post_Type::set_video_name( $post_id, $name );
 
-		if ( ! isset( $_POST['falnic_video_upload_nonce'], $_FILES['falnic_video_file'] ) ) {
+		if ( ! isset( $_POST['falnic_video_upload_nonce'] ) ) {
 			return;
 		}
 
 		$nonce = sanitize_text_field( wp_unslash( $_POST['falnic_video_upload_nonce'] ) );
+
 		if ( ! wp_verify_nonce( $nonce, 'falnic_video_upload' ) ) {
+			return;
+		}
+
+		self::save_subtitles( $post, $name );
+
+		if ( ! isset( $_FILES['falnic_video_file'] ) ) {
 			return;
 		}
 
@@ -188,16 +317,81 @@ final class Meta_Box {
 			return;
 		}
 
-		if ( function_exists( 'set_time_limit' ) ) {
-			@set_time_limit( 0 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		}
-		ignore_user_abort( true );
+		$queued = Encode_Queue::enqueue( $name, $tmp_name, (int) $post_id, (int) get_current_user_id() );
 
-		if ( Encoder::encode( $tmp_name, $name ) ) {
-			set_transient( 'falnic_encode_success_' . get_current_user_id(), $name, 60 );
+		if ( empty( $queued['ok'] ) ) {
+			self::fail_upload( $queued['message'] );
+		}
+	}
+
+	/**
+	 * ذخیره یا حذف زیرنویس‌های ویدیو.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @param string   $name نام ویدیو.
+	 * @return void
+	 */
+	private static function save_subtitles( $post, string $name ): void {
+		if ( '' === $name ) {
+			return;
 		}
 
-		wp_delete_file( $tmp_name );
+		$dir = Storage::subtitle_dir( $name );
+
+		if ( ! is_dir( $dir ) ) {
+			wp_mkdir_p( $dir );
+		}
+
+		if ( ! empty( $_POST['falnic_subtitle_delete'] ) ) {
+			foreach ( (array) wp_unslash( $_POST['falnic_subtitle_delete'] ) as $lang ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$lang = Storage::sanitize_lang( (string) $lang );
+				$path = Storage::subtitle_path( $name, $lang );
+
+				if ( '' !== $path && file_exists( $path ) ) {
+					wp_delete_file( $path );
+				}
+			}
+		}
+
+		if ( empty( $_FILES['falnic_subtitle'] ) || ! isset( $_FILES['falnic_subtitle']['tmp_name'] ) ) {
+			return;
+		}
+
+		$file = $_FILES['falnic_subtitle']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$tmp  = (string) $file['tmp_name'];
+
+		if ( ! empty( $file['error'] ) || '' === $tmp || ! is_uploaded_file( $tmp ) ) {
+			return;
+		}
+
+		if ( (int) ( $file['size'] ?? 0 ) > 5 * MB_IN_BYTES ) {
+			self::fail_upload( __( 'حجم فایل زیرنویس بیش از ۵ مگابایت است.', 'falnic-secure-hls' ) );
+
+			return;
+		}
+
+		$ext = strtolower( (string) pathinfo( (string) ( $file['name'] ?? '' ), PATHINFO_EXTENSION ) );
+
+		if ( 'vtt' !== $ext ) {
+			self::fail_upload( __( 'فقط فایل زیرنویس با پسوند .vtt پذیرفته می‌شود.', 'falnic-secure-hls' ) );
+
+			return;
+		}
+
+		$lang = Storage::sanitize_lang( (string) ( $_POST['falnic_subtitle_lang'] ?? 'fa' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$lang = '' !== $lang ? $lang : 'fa';
+
+		$content = (string) file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+
+		if ( 0 !== strpos( ltrim( $content ), 'WEBVTT' ) ) {
+			self::fail_upload( __( 'ساختار فایل زیرنویس معتبر نیست (باید با WEBVTT شروع شود).', 'falnic-secure-hls' ) );
+
+			return;
+		}
+
+		file_put_contents( Storage::subtitle_path( $name, $lang ), $content, LOCK_EX ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
+
+		wp_delete_file( $tmp );
 	}
 
 	/**

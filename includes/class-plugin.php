@@ -72,6 +72,8 @@ final class Plugin {
 		Stream::init();
 		Key_Server::init();
 		Session::init();
+		Encode_Queue::init();
+		Watch_Log::init();
 
 		if ( is_admin() ) {
 			Admin_Menu::init();

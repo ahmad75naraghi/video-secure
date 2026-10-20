@@ -53,7 +53,26 @@
 | `falnic_db_version` | string | نسخه‌ی افزونه | برای اجرای یک‌باره‌ی مهاجرت ساختار |
 | `falnic_ld_lesson_locked_message` | string | «این درس هنوز باز نشده است.» | پیام Drip |
 | `falnic_delete_data_on_uninstall` | bool | `false` | حذف کامل هنگام حذف پلاگین |
-| `falnic_max_upload_mb` | int | `4096` | سقف آپلود |
+| `falnic_max_upload_mb` | int | `2048` | سقف آپلود |
+| `falnic_hls_quality` | `auto`/`single` | `auto` | کیفیت تطبیقی چندلایه یا تک‌کیفیت |
+| `falnic_hls_max_renditions` | int (۱–۳) | `2` | حداکثر تعداد کیفیت در حالت `auto` |
+| `falnic_hls_segment_seconds` | int (۲–۱۰) | `6` | طول هر سگمنت |
+| `falnic_max_concurrent` | int | `1` | سقف پخش هم‌زمان هر حساب (`0` = بی‌نهایت) |
+| `falnic_watch_log_days` | int (۷–۳۶۵) | `90` | نگه‌داری ردیف‌های گزارش تماشا |
+| `falnic_encode_timeout` | int (ثانیه) | `21600` | سقف زمان انکود هر ویدیو |
+| `falnic_log_db_version` | string | `1.0.0` | نسخه‌ی ساختار جدول گزارش |
+
+---
+
+### صف انکود
+
+| آپشن/فیلتر | کاربرد |
+|---|---|
+| `falnic_encode_jobs` | وضعیت کارهای صف (خودکار؛ دستی تغییر ندهید) |
+| `falnic_ffmpeg_bin` / `falnic_ffprobe_bin` | مسیر باینری‌ها |
+| `falnic_ffmpeg_args` | بازنویسی آرگومان‌های پایه‌ی ffmpeg (`preset`، `crf`، `b:a` …) |
+| `falnic_video_encoded` | اکشن پس از موفقیت: `( $name, $variants )` |
+| `falnic_video_failed` | اکشن پس از شکست: `( $error )` |
 
 ---
 

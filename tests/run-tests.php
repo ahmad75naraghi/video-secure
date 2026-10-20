@@ -480,7 +480,9 @@ if ( $zip_ready ) {
 		falnic_assert( in_array( 'falnic-secure-hls.php', $names, true ), 'فایل اصلی در پشتیبان هست' );
 		$has_git = false;
 		foreach ( $names as $name ) {
-			if ( false !== strpos( $name, '.git' ) ) {
+			$normalized = '/' . ltrim( str_replace( '\\', '/', (string) $name ), '/' );
+
+			if ( false !== strpos( $normalized, '/.git/' ) || '/.git' === $normalized ) {
 				$has_git = true;
 			}
 		}
