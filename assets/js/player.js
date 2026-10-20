@@ -52,7 +52,8 @@
 			retried: false,
 			session: null,
 			heartbeatTimer: 0,
-			beatFailures: 0
+			beatFailures: 0,
+			endSent: false
 		};
 
 		var i18n = config.i18n || {};
@@ -418,9 +419,11 @@
 		function sendEnd() {
 			var session = state.session;
 
-			if ( ! session || ! session.sid || ! config.endUrl ) {
+			if ( state.endSent || ! session || ! session.sid || ! config.endUrl ) {
 				return;
 			}
+
+			state.endSent = true;
 
 			var body = 'video=' + encodeURIComponent( config.name || '' ) +
 				'&sid=' + encodeURIComponent( session.sid ) +
@@ -494,8 +497,18 @@
 			}, 30000 );
 		}
 
-		window.addEventListener( 'pagehide', sendEnd );
-		window.addEventListener( 'beforeunload', sendEnd );
+		// با bfcache (بازگشت با دکمه‌ی Back) نباید نشست بسته شود.
+		window.addEventListener( 'pagehide', function ( event ) {
+			if ( ! event || true !== event.persisted ) {
+				sendEnd();
+			}
+		} );
+
+		window.addEventListener( 'pageshow', function ( event ) {
+			if ( event && true === event.persisted ) {
+				state.endSent = false;
+			}
+		} );
 
 		function loadStream() {
 			if ( ! config.sessionUrl ) {
