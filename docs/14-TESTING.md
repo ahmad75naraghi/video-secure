@@ -46,7 +46,23 @@ node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۷�
 bash bin/build-release.sh       # ساخت ZIP نصب
 ```
 
-CI مخزن (`.github/workflows/ci.yml`) این‌ها را روی PHP‌های ۷.۴/۸.۱/۸.۳/۸.۵ اجرا می‌کند، به‌همراه
+### یک فرمان به‌جای همه‌ی بالا
+
+```bash
+bash bin/ci.sh                 # همه‌ی بررسی‌های CI، بدون ساخت ZIP
+bash bin/ci.sh --with-release  # + ساخت بسته‌ی نصب
+bash bin/ci.sh --verbose       # خروجی کامل هر مرحله
+```
+
+`bin/ci.sh` دقیقاً همان مراحلی را اجرا می‌کند که `.github/workflows/ci.yml` اجرا می‌کند و با اولین
+خطا کد خروج ۱ برمی‌گرداند؛ برای اجرای پیش از push یا روی سرور بدون GitHub Actions ساخته شده است.
+اگر PHP با فرمان دیگری اجرا می‌شود (کانتینر، php-wasm، نسخه‌ی خاص):
+
+```bash
+FALNIC_PHP_CMD="php8.3" bash bin/ci.sh
+```
+
+CI مخزن (`.github/workflows/ci.yml`) همین مراحل را روی PHPهای ۷.۴/۸.۱/۸.۳/۸.۵ اجرا می‌کند، به‌همراه
 بررسی syntax همه‌ی فایل‌های JS و ساخت بسته. برای اطمینان از اینکه CI واقعاً خطا را می‌گیرد:
 `hash_equals` را در `includes/class-token.php` با `strcmp` عوض کنید — `tests/static-checks.js` باید قرمز شود
 (بررسی «امضای توکن با HMAC-SHA256 و مقایسه‌ی زمان‌ثابت»).

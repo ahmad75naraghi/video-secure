@@ -24,6 +24,7 @@
 - `.github/workflows/ci.yml`: lint و اجرای چهار مجموعه تست روی PHP ۷.۴/۸.۱/۸.۳/۸.۵، بررسی syntax جاوااسکریپت، `static-checks`، بررسی همگام بودن POT، ساخت ZIP و انتشار خودکار Release روی تگ `v*`.
 - `bin/make-pot.js` (بدون وابستگی) و `languages/falnic-secure-hls.pot` با ۳۷۴ رشته؛ `bin/build-release.sh` برای ZIP نصب.
 - `composer.json` + `phpcs.xml.dist` برای اجرای محلی WPCS (اختیاری، در CI اجرا نمی‌شود).
+- `bin/ci.sh`: اجرای کامل دروازه‌ی کیفیت با یک فرمان (همان مراحل CI، با کد خروج درست).
 
 ### تغییر یافته
 - `Stream::rewrite_line()` عمومی شد و پلی‌لیست کیفیت، زیرنویس و `EXT-X-MAP` را هم بازنویسی می‌کند.

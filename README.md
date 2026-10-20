@@ -53,6 +53,13 @@
 | زیرنویس امن | `.vtt` با توکن `sc=subtitle` و همان دروازه | [۲۱](docs/21-WATCH-LOG.md) |
 | CI و انتشار | تست روی PHP ۷.۴–۸.۵ + ZIP و Release خودکار روی تگ `v*` | [۱۴](docs/14-TESTING.md) |
 
+**دروازه‌ی کیفیت با یک فرمان:**
+
+```bash
+bash bin/ci.sh --with-release   # همان مراحل CI: lint، ۴ مجموعه تست، بررسی ایستا، POT و ZIP
+```
+
+
 ---
 
 ## ساختار پروژه
