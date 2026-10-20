@@ -45,6 +45,7 @@ flowchart LR
 | 15 | [TROUBLESHOOTING](15-TROUBLESHOOTING.md) | چرا سیاه است / پخش نمی‌شود؟ |
 | 16 | [MIGRATION](16-MIGRATION.md) | از نسخه‌ی فعلی چطور مهاجرت کنیم؟ |
 | 17 | [ADR](17-ADR.md) | چرا این تصمیم‌ها گرفته شد؟ |
+| 18 | [STRUCTURE](18-STRUCTURE.md) | فایل‌ها کجا هستند و چطور کلاس جدید اضافه کنم؟ |
 
 ## اصطلاحات
 

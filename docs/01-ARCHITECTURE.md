@@ -1,5 +1,7 @@
 # ۰۱ — معماری
 
+> **توجه:** بخش الف این سند کد نسخه ۳.۱.۰ (فایل واحد) را توصیف می‌کند و برای فهم ریشه‌ی مشکلات تاریخی نگه داشته شده است. ساختار فعلی (۳.۲) کلاس‌محور است و در [۱۸-ساختار](18-STRUCTURE.md) توضیح داده شده. نقشه‌ی نگاشت در انتهای همین سند آمده است.
+
 ## بخش الف: وضعیت فعلی (نسخه ۳.۱.۰)
 
 ### ۱. شکل کلی
@@ -232,6 +234,23 @@ sequenceDiagram
 | مسیر فایل از `uploads/secure_videos` به `wp-content/falnic-secure` | لینک‌های مستقیم قبلی باید بسته شوند | اسکریپت move + 301 به 403 |
 | اندپوینت کلید از `admin-ajax.php` به REST | هر اسکریپت بیرونی که کلید می‌گرفت می‌شکند (که هدف است) | — |
 | حذف `eval`/`debugger` | هیچ رفتار کاربری از دست نمی‌رود | — |
+
+---
+
+## پیوست ۲: نگاشت نسخه ۳.۱.۰ → ۳.۲
+
+| بخش کد قدیم (فایل واحد) | جای جدید |
+|---|---|
+| L20–L38 سازنده و هوک‌ها | `includes/class-plugin.php` |
+| L48–L50 مسیرها | `includes/class-storage.php` |
+| L52–L80 CPT و ستون‌ها | `includes/class-post-type.php` |
+| L82–L146 متاباکس و ذخیره | `includes/class-meta-box.php` |
+| L160–L193 انکود ffmpeg | `includes/class-encoder.php` |
+| L195–L258 صفحات مدیریت | `admin/class-admin-menu.php` + `admin/views/` |
+| L261–L270 embed | `includes/class-embed.php` + `templates/embed.php` |
+| L272–L278 نشست | `includes/class-session.php` |
+| L280–L302 تحویل کلید | `includes/class-key-server.php` |
+| L304–L414 رندر پلیر | `includes/class-player.php` + `templates/player.php` + `assets/js/player.js` |
 
 ---
 

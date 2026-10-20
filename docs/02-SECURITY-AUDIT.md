@@ -27,6 +27,38 @@
 
 ترتیب رفع پیشنهادی در [۱۳-نقشه راه](13-ROADMAP.md) آمده است. **تا رفع F-01 و F-02، انتشار ویدیوی مهم روی این نسخه توصیه نمی‌شود.**
 
+### وضعیت رفع در نسخه ۳.۲
+
+بازسازی ساختار در ۳.۲ بخشی از یافته‌ها را بست. **سه یافته‌ی P0 هنوز باز است**؛ شماره‌ی خط‌های زیر مربوط به نسخه ۳.۱.۰ (فایل واحد) است و ستون آخر فایل جدید را نشان می‌دهد.
+
+| یافته | وضعیت در ۳.۲ | محل جدید |
+|---|---|---|
+| F-01 دانلود مستقیم | ❌ باز | `class-storage.php` / `class-player.php` |
+| F-02 کلید برای هر کاربر | 🟡 نیمه‌بسته — محدودیت نرخ ۳۰/دقیقه اضافه شد، ولی بررسی عضویت دوره نیست | `class-key-server.php` |
+| F-03 URL ثابت کلید در manifest | ❌ باز | `class-encoder.php` |
+| F-04 نبود بررسی دسترسی دوره | ❌ باز | — |
+| F-05 path traversal | 🟡 `preg_match` سخت‌گیرانه + `is_valid_name` در همه‌ی مسیرها | `class-storage.php` |
+| F-06 مجوز کلید و نبود چرخش | 🟡 `chmod 0600` ✔ / چرخش کلید ❌ | `class-encoder.php` |
+| F-08 باقی‌ماندن keyinfo | ✅ بسته — بلوک `finally` + `chmod 0600` | `class-encoder.php` |
+| F-09 CSRF تنظیمات | ✅ بسته — `check_admin_referer` + `admin_post_*` | `class-admin-menu.php` |
+| F-10 CSRF انکودر | 🟡 nonce اضافه شد؛ مسیر دلخواه همچنان پذیرفته می‌شود | `class-admin-menu.php` |
+| F-11 بازنویسی عنوان | ❌ باز (برای سازگاری نسخه ۳.۲ حفظ شد) | `class-meta-box.php` |
+| F-13 اعتبارسنجی آپلود | 🟡 کد خطای آپلود و `is_uploaded_file` بررسی می‌شود؛ MIME/حجم نه | `class-meta-box.php` |
+| F-14 خطای `glob` | ✅ بسته — بررسی `is_array` و `rmdir` محافظت‌شده | `class-storage.php` |
+| F-16 `eval` / `debugger` | ✅ بسته — حذف کامل | `assets/js/player.js` |
+| F-17 CDN بدون پین و SRI | ✅ بسته — باندل محلی نسخه‌دار | `class-assets.php`, `assets/vendor/` |
+| F-18 rate limit و هدرها | 🟡 محدودیت نرخ + `nosniff` + `Content-Length` اضافه شد؛ لاگ ❌ | `class-key-server.php` |
+| F-19 تزریق در JS | ✅ بسته — `wp_json_encode` با `JSON_HEX_*` | `class-player.php` |
+| F-20 واترمارک در توقف/seek | ✅ بسته — بازسازی روی `seeked`/`pause` | `assets/js/player.js` |
+| F-25/F-26 هک HTTPS | ✅ بسته — `set_url_scheme` بدون اجبار | `class-storage.php`, `class-encoder.php` |
+| F-27 هدرهای embed | 🟡 `no-referrer` + `nosniff`؛ `frame-ancestors` ❌ | `class-embed.php` |
+| F-28 نبود uninstall | ✅ بسته | `uninstall.php` |
+| F-29/F-30 هدر و i18n | ✅ بسته | `falnic-secure-hls.php` |
+| F-31/۳۲ دستور ffmpeg | 🟡 آرگومان‌ها فیلترپذیر شدند + صفحه‌ی وضعیت؛ چندکیفیت و چرخش ❌ | `class-encoder.php`, `admin/views/settings.php` |
+| F-34 دارایی درون‌خطی | ✅ بسته — `wp_register_*` + قالب جدا | `class-assets.php`, `templates/` |
+
+جمع‌بندی: **۹ یافته بسته، ۸ نیمه‌بسته، بقیه باز.** اولویت بعدی همان فاز ۱ نقشه‌ی راه است (F-01، F-02، F-03، F-04).
+
 ### تعریف سطوح
 
 | سطح | تعریف |
