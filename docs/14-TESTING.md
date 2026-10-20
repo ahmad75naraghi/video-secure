@@ -43,7 +43,7 @@ php tests/queue-tests.php       # ۱۰۶ assertion: صف انکود، کیفیت
 php tests/access-tests.php --no-ld             # همان مسیر بدون LearnDash (۶۰ assertion)
 node tests/static-checks.js     # ۸۱ بررسی امنیتی/ساختاری ایستا (بدون وابستگی)
 node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۷۴ رشته)
-bash bin/build-release.sh       # ساخت ZIP نصب
+bash bin/build-release.sh       # ساخت ZIP نصب (dist/falnic-secure-hls.zip با پوشه‌ی ریشه)
 ```
 
 ### یک فرمان به‌جای همه‌ی بالا

@@ -55,8 +55,17 @@ if ! grep -q "Plugin Name:" "$STAGE/falnic-secure-hls.php"; then
 	exit 1
 fi
 
-cd "$STAGE"
-zip -q -r -9 "../$NAME.zip" .
+# آرشیو باید پوشه‌ی ریشه داشته باشد تا وردپرس آن را درست نصب کند.
+cd "$DIST"
+rm -f "$NAME.zip"
+zip -q -r -9 "$NAME.zip" "$NAME"
+
+listing=$( unzip -l "$NAME.zip" ) || listing=""
+
+if [[ "$listing" != *"$NAME/falnic-secure-hls.php"* ]]; then
+	echo "خطا: آرشیو پوشه‌ی ریشه‌ی $NAME ندارد." >&2
+	exit 1
+fi
 
 cd "$ROOT"
 SIZE=$(wc -c < "$DIST/$NAME.zip" | tr -d ' ')
