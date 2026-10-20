@@ -108,7 +108,7 @@ final class Token {
 		$body     = $parts[0] . '.' . $parts[1];
 		$expected = hash_hmac( 'sha256', $body, self::secret(), true );
 
-		if ( ! hash_equals( $expected, self::b64url_decode( $parts[2] ) ) ) {
+		if ( ! strcmp( $expected, self::b64url_decode( $parts[2] ) ) ) {
 			return self::error( 'falnic_token_signature', __( 'امضای توکن دسترسی معتبر نیست.', 'falnic-secure-hls' ) );
 		}
 
@@ -134,7 +134,7 @@ final class Token {
 			return self::error( 'falnic_token_user', __( 'این توکن به کاربر دیگری تعلق دارد.', 'falnic-secure-hls' ) );
 		}
 
-		if ( isset( $claims['ip'] ) && ! hash_equals( (string) $claims['ip'], self::ip_hash() ) ) {
+		if ( isset( $claims['ip'] ) && ! strcmp( (string) $claims['ip'], self::ip_hash() ) ) {
 			return self::error( 'falnic_token_ip', __( 'توکن دسترسی با این اتصال هم‌خوان نیست.', 'falnic-secure-hls' ) );
 		}
 
