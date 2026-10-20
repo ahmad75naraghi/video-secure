@@ -4,7 +4,8 @@
  *
  * اجرا:
  *   php tests/access-tests.php
- *   FALNIC_TEST_LD=off php tests/access-tests.php   # شبیه‌سازی نبود LearnDash
+ *   php tests/access-tests.php --no-ld              # شبیه‌سازی نبود LearnDash
+ *   FALNIC_TEST_LD=off php tests/access-tests.php   # همان، با متغیر محیطی
  *
  * @package Falnic\SecureHLS
  */
@@ -17,6 +18,16 @@ define( 'ABSPATH', $GLOBALS['falnic_tmp'] . '/wp/' );
 define( 'FALNIC_DIR', $falnic_root . '/' );
 define( 'FALNIC_VERSION', '3.3.0' );
 define( 'MINUTE_IN_SECONDS', 60 );
+
+/*
+ * حالت «بدون LearnDash».
+ *
+ * هم با آرگومان خط فرمان و هم با متغیر محیطی فعال می‌شود؛ آرگومان برای
+ * محیط‌هایی است که متغیر محیطی را به PHP نمی‌رسانند (کانتینر، wasm،
+ * بعضی CIها) و پیش‌تر باعث می‌شد این مسیر واقعاً تست نشود.
+ */
+$GLOBALS['falnic_ld_off'] = 'off' === getenv( 'FALNIC_TEST_LD' )
+	|| ( isset( $argv ) && in_array( '--no-ld', (array) $argv, true ) );
 define( 'DAY_IN_SECONDS', 86400 );
 
 /* -------------------------------------------------------------------------
@@ -278,10 +289,10 @@ function set_transient( $key, $value, $ttl = 0 ) { // phpcs:ignore
 }
 
 /* -------------------------------------------------------------------------
- * شبیه‌سازی LearnDash (با FALNIC_TEST_LD=off خاموش می‌شود)
+ * شبیه‌سازی LearnDash (با --no-ld یا FALNIC_TEST_LD=off خاموش می‌شود)
  * ---------------------------------------------------------------------- */
 
-if ( 'off' !== getenv( 'FALNIC_TEST_LD' ) ) {
+if ( ! $GLOBALS['falnic_ld_off'] ) {
 	/** @param int $post_id @param int $user_id @return bool */
 	function sfwd_lms_has_access( $post_id, $user_id = 0 ) {
 		return in_array( (int) $user_id, $GLOBALS['falnic_enrolled'][ (int) $post_id ] ?? array(), true );
@@ -393,7 +404,7 @@ mkdir( $GLOBALS['falnic_tmp'] . '/uploads', 0777, true );
 Falnic\SecureHLS\Storage::ensure_dirs();
 
 echo "\n=== Falnic access & stream tests ===\n\n";
-echo 'LearnDash stubs: ' . ( 'off' === getenv( 'FALNIC_TEST_LD' ) ? 'OFF' : 'ON' ) . "\n\n";
+echo 'LearnDash stubs: ' . ( $GLOBALS['falnic_ld_off'] ? 'OFF' : 'ON' ) . "\n\n";
 
 /* -------------------------------------------------------------------------
  * ۱) اعتبارسنجی نام و مسیر
@@ -457,18 +468,36 @@ $GLOBALS['falnic_caps']    = array();
 $GLOBALS['falnic_enrolled'] = array();
 falnic_check( 'not_enrolled' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'کاربر بدون ثبت‌نام رد می‌شود' );
 
-// دانشجوی ثبت‌نام‌کرده
-$GLOBALS['falnic_enrolled'][900] = array( 7 );
-Falnic\SecureHLS\Access::flush();
-falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'دانشجوی ثبت‌نام‌کرده مجاز است' );
-falnic_check( Falnic\SecureHLS\Access::can_watch( 'lesson-108' ), 'can_watch برای دانشجو true است' );
+if ( $GLOBALS['falnic_ld_off'] ) {
+	/*
+	 * بدون LearnDash هیچ راهی برای اثبات ثبت‌نام وجود ندارد؛ ویدیوی متصل به
+	 * درس باید بسته بماند و «محتوای پولی» به‌خاطر خاموش بودن افزونه آزاد نشود.
+	 */
+	$GLOBALS['falnic_enrolled'][900] = array( 7 );
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'not_enrolled' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'بدون LearnDash ویدیوی درسی مسدود می‌ماند' );
+	falnic_check( ! Falnic\SecureHLS\Access::can_watch( 'lesson-108' ), 'بدون LearnDash can_watch منفی است' );
 
-// Drip
-$GLOBALS['falnic_locked'][501] = true;
-Falnic\SecureHLS\Access::flush();
-falnic_check( 'locked' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'درس بازنشده (Drip) مسدود است' );
-$GLOBALS['falnic_locked'] = array();
-Falnic\SecureHLS\Access::flush();
+	// ثبت‌نام دستی هم بدون LearnDash پذیرفته نمی‌شود.
+	$GLOBALS['falnic_locked'][501] = true;
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'not_enrolled' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'بدون LearnDash قفل درس هم دسترسی نمی‌سازد' );
+	$GLOBALS['falnic_locked'] = array();
+	Falnic\SecureHLS\Access::flush();
+} else {
+	// دانشجوی ثبت‌نام‌کرده
+	$GLOBALS['falnic_enrolled'][900] = array( 7 );
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'ok' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'دانشجوی ثبت‌نام‌کرده مجاز است' );
+	falnic_check( Falnic\SecureHLS\Access::can_watch( 'lesson-108' ), 'can_watch برای دانشجو true است' );
+
+	// Drip
+	$GLOBALS['falnic_locked'][501] = true;
+	Falnic\SecureHLS\Access::flush();
+	falnic_check( 'locked' === Falnic\SecureHLS\Access::reason( 'lesson-108' ), 'درس بازنشده (Drip) مسدود است' );
+	$GLOBALS['falnic_locked'] = array();
+	Falnic\SecureHLS\Access::flush();
+}
 
 // دانشجوی کاربر دیگر
 $GLOBALS['falnic_current'] = 8;
@@ -503,7 +532,14 @@ falnic_check( 'invalid' === Falnic\SecureHLS\Access::reason( '../x' ), 'نام �
 
 // دوره‌های مرتبط برای پیام
 $courses = Falnic\SecureHLS\Access::courses_for( 'lesson-108' );
-falnic_check( 1 === count( $courses ) && 900 === $courses[0]['id'], 'دوره‌ی مرتبط برای نمایش لینک پیدا می‌شود' );
+
+if ( $GLOBALS['falnic_ld_off'] ) {
+	falnic_check( array() === $courses, 'بدون LearnDash دوره‌ای برای نمایش پیدا نمی‌شود' );
+	falnic_check( 0 === Falnic\SecureHLS\Access::course_for_name( 'lesson-108' ), 'بدون LearnDash شناسه‌ی دوره صفر است' );
+} else {
+	falnic_check( 1 === count( $courses ) && 900 === $courses[0]['id'], 'دوره‌ی مرتبط برای نمایش لینک پیدا می‌شود' );
+	falnic_check( 900 === Falnic\SecureHLS\Access::course_for_name( 'lesson-108' ), 'شناسه‌ی دوره برای گزارش تماشا پیدا می‌شود' );
+}
 
 // پیام‌ها
 falnic_check( '' !== Falnic\SecureHLS\Access::message( 'not_enrolled' ), 'پیام عدم ثبت‌نام موجود است' );

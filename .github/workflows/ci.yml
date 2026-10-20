@@ -43,7 +43,7 @@ jobs:
         run: php tests/access-tests.php
 
       - name: همان تست‌ها بدون LearnDash (مسیر جایگزین)
-        run: FALNIC_TEST_LD=off php tests/access-tests.php
+        run: php tests/access-tests.php --no-ld
 
       - name: تست‌های موتور آپدیت
         run: php tests/run-tests.php

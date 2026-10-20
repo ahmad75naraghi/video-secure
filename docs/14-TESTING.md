@@ -4,7 +4,7 @@
 
 | لایه | ابزار | چه چیزی |
 |---|---|---|
-| واحد (این ریپو) | PHP CLI + stubهای سبک | `Token`, `Access`, `Storage`, بازنویسی manifest — `php tests/access-tests.php` |
+| واحد (این ریپو) | PHP CLI + stubهای سبک | `Token`, `Access`, `Storage`, بازنویسی manifest — `php tests/access-tests.php` (و `--no-ld` برای مسیر بدون LearnDash) |
 | واحد | PHPUnit + WP_Mock | همان موارد در CI با وردپرس واقعی |
 | یکپارچه | WP-CLI + دیتابیس تست | صف انکود، متاها، حذف |
 | امنیتی | `curl` / `httpie` | کنترل دسترسی، IDOR، rate limit |
@@ -37,10 +37,10 @@ wp post create --post_type=sfwd-lessons --post_title='درس ۱' --post_status=p
 
 ```bash
 php tests/lint-all.php          # syntax ۳۹ فایل با TOKEN_PARSE
-php tests/access-tests.php      # ۵۹ assertion: توکن، دسترسی، مسیر، manifest، مهاجرت، شناسه‌ی پایدار
+php tests/access-tests.php      # ۶۰ assertion: توکن، دسترسی، مسیر، manifest، مهاجرت، شناسه‌ی پایدار
 php tests/run-tests.php         # ۸۱ assertion: موتور آپدیت از گیت، پشتیبان و بازگردانی
 php tests/queue-tests.php       # ۱۰۶ assertion: صف انکود، کیفیت ABR، رجیستری پخش، گزارش تماشا، زیرنویس
-FALNIC_TEST_LD=off php tests/access-tests.php   # همان مسیر بدون LearnDash
+php tests/access-tests.php --no-ld             # همان مسیر بدون LearnDash (۶۰ assertion)
 node tests/static-checks.js     # ۸۱ بررسی امنیتی/ساختاری ایستا (بدون وابستگی)
 node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۷۴ رشته)
 bash bin/build-release.sh       # ساخت ZIP نصب
