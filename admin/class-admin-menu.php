@@ -25,6 +25,7 @@ final class Admin_Menu {
 		add_action( 'admin_menu', array( __CLASS__, 'register' ) );
 		add_action( 'admin_post_falnic_save_settings', array( __CLASS__, 'handle_settings' ) );
 		add_action( 'admin_post_falnic_run_encoder', array( __CLASS__, 'handle_encoder' ) );
+		add_action( 'admin_post_falnic_save_template', array( __CLASS__, 'handle_template' ) );
 	}
 
 	/**
@@ -50,6 +51,76 @@ final class Admin_Menu {
 			'falnic_hls_settings',
 			array( __CLASS__, 'render_settings_page' )
 		);
+
+		add_submenu_page(
+			'edit.php?post_type=' . Post_Type::SLUG,
+			__( 'تنظیمات قالب', 'falnic-secure-hls' ),
+			__( 'تنظیمات قالب', 'falnic-secure-hls' ),
+			'manage_options',
+			'falnic_template_settings',
+			array( __CLASS__, 'render_template_page' )
+		);
+
+		add_submenu_page(
+			'edit.php?post_type=' . Post_Type::SLUG,
+			__( 'آپدیت از گیت', 'falnic-secure-hls' ),
+			__( 'آپدیت از گیت', 'falnic-secure-hls' ),
+			'update_plugins',
+			Git_Update_Page::SLUG,
+			array( Git_Update_Page::class, 'render' )
+		);
+	}
+
+	/**
+	 * پردازش فرم تنظیمات قالب.
+	 *
+	 * @return void
+	 */
+	public static function handle_template(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'دسترسی ندارید.', 'falnic-secure-hls' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'falnic_template_settings' );
+
+		$input = array(
+			'radius'        => isset( $_POST['radius'] ) ? absint( wp_unslash( $_POST['radius'] ) ) : 8,
+			'accent'        => isset( $_POST['accent'] ) ? sanitize_text_field( wp_unslash( $_POST['accent'] ) ) : '#2271b1',
+			'ratio'         => isset( $_POST['ratio'] ) ? sanitize_text_field( wp_unslash( $_POST['ratio'] ) ) : '16:9',
+			'wm_opacity'    => isset( $_POST['wm_opacity'] ) ? (float) wp_unslash( $_POST['wm_opacity'] ) : 0.45,
+			'wm_interval'   => isset( $_POST['wm_interval'] ) ? absint( wp_unslash( $_POST['wm_interval'] ) ) : 30,
+			'wm_font_scale' => isset( $_POST['wm_font_scale'] ) ? (float) wp_unslash( $_POST['wm_font_scale'] ) : 1,
+			'wm_show_email' => isset( $_POST['wm_show_email'] ) ? 'yes' : 'no',
+		);
+
+		Template_Settings::save( $input );
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'post_type' => Post_Type::SLUG,
+					'page'      => 'falnic_template_settings',
+					'falnic'    => 'saved',
+				),
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * صفحه‌ی تنظیمات قالب.
+	 *
+	 * @return void
+	 */
+	public static function render_template_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$settings = Template_Settings::get();
+
+		include FALNIC_DIR . 'admin/views/template.php';
 	}
 
 	/**
@@ -147,6 +218,7 @@ final class Admin_Menu {
 		$max_sessions = (int) get_option( 'falnic_hls_max_sessions', 1 );
 		$bind_ip      = get_option( 'falnic_hls_bind_ip', 'no' );
 		$status       = self::system_status();
+		$page_slug    = 'falnic_hls_settings';
 
 		include FALNIC_DIR . 'admin/views/settings.php';
 	}

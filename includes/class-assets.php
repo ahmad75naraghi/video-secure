@@ -94,6 +94,11 @@ final class Assets {
 
 		wp_enqueue_style( 'falnic-player' );
 		wp_enqueue_script( 'falnic-player' );
+
+		$css = Template_Settings::css();
+		if ( '' !== $css ) {
+			wp_add_inline_style( 'falnic-player', $css );
+		}
 	}
 
 	/**

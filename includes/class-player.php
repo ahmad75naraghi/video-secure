@@ -62,10 +62,25 @@ final class Player {
 
 		$html_id = wp_unique_id( 'secure-vid-' );
 
+		$template = Template_Settings::get();
+
+		$watermark = self::watermark_lines();
+
+		if ( 'no' === $template['wm_show_email'] ) {
+			$watermark['line2'] = '';
+		}
+
 		$config = array(
 			'id'        => $html_id,
 			'src'       => Storage::playlist_url( $name ),
-			'watermark' => self::watermark_lines(),
+			'watermark' => array_merge(
+				$watermark,
+				array(
+					'opacity'  => (float) $template['wm_opacity'],
+					'interval' => (int) $template['wm_interval'],
+					'scale'    => (float) $template['wm_font_scale'],
+				)
+			),
 			'i18n'      => array(
 				'resume'  => __( 'برای ادامه پخش روی صفحه کلیک کنید', 'falnic-secure-hls' ),
 				'error'   => __( 'خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),

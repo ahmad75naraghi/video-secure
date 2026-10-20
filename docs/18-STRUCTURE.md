@@ -24,13 +24,19 @@ falnic-secure-hls/
 │   ├── class-embed.php          ← اندپوینت ?falnic_embed=
 │   ├── class-key-server.php     ← تحویل کلید AES
 │   ├── class-session.php        ← کنترل نشست
-│   └── class-installer.php      ← فعال/غیرفعال‌سازی
+│   ├── class-installer.php      ← فعال/غیرفعال‌سازی
+│   ├── class-template-settings.php ← تنظیمات ظاهری پلیر (گردی، رنگ، نسبت، واترمارک)
+│   └── class-git-updater.php    ← موتور آپدیت از گیت (HTTP، ZIP، lint، پشتیبان، rollback، قفل)
 │
 ├── admin/                       ← فقط پنل مدیریت
 │   ├── class-admin-menu.php
 │   ├── class-admin-notices.php
+│   ├── class-admin-tabs.php     ← نوار تب مشترک صفحه‌های افزونه
+│   ├── class-git-update-page.php ← کنترلر UI صفحهٔ آپدیت (جدا از موتور)
 │   └── views/
 │       ├── settings.php
+│       ├── template.php
+│       ├── git-update.php
 │       └── encoder.php
 │
 ├── templates/                   ← مارک‌آپ قابل بازنویسی
@@ -39,13 +45,19 @@ falnic-secure-hls/
 │
 ├── assets/
 │   ├── css/player.css
+│   ├── css/admin.css            ← استایل پنل (محدود به .falnic-admin)
 │   ├── js/player.js
+│   ├── js/admin-git.js          ← کلاینت AJAX صفحهٔ آپدیت
 │   └── vendor/                  ← کتابخانه‌های شخص ثالث، محلی
 │       ├── hls/{hls.min.js, LICENSE}
 │       └── plyr/{plyr.min.js, plyr.css, LICENSE.md}
 │
 ├── languages/                   ← فایل‌های ترجمه
-├── tests/smoke.php              ← تست دود با wp eval-file
+├── tests/
+│   ├── smoke.php                ← تست دود با wp eval-file
+│   ├── run-tests.php            ← تست‌های واحد موتور آپدیت (PHP CLI، بدون وردپرس)
+│   ├── lint-all.php             ← بررسی syntax همهٔ فایل‌ها با TOKEN_PARSE
+│   └── static-checks.js         ← بررسی‌های امنیتی ایستا (Node، بدون وابستگی)
 └── docs/                        ← مستندات (همین پوشه)
 ```
 

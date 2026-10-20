@@ -13,9 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<div class="wrap" style="font-family: Tahoma, sans-serif;">
+<div class="wrap falnic-admin" dir="rtl">
 	<h1>⚙️ <?php esc_html_e( 'تنظیمات امنیتی پلیر', 'falnic-secure-hls' ); ?></h1>
-	<hr>
+
+	<?php Admin_Tabs::render( $page_slug ); ?>
 
 	<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'تنظیمات ذخیره شد.', 'falnic-secure-hls' ); ?></p></div>

@@ -72,6 +72,7 @@ final class Plugin {
 		if ( is_admin() ) {
 			Admin_Menu::init();
 			Admin_Notices::init();
+			Git_Update_Page::init();
 		}
 	}
 

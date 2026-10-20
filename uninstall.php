@@ -16,6 +16,16 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 // آپشن‌ها.
 delete_option( 'falnic_hls_max_sessions' );
 delete_option( 'falnic_hls_bind_ip' );
+delete_option( 'falnic_template_settings' );
+
+// تنظیمات آپدیت از گیت (شامل توکن).
+delete_option( 'falnic_git_repo' );
+delete_option( 'falnic_git_branch' );
+delete_option( 'falnic_git_token' );
+delete_transient( 'falnic_git_lock' );
+
+// توجه: پوشهٔ پشتیبان‌ها (uploads/falnic-backups) و ویدیوهای رمزنگاری‌شده
+// عمداً حذف نمی‌شوند تا حذف اتفاقی افزونه باعث از دست رفتن محتوا نشود.
 
 // متای کاربران.
 delete_metadata( 'user', 0, 'falnic_last_login_ip', '', true );

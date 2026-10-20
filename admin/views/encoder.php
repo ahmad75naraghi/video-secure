@@ -14,9 +14,10 @@ $encoded      = isset( $_GET['encoded'] ) ? sanitize_text_field( wp_unslash( $_G
 $error        = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
 // phpcs:enable
 ?>
-<div class="wrap" style="font-family: Tahoma, sans-serif;">
+<div class="wrap falnic-admin" dir="rtl">
 	<h1>🎬 <?php esc_html_e( 'انکودر دستی سرور', 'falnic-secure-hls' ); ?></h1>
-	<hr>
+
+	<?php Admin_Tabs::render( 'falnic_hls_encoder' ); ?>
 
 	<?php if ( 'file_not_found' === $error ) : ?>
 		<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'خطا: فایل در مسیر داده‌شده یافت نشد.', 'falnic-secure-hls' ); ?></p></div>

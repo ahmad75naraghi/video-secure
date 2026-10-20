@@ -13,7 +13,7 @@
 ( function () {
 	'use strict';
 
-	var WATERMARK_MOVE_INTERVAL = 30000;
+	var DEFAULT_WATERMARK_INTERVAL = 30000;
 
 	/**
 	 * راه‌اندازی یک پلیر.
@@ -93,13 +93,15 @@
 
 			var w = canvas.width;
 			var h = canvas.height;
-			var fontSize = Math.max( 11, Math.round( h / 42 ) );
+			var opacity = 'number' === typeof wm.opacity ? wm.opacity : 0.45;
+			var scale = 'number' === typeof wm.scale ? wm.scale : 1;
+			var fontSize = Math.max( 11, Math.round( ( h / 42 ) * scale ) );
 
 			ctx.save();
 			ctx.textBaseline = 'top';
 			ctx.shadowColor  = 'rgba(0,0,0,0.8)';
 			ctx.shadowBlur   = 3;
-			ctx.fillStyle    = 'rgba(255,255,255,0.45)';
+			ctx.fillStyle    = 'rgba(255,255,255,' + opacity + ')';
 
 			ctx.font = '600 ' + fontSize + 'px Tahoma, Arial, sans-serif';
 			ctx.fillText( wm.line1, state.wmX, state.wmY );
@@ -289,7 +291,11 @@
 			showError( i18n.unsupported );
 		}
 
-		state.moveTimer = window.setInterval( moveWatermark, WATERMARK_MOVE_INTERVAL );
+		var moveInterval = config.watermark && config.watermark.interval
+			? Math.max( 5000, parseInt( config.watermark.interval, 10 ) * 1000 )
+			: DEFAULT_WATERMARK_INTERVAL;
+
+		state.moveTimer = window.setInterval( moveWatermark, moveInterval );
 
 		/* ---------------------------------------------------------------------
 		 * پاک‌سازی
