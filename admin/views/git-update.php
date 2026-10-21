@@ -29,7 +29,7 @@ $falnic_blocked = array();
 $falnic_token_placeholder = $settings['has_token']
 	? __( 'ذخیره شده — برای تغییر مقدار جدید وارد کنید', 'falnic-secure-hls' )
 	: __( 'ghp_…', 'falnic-secure-hls' );
-foreach ( $requirements as $requirement ) {
+foreach ( (array) ( $requirements ?? array() ) as $requirement ) {
 	if ( empty( $requirement['ok'] ) ) {
 		$falnic_blocked[] = $requirement;
 	}
@@ -38,7 +38,7 @@ foreach ( $requirements as $requirement ) {
 <div class="wrap falnic-admin" dir="rtl">
 	<h1><?php esc_html_e( 'آپدیت از گیت', 'falnic-secure-hls' ); ?></h1>
 
-	<?php Admin_Tabs::render( Git_Update_Page::SLUG ); ?>
+	<?php \Falnic\SecureHLS\Admin_Tabs::render( \Falnic\SecureHLS\Git_Update_Page::SLUG ); ?>
 
 	<?php if ( 'saved' === $notice ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'تنظیمات منبع ذخیره شد.', 'falnic-secure-hls' ); ?></p></div>

@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.1] — 2026-10-23
+
+### رفع
+- **صفحه‌ی «آپدیت از گیت» خطای مهلک می‌داد:** `Undefined variable $requirements` و `Class "Admin_Tabs" not found` در `admin/views/git-update.php:29/38`. ریشه: `Git_Update_Page::render()` آرایه‌ی `$context` را می‌ساخت ولی `extract()` نمی‌کرد، پس هیچ متغیری به نما نمی‌رسید. با `extract($context, EXTR_SKIP)` و فراخوانی `\Falnic\SecureHLS\Admin_Tabs::render()` حل شد؛ در `git-update.php` حلقه هم به `(array) ($requirements ?? array())` ایمن شد.
+
 ## [3.5.0] — 2026-10-22
 
 ### افزوده

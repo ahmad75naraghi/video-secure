@@ -4,7 +4,7 @@ Tags: hls, video, learndash, watermark, aes-128
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.5.0
+Stable tag: 3.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,9 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 مسیر پلی‌لیست باید با HTTPS در دسترس باشد و پاسخ با Content-Type درست برگردد.
 
 == Changelog ==
+
+= 3.5.1 =
+* رفع خطای مهلک صفحه‌ی «آپدیت از گیت»: مقدار `$requirements` به نما نمی‌رسید و `Class "Admin_Tabs" not found` می‌داد — با `extract($context)` و فراخوانی کامل‌نام حل شد.
 
 = 3.5.0 =
 * بازطراحی کامل صفحه‌ی ویرایش ویدیوی امن: کارت خلاصه (شناسه، وضعیت انکود، برچسب دسترسی)، فیلد آپلود با ناحیه‌ی کشیدن-و-رها، بخش دسترسی با خلاصه‌ی «چه کسی می‌بیند؟»، جست‌وجوی زنده روی دوره/درس، برچسب خودکار دوره از درس، و نمایش درس‌هایی که همین ویدیو را دارند.

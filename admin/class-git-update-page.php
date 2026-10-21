@@ -300,6 +300,9 @@ final class Git_Update_Page {
 			'max_backups'  => Git_Updater::MAX_BACKUPS,
 		);
 
+		// متغیرهای نما باید جداگانه در scope باشند — بدون extract همه‌ی نماها Warning می‌دهند.
+		extract( $context, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+
 		include FALNIC_DIR . 'admin/views/git-update.php';
 	}
 }
