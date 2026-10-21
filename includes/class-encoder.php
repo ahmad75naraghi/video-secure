@@ -217,6 +217,7 @@ final class Encoder {
 			if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
 				return self::result( false, __( 'ساخت پوشه‌ی خروجی ناموفق بود.', 'falnic-secure-hls' ) );
 			}
+			@chmod( $dir, 0755 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 
 		$key_file = Storage::key_path( $name );
@@ -234,7 +235,7 @@ final class Encoder {
 			return self::result( false, __( 'نوشتن فایل keyinfo ناموفق بود.', 'falnic-secure-hls' ) );
 		}
 
-		@chmod( $keyinfo_file, 0600 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		@chmod( $keyinfo_file, 0644 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		$probe    = self::probe( $input_path );
 		$variants = self::variants( $probe );
@@ -246,7 +247,15 @@ final class Encoder {
 			// اگر اجرای چندکیفیتی شکست خورد، یک‌بار تک‌کیفیتی امتحان می‌شود.
 			if ( ! $run['ok'] && 'canceled' !== $run['status'] && count( $variants ) > 1 ) {
 				Storage::purge( $name, array( 'captions' ) );
-				wp_mkdir_p( $video_dir );
+				foreach ( array( $key_dir, $video_dir ) as $dir ) {
+					if ( ! is_dir( $dir ) ) {
+						wp_mkdir_p( $dir );
+					}
+				}
+				// کلید در purge پاک شده؛ بدون آن هر اجرای بعدی بی‌درنگ شکست می‌خورد.
+				if ( ! is_readable( $key_file ) ) {
+					self::write_key( $key_file );
+				}
 
 				$note     = __( 'کیفیت چندگانه روی این نسخه‌ی ffmpeg ساخته نشد؛ ویدیو با یک کیفیت آماده شد.', 'falnic-secure-hls' );
 				$variants = self::single_variant( $probe );
@@ -967,7 +976,7 @@ final class Encoder {
 			return false;
 		}
 
-		@chmod( $path, 0600 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		@chmod( $path, 0644 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 
 		return true;
 	}

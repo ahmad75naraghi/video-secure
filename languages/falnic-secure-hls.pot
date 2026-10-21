@@ -115,7 +115,7 @@ msgstr ""
 msgid "۳۰ روز اخیر"
 msgstr ""
 
-#: includes/class-encoder.php:707
+#: includes/class-encoder.php:716
 msgid "ffmpeg با خطا پایان یافت."
 msgstr ""
 
@@ -258,7 +258,7 @@ msgstr ""
 msgid "اثر انگشت IP"
 msgstr ""
 
-#: includes/class-encoder.php:617
+#: includes/class-encoder.php:626
 msgid "اجرای ffmpeg ممکن نشد."
 msgstr ""
 
@@ -375,12 +375,12 @@ msgstr ""
 msgid "انکود پیش از شروع لغو شد."
 msgstr ""
 
-#: includes/class-encoder.php:265
+#: includes/class-encoder.php:274
 msgid "انکود توسط مدیر لغو شد."
 msgstr ""
 
 #: includes/class-encode-queue.php:331
-#: includes/class-encoder.php:697
+#: includes/class-encoder.php:706
 msgid "انکود لغو شد."
 msgstr ""
 
@@ -894,7 +894,7 @@ msgstr ""
 msgid "خروجی CSV"
 msgstr ""
 
-#: includes/class-encoder.php:274
+#: includes/class-encoder.php:283
 msgid "خروجی ffmpeg قابل استفاده نیست."
 msgstr ""
 
@@ -1133,7 +1133,7 @@ msgstr ""
 msgid "زبان"
 msgstr ""
 
-#: includes/class-encoder.php:675
+#: includes/class-encoder.php:684
 msgid "زمان انکود بیش از حد مجاز شد."
 msgstr ""
 
@@ -1503,7 +1503,7 @@ msgstr ""
 msgid "کیفیت پخش و پخش هم‌زمان"
 msgstr ""
 
-#: includes/class-encoder.php:251
+#: includes/class-encoder.php:260
 msgid "کیفیت چندگانه روی این نسخه‌ی ffmpeg ساخته نشد؛ ویدیو با یک کیفیت آماده شد."
 msgstr ""
 
@@ -1735,11 +1735,11 @@ msgstr ""
 msgid "نمایش خودکار در درس"
 msgstr ""
 
-#: includes/class-encoder.php:234
+#: includes/class-encoder.php:235
 msgid "نوشتن فایل keyinfo ناموفق بود."
 msgstr ""
 
-#: includes/class-encoder.php:225
+#: includes/class-encoder.php:226
 msgid "نوشتن فایل کلید ناموفق بود. مجوز پوشه را بررسی کنید."
 msgstr ""
 

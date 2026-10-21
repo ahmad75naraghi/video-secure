@@ -364,6 +364,10 @@ final class Storage {
 			if ( ! is_dir( $dir ) ) {
 				wp_mkdir_p( $dir );
 			}
+			// روی هاست‌های LiteSpeed/CageFS مجوز 0711 کافی نیست — ffmpeg به‌عنوان زیرپروسه‌ی lsphp باید پوشه را بخواند.
+			if ( is_dir( $dir ) ) {
+				@chmod( $dir, 0755 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			}
 		}
 
 		// پوشه‌ی قدیمی هم (اگر وجود داشته باشد) باید بسته شود.

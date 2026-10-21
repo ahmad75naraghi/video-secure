@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.2] — 2026-10-23
+
+### رفع
+- **باگ «کلید پیدا نشد» روی LiteSpeed/CageFS (ادامه‌ی 3.5.1):** پس از شکست چندکیفیتی، `Storage::purge()` پوشهٔ کلید را پاک می‌کرد اما کد fallback فقط `video_dir` را می‌ساخت؛ اجرای دوم با `ffmpeg: error opening key file .../video-379.key: No such file` شکست می‌خورد. حالا `key_dir` هم بازسازی و در صورت نبود، کلید دوباره نوشته می‌شود. مجوزها هم از `0600` به `0644` و پوشه‌ها به `0755` تغییر کردند تا `lsphp` که به‌عنوان زیرپروسهٔ `lshttpd (nobody)` اجرا می‌شود بتواند `/home/edufalnic/falnic-secure` را بخواند (قبلاً `0711` بود).
+
 ## [3.5.1] — 2026-10-23
 
 ### رفع
