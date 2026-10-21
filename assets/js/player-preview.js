@@ -1,7 +1,7 @@
 /**
- * Falnic Secure HLS — پلیر پیش‌نمایش حرفه‌ای (ادمین)
- * ویدیو مرئی + واترمارک HTML (نه Canvas) — تضمینی، بدون سیاهی
- * فول‌اسکرین native + جابجایی رندوم 15-30 ثانیه داخل کادر
+ * Falnic Secure HLS — پلیر پیش‌نمایش حرفه‌ای (ادمین) — Canvas
+ * واترمارک روی Canvas (غیرقابل حذف) + پرش آنی بدون ترنزیشن
+ * هر 15-30 ثانیه رندوم داخل کادر ویدیو + فول‌اسکرین درست
  */
 (function () {
 	'use strict';
@@ -9,15 +9,19 @@
 	function mountPreview(root) {
 		var configNode = root.querySelector('.falnic-player-config');
 		var video = root.querySelector('video');
-		var wmEl = root.querySelector('.falnic-preview-watermark');
-		var wmLine1 = wmEl ? wmEl.querySelector('.falnic-wm-line1') : null;
-		var wmLine2 = wmEl ? wmEl.querySelector('.falnic-wm-line2') : null;
+		var canvas = root.querySelector('canvas.falnic-preview-canvas');
 		var loadingEl = root.querySelector('.falnic-preview-loading');
 		var errorEl = root.querySelector('.falnic-preview-error');
 		var wrap = root.querySelector('.falnic-preview-video-wrap');
 
-		if (!configNode || !video || !wrap) {
+		if (!configNode || !video || !canvas || !wrap) {
 			console.warn('[Falnic Preview] missing elements', root);
+			return;
+		}
+
+		var ctx = canvas.getContext('2d');
+		if (!ctx) {
+			console.error('[Falnic Preview] canvas 2d not supported');
 			return;
 		}
 
@@ -40,63 +44,134 @@
 			wmTimer: 0,
 			heartbeatTimer: 0,
 			destroyed: false,
-			loading: false
+			loading: false,
+			wmX: 20,
+			wmY: 20
 		};
 
 		var i18n = config.i18n || {};
 
-		// ---------- واترمارک ----------
+		// ---------- Canvas سایز ----------
+		function resizeCanvas() {
+			// اندازهٔ واقعی wrap (یا fullscreenElement)
+			var rect;
+			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+			if (fsEl && (fsEl === root || fsEl.contains(root) || root.contains(fsEl))) {
+				rect = fsEl.getBoundingClientRect();
+			} else {
+				rect = wrap.getBoundingClientRect();
+			}
+			if (!rect.width || !rect.height) {
+				rect = { width: wrap.offsetWidth || 600, height: wrap.offsetHeight || 340 };
+			}
+			// Canvas را دقیقاً به اندازهٔ wrap بساز (برای دقت HiDPI از devicePixelRatio)
+			var dpr = window.devicePixelRatio || 1;
+			canvas.width = Math.round(rect.width * dpr);
+			canvas.height = Math.round(rect.height * dpr);
+			canvas.style.width = Math.round(rect.width) + 'px';
+			canvas.style.height = Math.round(rect.height) + 'px';
+			// مقیاس برای HiDPI
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+			// اگر واترمارک بیرون افتاد، دوباره داخل بیاور
+			if (config.watermark && config.watermark.line1) {
+				ensureWatermarkInside();
+			}
+			drawWatermark();
+		}
+
+		function ensureWatermarkInside() {
+			var wm = config.watermark || {};
+			if (!wm.line1 || !canvas.width) return;
+			var pad = 12;
+			var bounds = measureWatermark();
+			if (!bounds) return;
+			var maxX = (canvas.width / (window.devicePixelRatio||1)) - bounds.totalW - pad;
+			var maxY = (canvas.height / (window.devicePixelRatio||1)) - bounds.totalH - pad;
+			if (state.wmX > maxX || state.wmY > maxY || state.wmX < pad || state.wmY < pad) {
+				placeWatermarkRandom();
+			}
+		}
+
+		// ---------- واترمارک روی Canvas ----------
+		function measureWatermark() {
+			var wm = config.watermark || {};
+			if (!wm.line1) return null;
+			var opacity = typeof wm.opacity === 'number' ? wm.opacity : 0.55;
+			var scale = typeof wm.scale === 'number' ? wm.scale : 1;
+			// اندازه فونت بر اساس ارتفاع canvas
+			var h = canvas.height / (window.devicePixelRatio || 1);
+			var fontSize = Math.max(12, Math.round((h / 40) * scale));
+			ctx.save();
+			ctx.font = '700 ' + fontSize + 'px Tahoma, Arial, sans-serif';
+			var w1 = ctx.measureText(wm.line1).width;
+			var w2 = 0;
+			if (wm.line2) {
+				ctx.font = '400 ' + Math.max(10, fontSize - 2) + 'px Tahoma, Arial, sans-serif';
+				w2 = ctx.measureText(wm.line2).width;
+			}
+			ctx.restore();
+			var totalW = Math.max(w1, w2);
+			var totalH = fontSize + (wm.line2 ? fontSize + 6 : 0);
+			return { w1: w1, w2: w2, totalW: totalW, totalH: totalH, fontSize: fontSize, opacity: opacity };
+		}
+
+		function drawWatermark() {
+			var wm = config.watermark || {};
+			if (!wm.line1 || !ctx) return;
+			var bounds = measureWatermark();
+			if (!bounds) return;
+
+			// پاک کن و دوباره بکش (بدون ترنزیشن — پرش آنی)
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.save();
+			ctx.textBaseline = 'top';
+			ctx.shadowColor = 'rgba(0,0,0,0.85)';
+			ctx.shadowBlur = 4;
+			ctx.shadowOffsetX = 1;
+			ctx.shadowOffsetY = 1;
+			ctx.fillStyle = 'rgba(255,255,255,' + bounds.opacity + ')';
+			ctx.font = '700 ' + bounds.fontSize + 'px Tahoma, Arial, sans-serif';
+			ctx.fillText(wm.line1, state.wmX, state.wmY);
+			if (wm.line2) {
+				ctx.font = '400 ' + Math.max(10, bounds.fontSize - 2) + 'px Tahoma, Arial, sans-serif';
+				ctx.fillText(wm.line2, state.wmX, state.wmY + bounds.fontSize + 4);
+			}
+			ctx.restore();
+		}
+
 		function applyWatermark(wm) {
 			if (!wm || !wm.line1) return;
 			config.watermark = Object.assign({}, config.watermark || {}, wm);
-			if (wmLine1) wmLine1.textContent = wm.line1 || '';
-			if (wmLine2) wmLine2.textContent = wm.line2 || '';
-			if (wmEl) {
-				var opacity = typeof wm.opacity === 'number' ? wm.opacity : 0.55;
-				wmEl.style.setProperty('--falnic-wm-opacity', opacity);
-				wmEl.classList.add('is-visible');
-			}
-			// موقعیت اولیه
-			setTimeout(placeWatermarkRandom, 300);
+			// اندازه Canvas را به‌روز کن و واترمارک را بکش
+			resizeCanvas();
+			placeWatermarkRandom();
+			// بدون ترنزیشن — یهو جابجا شود
+			drawWatermark();
 		}
 
 		function placeWatermarkRandom() {
-			if (!wmEl || !wrap || state.destroyed) return;
-			if (!config.watermark || !config.watermark.line1) return;
+			if (state.destroyed || !canvas.width) return;
+			var wm = config.watermark || {};
+			if (!wm.line1) return;
+			var bounds = measureWatermark();
+			if (!bounds) return;
 
-			// اندازه‌های واقعی
-			var wrapRect = wrap.getBoundingClientRect();
-			var wmRect = wmEl.getBoundingClientRect();
-
-			// اگر هنوز اندازه نگرفته، دوباره تلاش کن
-			if (!wrapRect.width || !wrapRect.height || !wmRect.width || !wmRect.height) {
-				// از offsetWidth استفاده کن
-				var ww = wrap.offsetWidth || wrapRect.width || 600;
-				var wh = wrap.offsetHeight || wrapRect.height || 340;
-				var wmw = wmEl.offsetWidth || 150;
-				var wmh = wmEl.offsetHeight || 30;
-				wrapRect = { width: ww, height: wh };
-				wmRect = { width: wmw, height: wmh };
-			}
-
+			var dpr = window.devicePixelRatio || 1;
+			var cw = canvas.width / dpr;
+			var ch = canvas.height / dpr;
 			var pad = 12;
-			var maxX = Math.max(pad, wrapRect.width - wmRect.width - pad);
-			var maxY = Math.max(pad, wrapRect.height - wmRect.height - pad);
+			var maxX = Math.max(pad, cw - bounds.totalW - pad);
+			var maxY = Math.max(pad, ch - bounds.totalH - pad);
 
-			// کوچک بودن کادر: وسط‌چین
-			var x, y;
 			if (maxX <= pad || maxY <= pad) {
-				x = Math.max(pad, (wrapRect.width - wmRect.width) / 2);
-				y = Math.max(pad, (wrapRect.height - wmRect.height) / 2);
+				state.wmX = Math.max(pad, (cw - bounds.totalW) / 2);
+				state.wmY = Math.max(pad, (ch - bounds.totalH) / 2);
 			} else {
-				x = pad + Math.random() * (maxX - pad);
-				y = pad + Math.random() * (maxY - pad);
+				state.wmX = Math.round(pad + Math.random() * Math.max(1, maxX - pad));
+				state.wmY = Math.round(pad + Math.random() * Math.max(1, maxY - pad));
 			}
-
-			wmEl.style.left = Math.round(x) + 'px';
-			wmEl.style.top = Math.round(y) + 'px';
-			wmEl.style.right = 'auto';
-			wmEl.style.bottom = 'auto';
+			// پرش آنی — بدون هیچ انیمیشن
+			drawWatermark();
 		}
 
 		function scheduleWatermark() {
@@ -104,7 +179,7 @@
 			var delay = 15000 + Math.random() * 15000; // 15-30 ثانیه رندوم
 			if (state.wmTimer) clearTimeout(state.wmTimer);
 			state.wmTimer = setTimeout(function () {
-				if (!video.paused && !state.destroyed) {
+				if (!state.destroyed) {
 					placeWatermarkRandom();
 				}
 				scheduleWatermark();
@@ -176,7 +251,6 @@
 				return;
 			}
 
-			// اگر HLS پشتیبانی می‌شود
 			if (window.Hls && window.Hls.isSupported()) {
 				if (state.hls) {
 					try { state.hls.destroy(); } catch (e) {}
@@ -190,7 +264,6 @@
 					if (!data || !data.fatal) return;
 					if (retryCount < 2) {
 						retryCount++;
-						console.log('[Falnic Preview] retry ' + retryCount);
 						try { state.hls.destroy(); } catch(e) {}
 						state.hls = null;
 						if (loadingEl) loadingEl.classList.remove('is-hidden');
@@ -218,6 +291,7 @@
 				state.hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
 					if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = 0; }
 					hideLoading();
+					resizeCanvas();
 					video.play().catch(function () {
 						hideLoading();
 					});
@@ -228,11 +302,11 @@
 				return;
 			}
 
-			// fallback native HLS (Safari)
 			if (video.canPlayType('application/vnd.apple.mpegurl')) {
 				video.src = src;
 				video.addEventListener('loadeddata', function onLoaded() {
 					hideLoading();
+					resizeCanvas();
 					video.removeEventListener('loadeddata', onLoaded);
 					video.play().catch(function () {});
 				});
@@ -283,8 +357,8 @@
 				startHeartbeat(session);
 				startStream(session.src || config.src);
 				scheduleWatermark();
-				// ویدیو که شروع شد، واترمارک را دوباره جایگذاری کن
 				video.addEventListener('playing', function onPlay() {
+					resizeCanvas();
 					placeWatermarkRandom();
 					video.removeEventListener('playing', onPlay);
 				});
@@ -295,7 +369,7 @@
 			});
 		}
 
-		// ---------- فول‌اسکرین حرفه‌ای ----------
+		// ---------- فول‌اسکرین: Canvas هم باید همراهش برود ----------
 		function isFullscreen() {
 			return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
 		}
@@ -308,7 +382,6 @@
 			else if (el.msRequestFullscreen) el.msRequestFullscreen();
 		}
 
-		// دکمهٔ فول‌اسکرینِ پیش‌نمایش (کنترل بومی ویدیو already دارد، ولی برای اطمینان)
 		video.addEventListener('dblclick', function () {
 			if (isFullscreen()) {
 				if (document.exitFullscreen) document.exitFullscreen();
@@ -318,9 +391,11 @@
 			}
 		});
 
-		// بعد از فول‌اسکرین، واترمارک را دوباره داخل بیاور
 		function onFullscreenChange() {
 			setTimeout(function () {
+				resizeCanvas();
+				drawWatermark();
+				// واترمارک را دوباره داخل کادر بیاور
 				placeWatermarkRandom();
 			}, 200);
 		}
@@ -328,14 +403,16 @@
 		document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 		document.addEventListener('mozfullscreenchange', onFullscreenChange);
 		document.addEventListener('MSFullscreenChange', onFullscreenChange);
-
-		// ریسایز پنجره هم واترمارک را اصلاح کند
 		window.addEventListener('resize', function () {
 			clearTimeout(window._falnicResizeTimer);
-			window._falnicResizeTimer = setTimeout(placeWatermarkRandom, 300);
+			window._falnicResizeTimer = setTimeout(function() { resizeCanvas(); drawWatermark(); }, 300);
 		});
+		// وقتی متادیتا لود شد Canvas را سایز کن
+		video.addEventListener('loadedmetadata', function() { resizeCanvas(); });
 
 		// ---------- شروع ----------
+		// Canvas اولیه را سایز کن (قبل از پخش)
+		resizeCanvas();
 		loadStream();
 
 		// پاکسازی
@@ -344,6 +421,7 @@
 			if (state.hls) { try { state.hls.destroy(); } catch (e) {} state.hls = null; }
 			if (state.wmTimer) clearTimeout(state.wmTimer);
 			if (state.heartbeatTimer) clearInterval(state.heartbeatTimer);
+			if (loadTimeout) clearTimeout(loadTimeout);
 			document.removeEventListener('fullscreenchange', onFullscreenChange);
 			document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
 			document.removeEventListener('mozfullscreenchange', onFullscreenChange);

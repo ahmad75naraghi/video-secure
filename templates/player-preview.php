@@ -11,10 +11,7 @@
 			disableRemotePlayback
 			oncontextmenu="return false;"
 		></video>
-		<div class="falnic-preview-watermark" id="<?php echo esc_attr( $args['html_id'] . '-wm' ); ?>" aria-hidden="true">
-			<span class="falnic-wm-line1"></span>
-			<span class="falnic-wm-line2"></span>
-		</div>
+		<canvas class="falnic-preview-canvas" id="<?php echo esc_attr( $args['html_id'] . '-canvas' ); ?>" aria-hidden="true"></canvas>
 		<div class="falnic-preview-loading" id="<?php echo esc_attr( $args['html_id'] . '-loading' ); ?>">
 			<span class="falnic-preview-spinner"></span>
 			<span><?php esc_html_e( 'در حال بارگذاری ویدیو…', 'falnic-secure-hls' ); ?></span>

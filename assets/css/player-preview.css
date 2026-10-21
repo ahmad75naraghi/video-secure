@@ -1,6 +1,6 @@
 /**
- * Falnic Secure HLS — استایل پیش‌نمایش حرفه‌ای (ادمین)
- * ویدیو مرئی + واترمارک HTML (نه Canvas) برای اطمینان ۱۰۰٪
+ * Falnic Secure HLS — استایل پیش‌نمایش حرفه‌ای (ادمین) — Canvas
+ * واترمارک روی Canvas (غیرقابل حذف با Inspect) + بدون ترنزیشن (پرش آنی)
  */
 
 .falnic-preview-container {
@@ -37,53 +37,17 @@
 	max-height: 80vh;
 }
 
-.falnic-preview-video::-webkit-media-controls-enclosure {
-	display: flex;
-}
-
-/* واترمارک HTML — همیشه داخل کادر، با سایه برای خوانایی */
-.falnic-preview-watermark {
+/* Canvas واترمارک — روی ویدیو، غیرقابل کلیک، بدون ترنزیشن (پرش آنی) */
+.falnic-preview-canvas {
 	position: absolute;
-	z-index: 2;
+	inset: 0;
+	width: 100%;
+	height: 100%;
 	pointer-events: none;
-	user-select: none;
-	-webkit-user-select: none;
-	color: rgba(255,255,255,0.85);
-	font-family: Tahoma, Arial, sans-serif;
-	font-weight: 700;
-	text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.8);
-	line-height: 1.4;
-	text-align: left;
-	direction: ltr;
-	max-width: 70%;
-	word-break: break-word;
-	transition: all 0.6s ease-in-out;
-	opacity: 0;
-	visibility: hidden;
-}
-
-.falnic-preview-watermark.is-visible {
-	opacity: var(--falnic-wm-opacity, 0.55);
-	visibility: visible;
-}
-
-.falnic-preview-watermark .falnic-wm-line1 {
+	z-index: 2;
 	display: block;
-	font-size: clamp(11px, 1.8vw, 15px);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.falnic-preview-watermark .falnic-wm-line2 {
-	display: block;
-	font-size: clamp(10px, 1.4vw, 12px);
-	opacity: 0.9;
-	font-weight: 400;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	margin-top: 2px;
+	/* هیچ ترنزیشنی نداشته باشد — یهو جابجا شود */
+	transition: none !important;
 }
 
 /* لودینگ */
@@ -136,7 +100,7 @@
 	line-height: 1.8;
 }
 
-/* فول‌اسکرین حرفه‌ای */
+/* فول‌اسکرین — کل کانتینر و ویدیو + Canvas */
 .falnic-preview-container:fullscreen,
 .falnic-preview-container:-webkit-full-screen,
 .falnic-preview-container:-moz-full-screen {
@@ -160,16 +124,13 @@
 	object-fit: contain;
 }
 
-/* کنترل‌های Plyr در پیش‌نمایش — مخفی چون از native استفاده می‌کنیم */
-.falnic-preview-container .plyr {
-	width: 100%;
-	height: 100%;
+.falnic-preview-container:fullscreen .falnic-preview-canvas,
+.falnic-preview-container:-webkit-full-screen .falnic-preview-canvas {
+	width: 100% !important;
+	height: 100% !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.falnic-preview-watermark {
-		transition: none;
-	}
 	.falnic-preview-spinner {
 		animation: none;
 	}

@@ -1001,7 +1001,7 @@ msgstr ""
 msgid "در حال انکود… (%d%%)"
 msgstr ""
 
-#: templates/player-preview.php:20
+#: templates/player-preview.php:17
 msgid "در حال بارگذاری ویدیو…"
 msgstr ""
 
