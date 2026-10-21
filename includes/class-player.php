@@ -143,11 +143,9 @@ final class Player {
 			return '';
 		}
 
-		Assets::enqueue();
+		// پیش‌نمایش حرفه‌ای: پلیر سادهٔ HTML (نه Canvas) تا ۱۰۰٪ تضمینی باشد
+		Assets::enqueue_preview();
 
-		// در پیش‌نمایش ادمین فقط «آماده نبودن» را نشان می‌دهیم؛ بقیه‌ی
-		// دلایل دسترسی (not_enrolled/locked/…) نادیده گرفته می‌شود تا
-		// پیش‌نمایش دقیقاً مثل فرانت رندر شود.
 		if ( ! Storage::is_encoded( $name ) ) {
 			return self::render_notice( 'not_ready', $name );
 		}
@@ -158,6 +156,7 @@ final class Player {
 		$config = array(
 			'id'           => $html_id,
 			'name'         => $name,
+			'mode'         => 'preview',
 			'sessionUrl'   => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_PREVIEW ),
 			'heartbeatUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_HEARTBEAT ),
 			'endUrl'       => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_END ),
@@ -195,7 +194,11 @@ final class Player {
 		);
 
 		ob_start();
-		$template_path = FALNIC_DIR . 'templates/player.php';
+		$template_path = FALNIC_DIR . 'templates/player-preview.php';
+
+		if ( ! is_readable( $template_path ) ) {
+			$template_path = FALNIC_DIR . 'templates/player.php';
+		}
 
 		if ( is_readable( $template_path ) ) {
 			include $template_path;

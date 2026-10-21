@@ -80,6 +80,29 @@ final class Assets {
 			FALNIC_VERSION,
 			true
 		);
+
+		wp_register_style(
+			'falnic-preview',
+			FALNIC_URL . 'assets/css/player-preview.css',
+			array(),
+			FALNIC_VERSION
+		);
+
+		wp_register_script(
+			'falnic-hls',
+			FALNIC_URL . 'assets/vendor/hls/hls.min.js',
+			array(),
+			self::HLS_VERSION,
+			true
+		);
+
+		wp_register_script(
+			'falnic-preview',
+			FALNIC_URL . 'assets/js/player-preview.js',
+			array( 'falnic-hls' ),
+			FALNIC_VERSION,
+			true
+		);
 	}
 
 	/**
@@ -98,6 +121,25 @@ final class Assets {
 		$css = Template_Settings::css();
 		if ( '' !== $css ) {
 			wp_add_inline_style( 'falnic-player', $css );
+		}
+	}
+
+	/**
+	 * بارگذاری دارایی‌های پیش‌نمایش (ادمین).
+	 *
+	 * @return void
+	 */
+	public static function enqueue_preview(): void {
+		if ( ! wp_style_is( 'falnic-preview', 'registered' ) ) {
+			self::register();
+		}
+
+		wp_enqueue_style( 'falnic-preview' );
+		wp_enqueue_script( 'falnic-preview' );
+
+		$css = Template_Settings::css();
+		if ( '' !== $css ) {
+			wp_add_inline_style( 'falnic-preview', $css );
 		}
 	}
 

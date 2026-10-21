@@ -288,7 +288,7 @@ msgid "ارتباط با سرور برقرار نشد."
 msgstr ""
 
 #: includes/class-player.php:91
-#: includes/class-player.php:179
+#: includes/class-player.php:178
 msgid "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید."
 msgstr ""
 
@@ -420,7 +420,7 @@ msgid "این توکن به کاربر دیگری تعلق دارد."
 msgstr ""
 
 #: includes/class-player.php:94
-#: includes/class-player.php:182
+#: includes/class-player.php:181
 msgid "این حساب در دستگاه دیگری در حال پخش است. ابتدا پخش قبلی را ببندید."
 msgstr ""
 
@@ -453,7 +453,7 @@ msgid "این لینک/شورت‌کد فقط برای کسانی که در دو
 msgstr ""
 
 #: includes/class-player.php:93
-#: includes/class-player.php:181
+#: includes/class-player.php:180
 msgid "این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -537,7 +537,7 @@ msgid "برای «تمام دوره» آن را روی “کل دوره” بگ�
 msgstr ""
 
 #: includes/class-player.php:88
-#: includes/class-player.php:176
+#: includes/class-player.php:175
 msgid "برای ادامه پخش روی صفحه کلیک کنید"
 msgstr ""
 
@@ -931,7 +931,7 @@ msgid "خطا"
 msgstr ""
 
 #: includes/class-player.php:89
-#: includes/class-player.php:177
+#: includes/class-player.php:176
 msgid "خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -1001,6 +1001,10 @@ msgstr ""
 msgid "در حال انکود… (%d%%)"
 msgstr ""
 
+#: templates/player-preview.php:20
+msgid "در حال بارگذاری ویدیو…"
+msgstr ""
+
 #: admin/class-git-update-page.php:89
 msgid "در حال بررسی نسخه…"
 msgstr ""
@@ -1036,7 +1040,7 @@ msgstr ""
 msgid "درخواست معتبر نیست."
 msgstr ""
 
-#: includes/class-player.php:264
+#: includes/class-player.php:267
 msgid "درخواست نامعتبر"
 msgstr ""
 
@@ -1073,7 +1077,7 @@ msgstr ""
 msgid "درس انتخاب‌شده"
 msgstr ""
 
-#: includes/class-player.php:263
+#: includes/class-player.php:266
 msgid "درس هنوز باز نشده"
 msgstr ""
 
@@ -1097,8 +1101,8 @@ msgstr ""
 msgid "دسترسی پیش‌نمایش ندارید."
 msgstr ""
 
-#: includes/class-player.php:262
-#: includes/class-player.php:267
+#: includes/class-player.php:265
+#: includes/class-player.php:270
 msgid "دسترسی محدود"
 msgstr ""
 
@@ -1176,7 +1180,7 @@ msgid "زمان توکن دسترسی تمام شده است؛ صفحه را د�
 msgstr ""
 
 #: includes/class-player.php:92
-#: includes/class-player.php:180
+#: includes/class-player.php:179
 msgid "زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -1625,7 +1629,7 @@ msgid "مدت (ثانیه)"
 msgstr ""
 
 #: includes/class-player.php:90
-#: includes/class-player.php:178
+#: includes/class-player.php:177
 msgid "مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند."
 msgstr ""
 
@@ -1650,7 +1654,7 @@ msgid "مسیر واقعی پوشهٔ افزونه"
 msgstr ""
 
 #. translators: %s: عنوان دوره
-#: includes/class-player.php:285
+#: includes/class-player.php:288
 msgid "مشاهده دوره: %s"
 msgstr ""
 
@@ -1828,11 +1832,11 @@ msgstr ""
 msgid "واترمارک"
 msgstr ""
 
-#: includes/class-player.php:298
+#: includes/class-player.php:301
 msgid "ورود به حساب کاربری"
 msgstr ""
 
-#: includes/class-player.php:259
+#: includes/class-player.php:262
 msgid "ورود لازم است"
 msgstr ""
 
@@ -1855,11 +1859,11 @@ msgstr ""
 msgid "ویدیو"
 msgstr ""
 
-#: includes/class-player.php:260
+#: includes/class-player.php:263
 msgid "ویدیو آماده نیست"
 msgstr ""
 
-#: includes/class-player.php:261
+#: includes/class-player.php:264
 msgid "ویدیو به دوره متصل نشده"
 msgstr ""
 

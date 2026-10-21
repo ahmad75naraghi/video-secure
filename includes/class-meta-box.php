@@ -70,11 +70,11 @@ final class Meta_Box {
 		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
 		wp_enqueue_script( 'falnic-admin-encode', FALNIC_URL . 'assets/js/admin-encode.js', array(), FALNIC_VERSION, true );
 		wp_enqueue_script( 'falnic-admin-video', FALNIC_URL . 'assets/js/admin-video-edit.js', array(), FALNIC_VERSION, true );
-		// پیش‌نمایش دقیقاً همان دارایی‌های فرانت (Plyr+HLS+player) را می‌خواهد — از Assets مرکزی.
-		if ( ! wp_style_is( 'falnic-plyr', 'registered' ) ) {
+		// پیش‌نمایش حرفه‌ای: فقط HLS + پلیر پیش‌نمایش (نه Plyr/Canvas پیچیده)
+		if ( ! wp_style_is( 'falnic-preview', 'registered' ) ) {
 			Assets::register();
 		}
-		Assets::enqueue();
+		Assets::enqueue_preview();
 	}
 
 	/**
