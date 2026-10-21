@@ -608,6 +608,35 @@ $hooks = array_column( $GLOBALS['falnic_scheduled'], 'hook' );
 falnic_check( in_array( Falnic\SecureHLS\Encode_Queue::CRON_HOOK, $hooks, true ), 'نگهبان صف کار رهاشده را دوباره زمان‌بندی می‌کند' );
 unset( $GLOBALS['falnic_admin'][7] );
 
+// کار «در صف» که فایل ورودی‌اش گم شده باید به وضعیت failed برسد، نه بی‌پایان در صف بماند.
+$GLOBALS['falnic_admin'][7] = true;
+$GLOBALS['falnic_options'][ Falnic\SecureHLS\Encode_Queue::JOBS_OPTION ]['lesson-ghost'] = array(
+	'state'   => 'queued',
+	'percent' => 0,
+	'source'  => $GLOBALS['falnic_tmp'] . '/does-not-exist.mp4',
+	'updated' => time() - 300,
+	'post_id' => 0,
+	'user_id' => 7,
+);
+Falnic\SecureHLS\Encode_Queue::watchdog();
+$ghost = Falnic\SecureHLS\Encode_Queue::status( 'lesson-ghost' );
+falnic_check( 'failed' === $ghost['state'], 'نگهبان صف کار بدون فایل ورودی را ناموفق می‌کند', $ghost['state'] );
+falnic_check( '' !== (string) $ghost['message'], 'دلیل ناموفق‌شدن کار بدون فایل ورودی نمایش داده می‌شود' );
+
+// «اجرای فوری صف» هم باید همان کار را با پیام روشن ناموفق کند.
+$GLOBALS['falnic_options'][ Falnic\SecureHLS\Encode_Queue::JOBS_OPTION ]['lesson-ghost2'] = array(
+	'state'   => 'queued',
+	'percent' => 0,
+	'source'  => '',
+	'updated' => time(),
+	'post_id' => 0,
+	'user_id' => 7,
+);
+Falnic\SecureHLS\Encode_Queue::run_now( 3 );
+$ghost2 = Falnic\SecureHLS\Encode_Queue::status( 'lesson-ghost2' );
+falnic_check( 'failed' === $ghost2['state'], 'اجرای فوری صف کار بدون فایل را ناموفق ثبت می‌کند', $ghost2['state'] );
+unset( $GLOBALS['falnic_admin'][7] );
+
 $idle = Falnic\SecureHLS\Encode_Queue::status( 'lesson-unknown' );
 falnic_check( 'idle' === $idle['state'] && 0 === $idle['percent'], 'ویدیوی بدون کار، وضعیت idle دارد' );
 

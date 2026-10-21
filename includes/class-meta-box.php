@@ -112,13 +112,34 @@ final class Meta_Box {
 		$course = (int) get_post_meta( $post->ID, Access::COURSE_META, true );
 		$lesson = (int) get_post_meta( $post->ID, Access::STEP_META, true );
 
+		$courses = self::courses();
+		$lessons = self::lessons();
+
+		// انتخاب فعلی همیشه در فهرست می‌ماند؛ وگرنه در سایت‌های بزرگ با فهرست
+		// محدود، ذخیره‌ی دوباره بی‌صدا اتصال را پاک می‌کرد.
+		if ( $course > 0 && ! self::in_list( $courses, $course ) ) {
+			$extra = get_post( $course );
+
+			if ( $extra && 'sfwd-courses' === get_post_type( $extra ) ) {
+				array_unshift( $courses, $extra );
+			}
+		}
+
+		if ( $lesson > 0 && ! self::in_list( $lessons, $lesson ) ) {
+			$extra = get_post( $lesson );
+
+			if ( $extra && in_array( (string) get_post_type( $extra ), Access::STEP_TYPES, true ) ) {
+				array_unshift( $lessons, $extra );
+			}
+		}
+
 		echo '<hr><table class="form-table falnic-target"><tbody>';
 
 		echo '<tr><th scope="row"><label for="falnic_course_id">' . esc_html__( 'دوره', 'falnic-secure-hls' ) . '</label></th><td>';
 		echo '<select name="falnic_course_id" id="falnic_course_id" style="min-width:320px;">';
 		echo '<option value="0">' . esc_html__( '— انتخاب دوره —', 'falnic-secure-hls' ) . '</option>';
 
-		foreach ( self::courses() as $item ) {
+		foreach ( $courses as $item ) {
 			printf(
 				'<option value="%1$d"%2$s>%3$s</option>',
 				(int) $item->ID,
@@ -133,7 +154,7 @@ final class Meta_Box {
 		echo '<select name="falnic_lesson_id" id="falnic_lesson_id" style="min-width:320px;">';
 		echo '<option value="0">' . esc_html__( '— کل دوره —', 'falnic-secure-hls' ) . '</option>';
 
-		foreach ( self::lessons() as $item ) {
+		foreach ( $lessons as $item ) {
 			$label = get_the_title( $item );
 			$owner = (int) get_post_meta( $item->ID, 'course_id', true );
 
@@ -151,6 +172,23 @@ final class Meta_Box {
 
 		echo '</select></td></tr>';
 		echo '</tbody></table>';
+	}
+
+	/**
+	 * آیا پستی با این شناسه در فهرست هست؟
+	 *
+	 * @param array $posts فهرست پست‌ها.
+	 * @param int   $id    شناسه.
+	 * @return bool
+	 */
+	private static function in_list( array $posts, int $id ): bool {
+		foreach ( $posts as $post ) {
+			if ( (int) $post->ID === $id ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -411,9 +449,14 @@ final class Meta_Box {
 		$course = 'sfwd-courses' === get_post_type( $course ) ? $course : 0;
 		$lesson = in_array( (string) get_post_type( $lesson ), Access::STEP_TYPES, true ) ? $lesson : 0;
 
-		// اگر فقط درس انتخاب شده باشد، دوره از خود درس گرفته می‌شود.
-		if ( 0 === $course && $lesson > 0 ) {
-			$course = (int) get_post_meta( $lesson, 'course_id', true );
+		// اگر درس انتخاب شده باشد، دوره‌ی همان درس مرجع است تا هرگز
+		// ترکیب ناسازگار «دوره‌ی الف + درس دوره‌ی ب» ذخیره نشود.
+		if ( $lesson > 0 ) {
+			$owner = (int) get_post_meta( $lesson, 'course_id', true );
+
+			if ( $owner > 0 ) {
+				$course = $owner;
+			}
 		}
 
 		if ( $course > 0 ) {

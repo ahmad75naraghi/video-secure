@@ -35,6 +35,8 @@ delete_option( 'falnic_deny_stats' );
 delete_option( 'falnic_encode_jobs' );
 delete_option( 'falnic_bin_ffmpeg' );
 delete_option( 'falnic_bin_ffprobe' );
+delete_option( 'falnic_bin_missing_ffmpeg' );
+delete_option( 'falnic_bin_missing_ffprobe' );
 
 // تنظیمات آپدیت از گیت (شامل توکن).
 delete_option( 'falnic_git_repo' );
@@ -51,6 +53,10 @@ delete_metadata( 'user', 0, 'falnic_last_login_ip', '', true );
 // متای پست‌ها: شناسه‌ی پایدار ویدیو و اتصال درس.
 delete_metadata( 'post', 0, 'falnic_video_name', '', true );
 delete_metadata( 'post', 0, '_falnic_video_name', '', true );
+
+// اتصال دستی ویدیو به دوره و درس لرندش.
+delete_metadata( 'post', 0, 'falnic_course_id', '', true );
+delete_metadata( 'post', 0, 'falnic_lesson_id', '', true );
 
 // جدول گزارش تماشا و رویدادهای زمان‌بندی‌شده.
 wp_clear_scheduled_hook( 'falnic_encode_run' );

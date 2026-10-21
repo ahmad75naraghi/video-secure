@@ -16,7 +16,7 @@ msgstr ""
 "X-Domain: falnic-secure-hls\n"
 "X-Generator: bin/make-pot.js\n"
 
-#: includes/class-meta-box.php:119
+#: includes/class-meta-box.php:140
 msgid "— انتخاب دوره —"
 msgstr ""
 
@@ -24,7 +24,7 @@ msgstr ""
 msgid "— بدون ویدیو —"
 msgstr ""
 
-#: includes/class-meta-box.php:134
+#: includes/class-meta-box.php:155
 msgid "— کل دوره —"
 msgstr ""
 
@@ -62,11 +62,15 @@ msgstr ""
 msgid "✅ %d پخش فعال قطع شد. اگر دستگاه کاربر صفحه را باز نگه داشته باشد، حداکثر تا ۳۰ ثانیه بعد پخش متوقف می‌شود."
 msgstr ""
 
-#: admin/views/encoder.php:46
+#: admin/views/encoder.php:55
 msgid "✅ در صف انکود قرار گرفت:"
 msgstr ""
 
-#: admin/views/encoder.php:55
+#: admin/views/encoder.php:45
+msgid "✅ کش تشخیص ffmpeg/ffprobe پاک شد و بررسی دوباره انجام شد."
+msgstr ""
+
+#: admin/views/encoder.php:64
 msgid "✅ ویدیو رمزنگاری شد:"
 msgstr ""
 
@@ -110,15 +114,15 @@ msgstr ""
 msgid "ffmpeg با خطا پایان یافت."
 msgstr ""
 
-#: admin/class-admin-menu.php:392
+#: admin/class-admin-menu.php:433
 msgid "ffmpeg در دسترس است"
 msgstr ""
 
-#: admin/class-admin-menu.php:397
+#: admin/class-admin-menu.php:438
 msgid "ffprobe در دسترس است"
 msgstr ""
 
-#: admin/class-admin-menu.php:399
+#: admin/class-admin-menu.php:440
 msgid "ffprobe معمولاً همراه ffmpeg نصب می‌شود؛ مسیر را با FALNIC_FFPROBE_BIN بدهید."
 msgstr ""
 
@@ -139,7 +143,7 @@ msgstr ""
 msgid "LearnDash روی این سایت فعال نیست. ویدیوهایی که به درس متصل شده‌اند تا فعال شدن LearnDash فقط برای مدیران قابل مشاهده‌اند."
 msgstr ""
 
-#: admin/class-admin-menu.php:618
+#: admin/class-admin-menu.php:659
 msgid "LearnDash فعال است"
 msgstr ""
 
@@ -147,7 +151,7 @@ msgstr ""
 msgid "Unauthorized"
 msgstr ""
 
-#: admin/class-admin-menu.php:402
+#: admin/class-admin-menu.php:443
 msgid "WP-Cron غیرفعال نشده است"
 msgstr ""
 
@@ -168,8 +172,8 @@ msgstr ""
 msgid "ZipArchive روی سرور فعال نیست."
 msgstr ""
 
-#: admin/class-admin-menu.php:93
 #: admin/class-admin-menu.php:94
+#: admin/class-admin-menu.php:95
 #: admin/class-admin-tabs.php:43
 #: admin/views/git-update.php:39
 msgid "آپدیت از گیت"
@@ -188,7 +192,7 @@ msgid "آپدیت با موفقیت انجام شد."
 msgstr ""
 
 #. translators: %d: کد خطای آپلود
-#: includes/class-meta-box.php:347
+#: includes/class-meta-box.php:385
 msgid "آپلود فایل ناموفق بود (کد خطا: %d)."
 msgstr ""
 
@@ -196,7 +200,7 @@ msgstr ""
 msgid "آخرین پخش"
 msgstr ""
 
-#: admin/class-admin-menu.php:563
+#: admin/class-admin-menu.php:604
 msgid "آخرین فعالیت"
 msgstr ""
 
@@ -216,7 +220,7 @@ msgstr ""
 msgid "ابتدا مخزن گیت‌هاب را در کارت تنظیمات ذخیره کنید."
 msgstr ""
 
-#: admin/class-admin-menu.php:630
+#: admin/class-admin-menu.php:671
 msgid "اتصال امن HTTPS"
 msgstr ""
 
@@ -228,7 +232,7 @@ msgstr ""
 msgid "اتصال به گیت‌هاب برقرار نشد (خطای شبکه یا cURL)."
 msgstr ""
 
-#: admin/class-admin-menu.php:567
+#: admin/class-admin-menu.php:608
 #: admin/views/watch-log.php:202
 msgid "اثر انگشت IP"
 msgstr ""
@@ -237,7 +241,7 @@ msgstr ""
 msgid "اجرای ffmpeg ممکن نشد."
 msgstr ""
 
-#: admin/class-admin-menu.php:387
+#: admin/class-admin-menu.php:428
 msgid "اجرای فرمان در PHP (proc_open/exec)"
 msgstr ""
 
@@ -245,12 +249,12 @@ msgstr ""
 msgid "اجرای فرمان در سرور مسدود است (exec/proc_open)."
 msgstr ""
 
-#: admin/views/encoder.php:144
+#: admin/views/encoder.php:159
 msgid "اجرای فوری صف"
 msgstr ""
 
 #. translators: %d: تعداد کار اجراشده
-#: admin/views/encoder.php:67
+#: admin/views/encoder.php:76
 msgid "اجرای فوری صف انجام شد؛ %d کار پردازش شد. وضعیت هر کار در جدول پایین است."
 msgstr ""
 
@@ -282,11 +286,11 @@ msgstr ""
 msgid "اطلاعات آخرین نسخه دریافت شد."
 msgstr ""
 
-#: admin/views/encoder.php:168
+#: admin/views/encoder.php:183
 msgid "افزودن به صف"
 msgstr ""
 
-#: admin/views/encoder.php:150
+#: admin/views/encoder.php:165
 msgid "افزودن ویدیو از سرور"
 msgstr ""
 
@@ -306,7 +310,7 @@ msgstr ""
 msgid "اقدام"
 msgstr ""
 
-#: admin/class-admin-menu.php:404
+#: admin/class-admin-menu.php:445
 msgid "اگر DISABLE_WP_CRON=true است، cron سیستمی برای wp-cron.php بسازید یا دکمه‌ی «اجرای فوری صف» را بزنید."
 msgstr ""
 
@@ -326,7 +330,7 @@ msgstr ""
 msgid "امکان بررسی syntax بدون اجرا وجود ندارد (TOKEN_PARSE)."
 msgstr ""
 
-#: includes/class-encode-queue.php:162
+#: includes/class-encode-queue.php:174
 msgid "انتقال فایل به پوشه‌ی موقت ناموفق بود. مجوز پوشه را بررسی کنید."
 msgstr ""
 
@@ -334,11 +338,11 @@ msgstr ""
 msgid "انتقال ویدیوهای قدیمی به پوشه‌ی امن"
 msgstr ""
 
-#: includes/class-encode-queue.php:291
+#: includes/class-encode-queue.php:303
 msgid "انکود با موفقیت تمام شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:463
+#: includes/class-encode-queue.php:471
 msgid "انکود پیش از شروع لغو شد."
 msgstr ""
 
@@ -346,22 +350,22 @@ msgstr ""
 msgid "انکود توسط مدیر لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:317
+#: includes/class-encode-queue.php:329
 #: includes/class-encoder.php:607
 msgid "انکود لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:318
+#: includes/class-encode-queue.php:330
 msgid "انکود ناموفق بود."
 msgstr ""
 
-#: admin/class-admin-menu.php:57
 #: admin/class-admin-menu.php:58
+#: admin/class-admin-menu.php:59
 #: admin/class-admin-tabs.php:35
 msgid "انکودر دستی"
 msgstr ""
 
-#: admin/views/encoder.php:31
+#: admin/views/encoder.php:32
 msgid "انکودر دستی سرور"
 msgstr ""
 
@@ -397,7 +401,7 @@ msgstr ""
 msgid "این فایل پشتیبان برای همیشه حذف شود؟"
 msgstr ""
 
-#: includes/class-encode-queue.php:484
+#: includes/class-encode-queue.php:492
 msgid "این کار در حال اجراست."
 msgstr ""
 
@@ -424,7 +428,7 @@ msgstr ""
 msgid "این ویدیو مخصوص دانشجویان دوره است. برای تماشا باید در دوره ثبت‌نام کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:152
+#: includes/class-encode-queue.php:164
 msgid "این ویدیو همین حالا در صف انکود است."
 msgstr ""
 
@@ -456,7 +460,7 @@ msgstr ""
 msgid "بالای محتوای درس"
 msgstr ""
 
-#: admin/views/encoder.php:27
+#: admin/views/encoder.php:28
 msgid "بدون کار"
 msgstr ""
 
@@ -496,6 +500,10 @@ msgstr ""
 msgid "بررسی syntax ممکن نیست: TOKEN_PARSE در دسترس نیست."
 msgstr ""
 
+#: admin/views/encoder.php:105
+msgid "بررسی دوباره‌ی ffmpeg/ffprobe"
+msgstr ""
+
 #: includes/class-git-updater.php:682
 msgid "برنچ موردنظر در مخزن پیدا نشد."
 msgstr ""
@@ -504,7 +512,7 @@ msgstr ""
 msgid "به شکل owner/repo — مثال: ahmad75naraghi/video-secure"
 msgstr ""
 
-#: admin/views/encoder.php:107
+#: admin/views/encoder.php:122
 msgid "به‌روزرسانی"
 msgstr ""
 
@@ -582,23 +590,23 @@ msgstr ""
 msgid "پوشهٔ نسخهٔ جدید پیدا نشد."
 msgstr ""
 
-#: admin/class-admin-menu.php:610
+#: admin/class-admin-menu.php:651
 msgid "پوشه‌ی رسانه خارج از web root"
 msgstr ""
 
-#: admin/class-admin-menu.php:622
+#: admin/class-admin-menu.php:663
 msgid "پوشه‌ی کلیدها قابل نوشتن"
 msgstr ""
 
-#: admin/class-admin-menu.php:407
+#: admin/class-admin-menu.php:448
 msgid "پوشه‌ی موقت قابل نوشتن است"
 msgstr ""
 
-#: admin/class-admin-menu.php:626
+#: admin/class-admin-menu.php:667
 msgid "پوشه‌ی ویدیوها قابل نوشتن"
 msgstr ""
 
-#: admin/views/encoder.php:106
+#: admin/views/encoder.php:121
 msgid "پیام"
 msgstr ""
 
@@ -606,11 +614,11 @@ msgstr ""
 msgid "پیام کامیت"
 msgstr ""
 
-#: admin/views/encoder.php:133
+#: admin/views/encoder.php:148
 msgid "پیش"
 msgstr ""
 
-#: admin/views/encoder.php:105
+#: admin/views/encoder.php:120
 msgid "پیشرفت"
 msgstr ""
 
@@ -618,7 +626,7 @@ msgstr ""
 msgid "پیش‌نیازهای سرور کامل نیست؛ آپدیت غیرفعال است:"
 msgstr ""
 
-#: admin/class-admin-menu.php:606
+#: admin/class-admin-menu.php:647
 msgid "تابع exec (برای ffmpeg)"
 msgstr ""
 
@@ -650,19 +658,19 @@ msgstr ""
 msgid "تک‌کیفیت (سبک‌تر، مصرف CPU کمتر)"
 msgstr ""
 
-#: includes/class-meta-box.php:238
+#: includes/class-meta-box.php:276
 msgid "تلاش دوباره"
 msgstr ""
 
-#: admin/views/encoder.php:24
+#: admin/views/encoder.php:25
 msgid "تمام‌شده"
 msgstr ""
 
-#: admin/class-admin-menu.php:67
+#: admin/class-admin-menu.php:68
 msgid "تنظیمات"
 msgstr ""
 
-#: admin/class-admin-menu.php:66
+#: admin/class-admin-menu.php:67
 #: admin/class-admin-tabs.php:27
 msgid "تنظیمات امنیتی"
 msgstr ""
@@ -675,8 +683,8 @@ msgstr ""
 msgid "تنظیمات ذخیره شد."
 msgstr ""
 
-#: admin/class-admin-menu.php:75
 #: admin/class-admin-menu.php:76
+#: admin/class-admin-menu.php:77
 #: admin/class-admin-tabs.php:31
 #: admin/views/template.php:17
 msgid "تنظیمات قالب"
@@ -730,7 +738,7 @@ msgstr ""
 msgid "جدول گزارش هنوز ساخته نشده است. افزونه را یک‌بار غیرفعال و دوباره فعال کنید تا ساختار دیتابیس ساخته شود."
 msgstr ""
 
-#: includes/class-meta-box.php:245
+#: includes/class-meta-box.php:283
 msgid "جزئیات خطا"
 msgstr ""
 
@@ -752,11 +760,11 @@ msgid "حجم"
 msgstr ""
 
 #. translators: %s: حداکثر حجم به مگابایت
-#: includes/class-meta-box.php:368
+#: includes/class-meta-box.php:406
 msgid "حجم فایل بیش از حد مجاز است (حداکثر %s مگابایت)."
 msgstr ""
 
-#: includes/class-meta-box.php:475
+#: includes/class-meta-box.php:518
 msgid "حجم فایل زیرنویس بیش از ۵ مگابایت است."
 msgstr ""
 
@@ -800,7 +808,7 @@ msgstr ""
 msgid "خروجی ffmpeg قابل استفاده نیست."
 msgstr ""
 
-#: admin/views/encoder.php:125
+#: admin/views/encoder.php:140
 msgid "خطا"
 msgstr ""
 
@@ -812,12 +820,16 @@ msgstr ""
 msgid "خطا در پردازش ویدیو:"
 msgstr ""
 
-#: admin/views/encoder.php:40
+#: admin/views/encoder.php:49
 msgid "خطا: افزودن به صف ناموفق بود. مجوز پوشه‌ی موقت و مسیر فایل را بررسی کنید."
 msgstr ""
 
-#: admin/views/encoder.php:36
+#: admin/views/encoder.php:37
 msgid "خطا: فایل در مسیر داده‌شده یافت نشد."
+msgstr ""
+
+#: admin/views/encoder.php:41
+msgid "خطا: فقط فایل‌های MP4/M4V/MOV به صف اضافه می‌شوند."
 msgstr ""
 
 #: includes/class-git-updater.php:568
@@ -845,7 +857,7 @@ msgstr ""
 msgid "دانلود، بررسی و پشتیبان‌گیری در حال انجام است…"
 msgstr ""
 
-#: admin/class-admin-menu.php:389
+#: admin/class-admin-menu.php:430
 msgid "در php.ini یا کانفیگ هاست، disable_functions شامل proc_open و exec نباشد."
 msgstr ""
 
@@ -853,16 +865,16 @@ msgstr ""
 msgid "در حال انجام…"
 msgstr ""
 
-#: admin/views/encoder.php:23
+#: admin/views/encoder.php:24
 msgid "در حال انکود"
 msgstr ""
 
-#: includes/class-encode-queue.php:235
+#: includes/class-encode-queue.php:247
 msgid "در حال انکود…"
 msgstr ""
 
 #. translators: %d: درصد پیشرفت
-#: includes/class-encode-queue.php:255
+#: includes/class-encode-queue.php:267
 msgid "در حال انکود… (%d%%)"
 msgstr ""
 
@@ -870,7 +882,7 @@ msgstr ""
 msgid "در حال بررسی نسخه…"
 msgstr ""
 
-#: includes/class-encode-queue.php:445
+#: includes/class-encode-queue.php:453
 msgid "در حال لغو…"
 msgstr ""
 
@@ -878,12 +890,12 @@ msgstr ""
 msgid "در حالت تطبیقی، یک پلی‌لیست اصلی (master) ساخته می‌شود و پلیر بر اساس سرعت اینترنت کیفیت را عوض می‌کند."
 msgstr ""
 
-#: admin/views/encoder.php:22
+#: admin/views/encoder.php:23
 msgid "در صف"
 msgstr ""
 
-#: includes/class-encode-queue.php:172
-#: includes/class-encode-queue.php:504
+#: includes/class-encode-queue.php:184
+#: includes/class-encode-queue.php:512
 msgid "در صف انکود…"
 msgstr ""
 
@@ -892,7 +904,7 @@ msgstr ""
 msgid "در مرحلهٔ جایگزینی فایل خطا رخ داد (%s)؛ از بخش پشتیبان‌ها Rollback را اجرا کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:567
+#: includes/class-encode-queue.php:575
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
@@ -925,7 +937,7 @@ msgstr ""
 msgid "درخواست‌های بیش از حد. کمی بعد تلاش کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:132
+#: includes/class-meta-box.php:153
 msgid "درس"
 msgstr ""
 
@@ -946,22 +958,23 @@ msgstr ""
 msgid "دسترسی محدود"
 msgstr ""
 
-#: admin/class-admin-menu.php:108
-#: admin/class-admin-menu.php:160
-#: admin/class-admin-menu.php:229
-#: admin/class-admin-menu.php:271
-#: admin/class-admin-menu.php:304
-#: admin/class-admin-menu.php:484
-#: includes/class-encode-queue.php:670
+#: admin/class-admin-menu.php:109
+#: admin/class-admin-menu.php:161
+#: admin/class-admin-menu.php:230
+#: admin/class-admin-menu.php:282
+#: admin/class-admin-menu.php:315
+#: admin/class-admin-menu.php:345
+#: admin/class-admin-menu.php:525
+#: includes/class-encode-queue.php:678
 msgid "دسترسی ندارید."
 msgstr ""
 
-#: admin/class-admin-menu.php:566
+#: admin/class-admin-menu.php:607
 #: admin/views/watch-log.php:201
 msgid "دستگاه"
 msgstr ""
 
-#: includes/class-meta-box.php:117
+#: includes/class-meta-box.php:138
 msgid "دوره"
 msgstr ""
 
@@ -997,7 +1010,7 @@ msgstr ""
 msgid "ریشهٔ نسخهٔ جدید پیدا نشد."
 msgstr ""
 
-#: includes/class-meta-box.php:282
+#: includes/class-meta-box.php:320
 msgid "زبان"
 msgstr ""
 
@@ -1013,7 +1026,7 @@ msgstr ""
 msgid "زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:266
+#: includes/class-meta-box.php:304
 msgid "زیرنویس (اختیاری)"
 msgstr ""
 
@@ -1050,7 +1063,7 @@ msgstr ""
 msgid "ساختار ZIP غیرمنتظره است (باید یک پوشهٔ ریشه داشته باشد)."
 msgstr ""
 
-#: includes/class-meta-box.php:494
+#: includes/class-meta-box.php:537
 msgid "ساختار فایل زیرنویس معتبر نیست (باید با WEBVTT شروع شود)."
 msgstr ""
 
@@ -1067,7 +1080,7 @@ msgstr ""
 msgid "سقف درخواست‌های گیت‌هاب پر شده است. یک توکن اضافه کنید یا بعداً تلاش کنید."
 msgstr ""
 
-#: admin/class-admin-menu.php:565
+#: admin/class-admin-menu.php:606
 #: admin/views/watch-log.php:199
 msgid "سگمنت"
 msgstr ""
@@ -1085,7 +1098,7 @@ msgstr ""
 msgid "شاخه (Branch)"
 msgstr ""
 
-#: admin/class-admin-menu.php:562
+#: admin/class-admin-menu.php:603
 msgid "شروع"
 msgstr ""
 
@@ -1111,7 +1124,7 @@ msgstr ""
 msgid "شناسه کاربر:"
 msgstr ""
 
-#: includes/class-encode-queue.php:585
+#: includes/class-encode-queue.php:593
 msgid "شناسه‌ی ویدیو پیدا نشد."
 msgstr ""
 
@@ -1123,11 +1136,11 @@ msgstr ""
 msgid "شورت‌کد ویدیو:"
 msgstr ""
 
-#: admin/views/encoder.php:95
+#: admin/views/encoder.php:110
 msgid "صف انکود"
 msgstr ""
 
-#: admin/views/encoder.php:98
+#: admin/views/encoder.php:113
 msgid "صف خالی است."
 msgstr ""
 
@@ -1225,15 +1238,16 @@ msgstr ""
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
-#: includes/class-encode-queue.php:493
+#: includes/class-encode-queue.php:501
 msgid "فایل ورودی این کار دیگر موجود نیست؛ لطفاً ویدیو را دوباره آپلود کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:214
+#: includes/class-encode-queue.php:93
+#: includes/class-encode-queue.php:226
 msgid "فایل ورودی پیدا نشد؛ لطفاً دوباره آپلود کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:142
+#: includes/class-encode-queue.php:154
 msgid "فایل ورودی در دسترس نیست."
 msgstr ""
 
@@ -1265,11 +1279,11 @@ msgstr ""
 msgid "فقط دانشجویانی که در دوره‌ی این درس ثبت‌نام کرده‌اند ویدیو را می‌بینند. مدیر سایت همیشه دسترسی دارد."
 msgstr ""
 
-#: includes/class-meta-box.php:483
+#: includes/class-meta-box.php:526
 msgid "فقط فایل زیرنویس با پسوند .vtt پذیرفته می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:385
+#: includes/class-meta-box.php:423
 msgid "فقط فایل‌های ویدیویی MP4/M4V/MOV پذیرفته می‌شوند."
 msgstr ""
 
@@ -1297,15 +1311,15 @@ msgstr ""
 msgid "قفل کردن استریم روی IP کاربر"
 msgstr ""
 
-#: includes/class-encode-queue.php:518
+#: includes/class-encode-queue.php:526
 msgid "کار دوباره در صف قرار گرفت."
 msgstr ""
 
-#: includes/class-encode-queue.php:564
+#: includes/class-encode-queue.php:572
 msgid "کار فعالی برای لغو پیدا نشد."
 msgstr ""
 
-#: admin/class-admin-menu.php:560
+#: admin/class-admin-menu.php:601
 #: admin/views/watch-log.php:90
 #: admin/views/watch-log.php:195
 msgid "کاربر"
@@ -1342,8 +1356,8 @@ msgstr ""
 msgid "گزارش آپدیت"
 msgstr ""
 
-#: admin/class-admin-menu.php:84
 #: admin/class-admin-menu.php:85
+#: admin/class-admin-menu.php:86
 #: admin/class-admin-tabs.php:39
 #: admin/views/watch-log.php:41
 msgid "گزارش تماشا"
@@ -1354,11 +1368,11 @@ msgstr ""
 msgid "گیت‌هاب پاسخ ناموفق برگرداند (کد %d)."
 msgstr ""
 
-#: includes/class-meta-box.php:233
+#: includes/class-meta-box.php:271
 msgid "لغو انکود"
 msgstr ""
 
-#: admin/views/encoder.php:26
+#: admin/views/encoder.php:27
 msgid "لغوشده"
 msgstr ""
 
@@ -1366,7 +1380,7 @@ msgstr ""
 msgid "لینک Embed (مخصوص LearnDash)"
 msgstr ""
 
-#: admin/class-admin-menu.php:409
+#: admin/class-admin-menu.php:450
 msgid "مجوز پوشه‌ی falnic-secure/tmp را بررسی کنید."
 msgstr ""
 
@@ -1403,7 +1417,7 @@ msgstr ""
 msgid "مدت"
 msgstr ""
 
-#: admin/class-admin-menu.php:564
+#: admin/class-admin-menu.php:605
 msgid "مدت (ثانیه)"
 msgstr ""
 
@@ -1411,7 +1425,7 @@ msgstr ""
 msgid "مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند."
 msgstr ""
 
-#: admin/class-admin-menu.php:394
+#: admin/class-admin-menu.php:435
 msgid "مسیر ffmpeg را در wp-config با FALNIC_FFMPEG_BIN تعریف کنید."
 msgstr ""
 
@@ -1423,7 +1437,7 @@ msgstr ""
 msgid "مسیر فعلی"
 msgstr ""
 
-#: admin/views/encoder.php:158
+#: admin/views/encoder.php:173
 msgid "مسیر کامل فایل MP4 در سرور"
 msgstr ""
 
@@ -1456,7 +1470,7 @@ msgstr ""
 msgid "مقیاس اندازهٔ فونت واترمارک"
 msgstr ""
 
-#: admin/views/encoder.php:162
+#: admin/views/encoder.php:177
 msgid "نام اختصاصی (فقط حروف انگلیسی، رقم و خط تیره)"
 msgstr ""
 
@@ -1472,7 +1486,7 @@ msgstr ""
 msgid "نام فایل پشتیبان نامعتبر است."
 msgstr ""
 
-#: includes/class-encode-queue.php:134
+#: includes/class-encode-queue.php:146
 #: includes/class-encoder.php:197
 msgid "نام ویدیو نامعتبر است."
 msgstr ""
@@ -1481,7 +1495,7 @@ msgstr ""
 msgid "نامشخص"
 msgstr ""
 
-#: admin/views/encoder.php:25
+#: admin/views/encoder.php:26
 msgid "ناموفق"
 msgstr ""
 
@@ -1505,11 +1519,11 @@ msgstr ""
 msgid "نسخهٔ نصب‌شده"
 msgstr ""
 
-#: admin/class-admin-menu.php:634
+#: admin/class-admin-menu.php:675
 msgid "نسخه‌ی PHP 7.4 یا بالاتر"
 msgstr ""
 
-#: admin/class-admin-menu.php:568
+#: admin/class-admin-menu.php:609
 msgid "نشست"
 msgstr ""
 
@@ -1558,7 +1572,7 @@ msgstr ""
 msgid "هشدار: فایل این ویدیو هنوز انکود نشده است و پخش نمی‌شود."
 msgstr ""
 
-#: admin/class-admin-menu.php:614
+#: admin/class-admin-menu.php:655
 msgid "همه‌ی ویدیوها به پوشه‌ی امن منتقل شده‌اند"
 msgstr ""
 
@@ -1582,12 +1596,12 @@ msgstr ""
 msgid "ورود لازم است"
 msgstr ""
 
-#: admin/views/encoder.php:104
+#: admin/views/encoder.php:119
 #: admin/views/settings.php:203
 msgid "وضعیت"
 msgstr ""
 
-#: admin/views/encoder.php:76
+#: admin/views/encoder.php:85
 msgid "وضعیت پیش‌نیازها"
 msgstr ""
 
@@ -1595,8 +1609,8 @@ msgstr ""
 msgid "وضعیت سیستم"
 msgstr ""
 
-#: admin/class-admin-menu.php:561
-#: admin/views/encoder.php:103
+#: admin/class-admin-menu.php:602
+#: admin/views/encoder.php:118
 #: admin/views/watch-log.php:196
 msgid "ویدیو"
 msgstr ""
@@ -1609,7 +1623,7 @@ msgstr ""
 msgid "ویدیو به دوره متصل نشده"
 msgstr ""
 
-#: includes/class-encode-queue.php:187
+#: includes/class-encode-queue.php:199
 msgid "ویدیو در صف انکود قرار گرفت. می‌توانید این صفحه را ببندید؛ پردازش در پس‌زمینه ادامه دارد."
 msgstr ""
 

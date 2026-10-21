@@ -76,30 +76,34 @@ step "access-tests (بدون LearnDash)" env FALNIC_TEST_LD=off "${PHP_ARR[@]}" 
 say "۳) تست‌های موتور آپدیت از گیت"
 step "run-tests.php" "${PHP_ARR[@]}" tests/run-tests.php
 
-say "۴) تست‌های صف انکود، رجیستری پخش، گزارش تماشا و زیرنویس"
+say "۴) تست‌های رندر نماهای مدیریت و متاباکس"
+step "views-tests (با LearnDash)" "${PHP_ARR[@]}" tests/views-tests.php
+step "views-tests (بدون LearnDash)" env FALNIC_TEST_LD=off "${PHP_ARR[@]}" tests/views-tests.php
+
+say "۵) تست‌های صف انکود، رجیستری پخش، گزارش تماشا و زیرنویس"
 step "queue-tests.php" "${PHP_ARR[@]}" tests/queue-tests.php
 
 if command -v node >/dev/null 2>&1; then
-	say "۵) بررسی‌های ایستا و جاوااسکریپت"
+	say "۶) بررسی‌های ایستا و جاوااسکریپت"
 	step "static-checks.js" node tests/static-checks.js
 
 	for file in assets/js/*.js; do
 		step "node --check $file" node --check "$file"
 	done
 
-	say "۶) همگام بودن قالب ترجمه"
+	say "۷) همگام بودن قالب ترجمه"
 	step "make-pot --check" node bin/make-pot.js --check
 else
-	say "۵–۶) Node در دسترس نیست؛ بررسی‌های ایستا و POT رد شد"
+	say "۶–۷) Node در دسترس نیست؛ بررسی‌های ایستا و POT رد شد"
 	no "node یافت نشد"
 fi
 
 if [ "$WITH_RELEASE" -eq 1 ]; then
-	say "۷) ساخت بسته‌ی نصب"
+	say "۸) ساخت بسته‌ی نصب"
 	step "build-release.sh" bash bin/build-release.sh
 	rm -rf "$ROOT/dist"
 else
-	say "۷) ساخت بسته‌ی نصب (با --with-release فعال می‌شود)"
+	say "۸) ساخت بسته‌ی نصب (با --with-release فعال می‌شود)"
 fi
 
 say "نتیجه"

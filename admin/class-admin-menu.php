@@ -29,6 +29,7 @@ final class Admin_Menu {
 		add_action( 'admin_post_falnic_migrate_storage', array( __CLASS__, 'handle_migrate_storage' ) );
 		add_action( 'admin_post_falnic_watch_log_action', array( __CLASS__, 'handle_watch_log' ) );
 		add_action( 'admin_post_falnic_run_queue', array( __CLASS__, 'handle_run_queue' ) );
+		add_action( 'admin_post_falnic_recheck_binaries', array( __CLASS__, 'handle_recheck_binaries' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 	}
 
@@ -232,6 +233,7 @@ final class Admin_Menu {
 		check_admin_referer( 'falnic_encoder' );
 
 		$input_file = isset( $_POST['input_file'] ) ? sanitize_text_field( wp_unslash( $_POST['input_file'] ) ) : '';
+		$input_file = trailingslashit( dirname( $input_file ) ) . basename( $input_file );
 		$raw_name   = isset( $_POST['video_name'] ) ? sanitize_text_field( wp_unslash( $_POST['video_name'] ) ) : '';
 
 		$name = preg_replace( '/[^a-z0-9\-]/', '', strtolower( urldecode( sanitize_title( $raw_name ) ) ) );
@@ -243,8 +245,17 @@ final class Admin_Menu {
 			'page' => 'falnic_hls_encoder',
 		);
 
-		if ( ! file_exists( $input_file ) ) {
+		if ( '' === $input_file || ! is_file( $input_file ) || ! is_readable( $input_file ) ) {
 			$redirect['error'] = 'file_not_found';
+			wp_safe_redirect( add_query_arg( $redirect, admin_url( 'edit.php?post_type=' . Post_Type::SLUG ) ) );
+			exit;
+		}
+
+		// فقط فایل ویدیویی؛ جلوی کپی شدن فایل‌های دلخواه سرور به پوشه‌ی امن را می‌گیرد.
+		$input_ext = strtolower( (string) pathinfo( $input_file, PATHINFO_EXTENSION ) );
+
+		if ( ! in_array( $input_ext, array( 'mp4', 'm4v', 'mov' ), true ) ) {
+			$redirect['error'] = 'file_type';
 			wp_safe_redirect( add_query_arg( $redirect, admin_url( 'edit.php?post_type=' . Post_Type::SLUG ) ) );
 			exit;
 		}
@@ -287,6 +298,36 @@ final class Admin_Menu {
 					'post_type' => Post_Type::SLUG,
 					'page'      => 'falnic_hls_encoder',
 					'ran'       => (int) $done,
+				),
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * پاک‌کردن کش تشخیص ffmpeg/ffprobe و بررسی دوباره.
+	 *
+	 * @return void
+	 */
+	public static function handle_recheck_binaries(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'دسترسی ندارید.', 'falnic-secure-hls' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'falnic_recheck_binaries' );
+
+		foreach ( array( 'ffmpeg', 'ffprobe' ) as $falnic_binary ) {
+			delete_option( 'falnic_bin_' . $falnic_binary );
+			delete_option( 'falnic_bin_missing_' . $falnic_binary );
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'post_type' => Post_Type::SLUG,
+					'page'      => 'falnic_hls_encoder',
+					'rechecked' => '1',
 				),
 				admin_url( 'edit.php' )
 			)

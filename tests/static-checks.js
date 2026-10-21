@@ -365,6 +365,44 @@ check(
 	'کم‌بودن سقف آپلود PHP به مدیر هشدار داده می‌شود'
 );
 
+/* ۱۲.۶) اعتبارسنجی ورودی انکودر دستی و پاک‌سازی نصب */
+const menuSrc = read( 'admin/class-admin-menu.php' );
+const uninstallSrc = read( 'uninstall.php' );
+
+check(
+	/is_file\(\s*\$input_file\s*\)/.test( menuSrc ) && /in_array\(\s*\$input_ext/.test( menuSrc ),
+	'انکودر دستی فقط فایل ویدیویی موجود و خواندنی را می‌پذیرد'
+);
+check(
+	/falnic_recheck_binaries/.test( menuSrc ) && /delete_option\(\s*'falnic_bin_missing_/.test( menuSrc ),
+	'کش تشخیص ffmpeg از پنل پاک می‌شود'
+);
+check(
+	/falnic_course_id/.test( uninstallSrc ) && /falnic_lesson_id/.test( uninstallSrc ),
+	'حذف افزونه، متاهای اتصال دوره/درس را پاک می‌کند'
+);
+const saveTarget = ( () => {
+	const start = metaBox.indexOf( 'function save_target' );
+	const end = metaBox.indexOf( 'function save_subtitles' );
+	return start === -1 || end === -1 ? '' : metaBox.slice( start, end );
+} )();
+check(
+	saveTarget.indexOf( 'if ( $lesson > 0 )' ) !== -1
+		&& saveTarget.indexOf( '$course = $owner;' ) !== -1
+		&& saveTarget.indexOf( '0 === $course && $lesson > 0' ) === -1,
+	'دوره از درس انتخاب‌شده مشتق می‌شود'
+);
+
+/* ۱۲.۷) تست رندر نماها در CI اجرا می‌شود */
+check(
+	fs.existsSync( path.join( ROOT, 'tests/views-tests.php' ) ),
+	'تست رندر نماهای مدیریت وجود دارد'
+);
+check(
+	/tests\/views-tests\.php/.test( read( 'bin/ci.sh' ) ) && /tests\/views-tests\.php/.test( read( '.github/workflows/ci.yml' ) ),
+	'تست رندر نماها در CI و bin/ci.sh اجرا می‌شود'
+);
+
 /* ۱۳) سازگاری با PHP 7.4 */
 const php74Banned = [
 	[ /\?\?=/, 'عملگر ??=' ],

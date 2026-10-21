@@ -48,6 +48,12 @@ jobs:
       - name: تست‌های موتور آپدیت
         run: php tests/run-tests.php
 
+      - name: رندر نماهای مدیریت و متاباکس
+        run: php tests/views-tests.php
+
+      - name: همان تست‌ها بدون LearnDash (مسیر جایگزین)
+        run: php tests/views-tests.php --no-ld
+
       - name: تست‌های صف انکود و رجیستری پخش
         run: php tests/queue-tests.php
 

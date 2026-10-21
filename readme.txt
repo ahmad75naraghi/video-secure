@@ -4,7 +4,7 @@ Tags: hls, video, learndash, watermark, aes-128
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.4.1
+Stable tag: 3.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,13 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 مسیر پلی‌لیست باید با HTTPS در دسترس باشد و پاسخ با Content-Type درست برگردد.
 
 == Changelog ==
+
+= 3.4.2 =
+* اتصال دستی: دوره همیشه از درس انتخاب‌شده مشتق می‌شود تا ترکیب ناسازگار دوره/درس ذخیره نشود.
+* انکودر دستی فقط فایل موجود، خواندنی و MP4/M4V/MOV را می‌پذیرد.
+* دکمه‌ی «بررسی دوباره‌ی ffmpeg/ffprobe» برای پاک‌کردن کش تشخیص باینری.
+* حذف افزونه، متاهای اتصال دوره/درس و کش باینری‌ها را هم پاک می‌کند.
+* تست رندر همه‌ی نماهای پنل و متاباکس (`tests/views-tests.php`) در CI.
 
 = 3.4.1 =
 * رفع خطای مهلک «Class "Admin_Tabs" not found» در صفحه‌ی انکودر دستی و بقیه‌ی صفحه‌های پنل.

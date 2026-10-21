@@ -15,7 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 $encoded = isset( $_GET['encoded'] ) ? sanitize_text_field( wp_unslash( $_GET['encoded'] ) ) : '';
 $queued  = isset( $_GET['queued'] ) ? sanitize_text_field( wp_unslash( $_GET['queued'] ) ) : '';
 $error   = isset( $_GET['error'] ) ? sanitize_key( wp_unslash( $_GET['error'] ) ) : '';
-$ran     = isset( $_GET['ran'] ) ? absint( wp_unslash( $_GET['ran'] ) ) : -1;
+$ran       = isset( $_GET['ran'] ) ? absint( wp_unslash( $_GET['ran'] ) ) : -1;
+$rechecked = isset( $_GET['rechecked'] ) ? absint( wp_unslash( $_GET['rechecked'] ) ) : 0;
 // phpcs:enable
 
 $falnic_states = array(
@@ -34,6 +35,14 @@ $falnic_states = array(
 
 	<?php if ( 'file_not_found' === $error ) : ?>
 		<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'خطا: فایل در مسیر داده‌شده یافت نشد.', 'falnic-secure-hls' ); ?></p></div>
+	<?php endif; ?>
+
+	<?php if ( 'file_type' === $error ) : ?>
+		<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'خطا: فقط فایل‌های MP4/M4V/MOV به صف اضافه می‌شوند.', 'falnic-secure-hls' ); ?></p></div>
+	<?php endif; ?>
+
+	<?php if ( $rechecked ) : ?>
+		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( '✅ کش تشخیص ffmpeg/ffprobe پاک شد و بررسی دوباره انجام شد.', 'falnic-secure-hls' ); ?></p></div>
 	<?php endif; ?>
 
 	<?php if ( 'queue_failed' === $error ) : ?>
@@ -89,6 +98,12 @@ $falnic_states = array(
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:12px;">
+			<input type="hidden" name="action" value="falnic_recheck_binaries">
+			<?php wp_nonce_field( 'falnic_recheck_binaries' ); ?>
+			<button type="submit" class="button"><?php esc_html_e( 'بررسی دوباره‌ی ffmpeg/ffprobe', 'falnic-secure-hls' ); ?></button>
+		</form>
 	</div>
 
 	<div class="falnic-card">

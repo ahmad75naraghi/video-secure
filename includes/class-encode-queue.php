@@ -78,15 +78,27 @@ final class Encode_Queue {
 				continue;
 			}
 
-			$source = (string) ( $job['source'] ?? '' );
+			$source  = (string) ( $job['source'] ?? '' );
+			$updated = (int) ( $job['updated'] ?? 0 );
+			$stale   = $updated > 0 && ( time() - $updated ) >= MINUTE_IN_SECONDS;
 
 			if ( '' === $source || ! is_readable( $source ) ) {
+				// کار بدون فایل ورودی هرگز تمام نمی‌شود؛ به‌جای ماندن در «در صف»،
+				// وضعیت واقعی و قابل‌اقدام ثبت می‌شود.
+				if ( $stale ) {
+					self::save_status(
+						$name,
+						array(
+							'state'   => 'failed',
+							'message' => __( 'فایل ورودی پیدا نشد؛ لطفاً دوباره آپلود کنید.', 'falnic-secure-hls' ),
+						)
+					);
+				}
+
 				continue;
 			}
 
-			$updated = (int) ( $job['updated'] ?? 0 );
-
-			if ( $updated > 0 && ( time() - $updated ) < MINUTE_IN_SECONDS ) {
+			if ( ! $stale ) {
 				continue;
 			}
 
@@ -395,10 +407,6 @@ final class Encode_Queue {
 			}
 
 			$source = (string) ( $job['source'] ?? '' );
-
-			if ( '' === $source || ! is_readable( $source ) ) {
-				continue;
-			}
 
 			wp_clear_scheduled_hook( self::CRON_HOOK, array( $name, $source, (int) ( $job['post_id'] ?? 0 ), (int) ( $job['user_id'] ?? 0 ) ) );
 			self::run( $name, $source, (int) ( $job['post_id'] ?? 0 ), (int) ( $job['user_id'] ?? 0 ) );
