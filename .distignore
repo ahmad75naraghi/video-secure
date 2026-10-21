@@ -1,0 +1,24 @@
+# فایل‌هایی که در بسته‌ی نصب (dist/falnic-secure-hls.zip) نمی‌آیند.
+# bin/build-release.sh همین فهرست را می‌خواند؛ تنها منبع حقیقت است.
+
+# فایل‌های گیت، CI و محیط توسعه
+.git
+.github
+.gitignore
+.arena
+.editorconfig
+dist
+tests
+bin
+node_modules
+vendor
+composer.json
+composer.lock
+phpcs.xml.dist
+.distignore
+
+# مستندات توسعه داخل مخزن می‌ماند؛ docs/ عمداً در بسته هست.
+*.zip
+*.log
+.DS_Store
+*.map

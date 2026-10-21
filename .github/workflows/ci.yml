@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, 'arena/**' ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.1', '8.3', '8.5' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: نصب PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: none
+
+      - name: نسخه‌ی PHP
+        run: php -v
+
+      - name: بررسی syntax همهٔ فایل‌ها
+        run: php tests/lint-all.php
+
+      - name: تست‌های دسترسی، توکن و دروازهٔ استریم
+        run: php tests/access-tests.php
+
+      - name: همان تست‌ها بدون LearnDash (مسیر جایگزین)
+        run: php tests/access-tests.php --no-ld
+
+      - name: تست‌های موتور آپدیت
+        run: php tests/run-tests.php
+
+      - name: رندر نماهای مدیریت و متاباکس
+        run: php tests/views-tests.php
+
+      - name: همان تست‌ها بدون LearnDash (مسیر جایگزین)
+        run: php tests/views-tests.php --no-ld
+
+      - name: تست‌های صف انکود و رجیستری پخش
+        run: php tests/queue-tests.php
+
+  js:
+    name: بررسی‌های ایستا
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: بررسی syntax جاوااسکریپت
+        run: |
+          for file in assets/js/*.js; do
+            node --check "$file"
+          done
+
+      - name: بررسی‌های امنیتی ایستا
+        run: node tests/static-checks.js
+
+      - name: به‌روز بودن قالب ترجمه
+        run: node bin/make-pot.js --check
+
+      - name: ساخت بستهٔ نصب
+        run: bash bin/build-release.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: dist/falnic-secure-hls.zip
+          if-no-files-found: error
+
+  release:
+    name: انتشار نسخه
+    if: startsWith( github.ref, 'refs/tags/v' )
+    needs: [ php, js ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ساخت بسته
+        run: bash bin/build-release.sh
+
+      - name: ساخت Release و بارگذاری ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes-file CHANGELOG.md \
+            dist/falnic-secure-hls.zip
