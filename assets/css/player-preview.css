@@ -1,6 +1,7 @@
 /**
  * Falnic Secure HLS — استایل پیش‌نمایش حرفه‌ای (ادمین) — Canvas
- * واترمارک روی Canvas (غیرقابل حذف با Inspect) + بدون ترنزیشن (پرش آنی)
+ * ویدیو فقط روی Canvas دیده می‌شود؛ خودِ video مخفی است (1×1 offscreen)
+ * تا پاک کردنِ Canvas مساویِ پاک شدنِ همه‌چیز باشد.
  */
 
 .falnic-preview-container {
@@ -28,31 +29,72 @@
 	border-radius: inherit;
 }
 
-.falnic-preview-video {
-	width: 100%;
-	height: 100%;
-	display: block;
-	background: #000;
-	object-fit: contain;
-	max-height: 80vh;
+/* ویدیو مخفی — فقط برای دیکد HLS، تصویر از Canvas می‌آید */
+.falnic-preview-hidden-video {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	left: -9999px !important;
+	top: -9999px !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+	overflow: hidden !important;
+	clip: rect(0,0,0,0) !important;
 }
 
-/* مخفی‌کردن دکمه فول‌اسکرین بومی ویدیو — فول‌اسکرین باید از طریق کانتینر باشد تا Canvas دیده شود */
-.falnic-preview-video::-webkit-media-controls-fullscreen-button { display: none !important; }
-.falnic-preview-video::-webkit-media-controls-enclosure { overflow: hidden; }
-
-/* Canvas واترمارک — روی ویدیو، غیرقابل کلیک، بدون ترنزیشن (پرش آنی) */
+/* Canvas تنها عنصرِ قابلِ دیدن است — پاک شود هیچ‌چیز نمی‌ماند */
 .falnic-preview-canvas {
 	position: absolute;
 	inset: 0;
 	width: 100%;
 	height: 100%;
 	pointer-events: none;
-	z-index: 2;
+	z-index: 1;
 	display: block;
-	/* هیچ ترنزیشنی نداشته باشد — یهو جابجا شود */
+	margin: auto;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
 	transition: none !important;
 }
+
+/* کنترل‌های سادهٔ پیش‌نمایش (ادمین نمی‌خواهد Plyr سنگین) */
+.falnic-preview-controls {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	background: linear-gradient(transparent, rgba(0,0,0,0.65));
+	opacity: 0;
+	transition: opacity 0.2s;
+	pointer-events: none;
+}
+.falnic-preview-container:hover .falnic-preview-controls,
+.falnic-preview-container.is-playing .falnic-preview-controls {
+	opacity: 1;
+	pointer-events: auto;
+}
+.falnic-preview-controls button {
+	pointer-events: auto;
+	background: rgba(255,255,255,0.15);
+	border: 1px solid rgba(255,255,255,0.2);
+	color: #fff;
+	border-radius: 6px;
+	padding: 6px 10px;
+	cursor: pointer;
+	font-size: 13px;
+	font-family: Tahoma, Arial, sans-serif;
+	backdrop-filter: blur(6px);
+}
+.falnic-preview-controls button:hover { background: rgba(255,255,255,0.25); }
+
+/* مخفی‌کردن دکمه فول‌اسکرین بومی — فول‌اسکرین باید از طریق کانتینر باشد */
+.falnic-preview-video::-webkit-media-controls-fullscreen-button { display: none !important; }
+.falnic-preview-video::-webkit-media-controls-enclosure { overflow: hidden; }
 
 /* لودینگ */
 .falnic-preview-loading {
@@ -64,15 +106,12 @@
 	align-items: center;
 	justify-content: center;
 	gap: 12px;
-	background: rgba(0,0,0,0.75);
+	background: rgba(0,0,0,0.85);
 	color: #fff;
 	font-family: Tahoma, Arial, sans-serif;
 	font-size: 13px;
 }
-
-.falnic-preview-loading.is-hidden {
-	display: none;
-}
+.falnic-preview-loading.is-hidden { display: none; }
 
 .falnic-preview-spinner {
 	width: 32px;
@@ -82,20 +121,19 @@
 	border-radius: 50%;
 	animation: falnic-spin 0.8s linear infinite;
 }
+@keyframes falnic-spin { to { transform: rotate(360deg); } }
 
-@keyframes falnic-spin {
-	to { transform: rotate(360deg); }
-}
-
-/* خطا */
+/* خطا / دستکاری */
 .falnic-preview-error {
 	position: absolute;
 	inset: 0;
-	z-index: 4;
+	z-index: 10;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	background: #1a1a1a;
+	gap: 10px;
+	background: #111;
 	color: #f5b5b5;
 	font-family: Tahoma, Arial, sans-serif;
 	font-size: 13px;
@@ -103,8 +141,22 @@
 	padding: 20px;
 	line-height: 1.8;
 }
+.falnic-preview-tamper {
+	position: absolute;
+	inset: 0;
+	z-index: 9;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.92);
+	color: #ffb4b4;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 14px;
+	text-align: center;
+	padding: 20px;
+}
 
-/* فول‌اسکرین — کل کانتینر و ویدیو + Canvas باید تمام صفحه شوند */
+/* فول‌اسکرین — کل کانتینر تمام صفحه */
 .falnic-preview-container:fullscreen,
 .falnic-preview-container:-webkit-full-screen,
 .falnic-preview-container:-moz-full-screen,
@@ -116,45 +168,19 @@
 	border-radius: 0 !important;
 	background: #000 !important;
 }
-
 .falnic-preview-container:fullscreen .falnic-preview-video-wrap,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-video-wrap,
-.falnic-preview-container:-moz-full-screen .falnic-preview-video-wrap,
-.falnic-preview-container:-ms-fullscreen .falnic-preview-video-wrap {
+.falnic-preview-container:-webkit-full-screen .falnic-preview-video-wrap {
 	height: 100vh !important;
 	width: 100vw !important;
 	border-radius: 0 !important;
-	max-height: 100vh !important;
 }
-
-.falnic-preview-container:fullscreen .falnic-preview-video,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-video,
-.falnic-preview-container:-moz-full-screen .falnic-preview-video,
-.falnic-preview-container:-ms-fullscreen .falnic-preview-video {
-	max-height: 100vh !important;
-	height: 100vh !important;
-	width: 100vw !important;
-	object-fit: contain;
-}
-
 .falnic-preview-container:fullscreen .falnic-preview-canvas,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-canvas,
-.falnic-preview-container:-moz-full-screen .falnic-preview-canvas,
-.falnic-preview-container:-ms-fullscreen .falnic-preview-canvas {
+.falnic-preview-container:-webkit-full-screen .falnic-preview-canvas {
 	width: 100% !important;
 	height: 100% !important;
-	z-index: 2147483647 !important;
-}
-
-/* اگر به هر دلیل ویدیو خودش فول‌اسکرین شد (مثلاً مرورگر قدیمی) — Canvas را پنهان نکن،
-   بلکه با خروج از فول‌اسکرین ویدیو و ورود به فول‌اسکرین کانتینر جایگزین کن (در JS مدیریت می‌شود) */
-.falnic-preview-video:fullscreen,
-.falnic-preview-video:-webkit-full-screen {
-	object-fit: contain;
+	object-fit: contain !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.falnic-preview-spinner {
-		animation: none;
-	}
+	.falnic-preview-spinner { animation: none; }
 }

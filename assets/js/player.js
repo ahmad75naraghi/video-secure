@@ -711,19 +711,30 @@
 
 		loadStream();
 
-		// جابجایی اولیه واترمارک + زمان‌بندی رندوم ۱۵-۳۰ ثانیه
-		// اگر ویدیو بعد از مدتی هنوز سیاه ماند، فال‌بک به نمایش مستقیم ویدیو (بدون بوم)
-		setTimeout( function () {
-			if ( ! canvas.width || video.paused || ! video.videoWidth ) {
-				// لااقل کنترل‌ها را نشان بده تا کاربر بتواند پلی کند
-				if ( video.readyState >= 1 ) {
-					video.style.opacity = '1';
-					video.style.pointerEvents = 'auto';
-				}
-			}
-		}, 3000 );
 		moveWatermark();
 		scheduleWatermarkMove();
+
+		// محافظت: پاک شدن Canvas = توقف کامل (ویدیو فقط روی Canvas دیده می‌شود)
+		var tamperEl = document.createElement('div');
+		tamperEl.className = 'falnic-tamper';
+		tamperEl.textContent = '⚠️ دستکاری شناسایی شد — پخش متوقف شد.';
+		var tamperParent = root.querySelector('.plyr__video-wrapper') || root.querySelector('.plyr') || root;
+		try { tamperParent.appendChild(tamperEl); } catch(e) { root.appendChild(tamperEl); }
+		function triggerTamper(){
+			if(state.destroyed) return;
+			state.destroyed=true; stopLoop();
+			if(state.hls) try{state.hls.destroy()}catch(e){} state.hls=null;
+			try{video.pause()}catch(e){}
+			video.removeAttribute('src'); try{video.load()}catch(e){}
+			try{ canvas.width=1; canvas.height=1; canvas.style.display='none'; }catch(e){}
+			tamperEl.style.display='flex';
+			console.warn('[Falnic] tamper detected');
+		}
+		try {
+			var tObs = new MutationObserver(function(){ if(!root.contains(canvas)) triggerTamper(); });
+			tObs.observe(root,{childList:true,subtree:true});
+		} catch(e) {}
+		canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 
 		/* ---------------------------------------------------------------------
 		 * پاک‌سازی

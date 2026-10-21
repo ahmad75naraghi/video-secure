@@ -2,6 +2,12 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.14] — 2026-10-23
+
+### امنیت و رفع
+- **ویدیو فقط روی Canvas (پاک کردن Canvas = پاک شدن همه‌چیز):** هر دو پلیر (پیش‌نمایش ادمین و فرانت) بازنویسی شدند: `< video>` با `1×1 offscreen + clip` کاملاً مخفی است و تصویر فقط با `Canvas.drawImage(video)+watermark` هر فریم روی `requestAnimationFrame` رندر می‌شود. یک `MutationObserver` روی حذف یا `display:none` شدن Canvas نظارت می‌کند و در صورت دستکاری، `src` را پاک، `Hls` را `destroy` و پیام «دستکاری شناسایی شد» نمایش می‌دهد. در پیش‌نمایش هم دیگر `video` با `object-fit` مستقیم دیده نمی‌شود. سیاهی طولانی با لودینگ/خطای واضح و `fallback draw` روی پس‌زمینهٔ سیاه جایگزین شد.
+- **سیاهی فرانت روی صفحهٔ دوره:** `videos_for_course`/`video_for_lesson` فقط `publish` را می‌گرفتند؛ اگر ویدیو `private/draft` بود چیزی پیدا نمی‌شد. اکنون `publish|private|draft` را چک می‌کنند. `falnic-hidden-video` هم به `1px offscreen` تغییر کرد تا `opacity` قابل برگشت نباشد.
+
 ## [3.5.13] — 2026-10-23
 
 ### افزوده

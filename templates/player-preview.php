@@ -2,14 +2,14 @@
 	<div class="falnic-preview-video-wrap">
 		<video
 			id="<?php echo esc_attr( $args['html_id'] ); ?>"
-			class="falnic-preview-video"
+			class="falnic-preview-video falnic-preview-hidden-video"
 			playsinline
 			preload="metadata"
-			controls
 			controlsList="nodownload noplaybackrate nofullscreen"
 			disablePictureInPicture
 			disableRemotePlayback
 			oncontextmenu="return false;"
+			tabindex="-1"
 		></video>
 		<canvas class="falnic-preview-canvas" id="<?php echo esc_attr( $args['html_id'] . '-canvas' ); ?>" aria-hidden="true"></canvas>
 		<div class="falnic-preview-loading" id="<?php echo esc_attr( $args['html_id'] . '-loading' ); ?>">

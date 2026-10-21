@@ -79,14 +79,17 @@
 	height: 100% !important;
 }
 
-/* ویدیوی اصلی پنهان است؛ تصویر از canvas می‌آید */
+/* ویدیوی اصلی پنهان است؛ تصویر فقط از canvas می‌آید — 1×1 offscreen تا حذف Canvas = حذف تصویر */
 .falnic-hidden-video {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	left: -9999px !important;
+	top: -9999px !important;
 	opacity: 0 !important;
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
+	pointer-events: none !important;
+	overflow: hidden !important;
+	clip: rect(0,0,0,0) !important;
 }
 
 .falnic-canvas-overlay {
@@ -99,6 +102,23 @@
 	z-index: 2;
 	object-fit: contain;
 	display: block;
+}
+
+/* پیام دستکاری — اگر Canvas حذف شد */
+.falnic-tamper {
+	position: absolute;
+	inset: 0;
+	z-index: 9997;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.94);
+	color: #ffb4b4;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 14px;
+	text-align: center;
+	padding: 20px;
+	line-height: 1.8;
 }
 
 /* لایه‌ی کلیک اولیه برای شروع پخش */

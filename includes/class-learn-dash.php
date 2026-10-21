@@ -303,7 +303,7 @@ final class Learn_Dash {
 		$posts = get_posts(
 			array(
 				'post_type'        => Post_Type::SLUG,
-				'post_status'      => 'publish',
+				'post_status'      => array( 'publish', 'private', 'draft' ),
 				'posts_per_page'   => 20,
 				'fields'           => 'ids',
 				'no_found_rows'    => true,
@@ -344,7 +344,7 @@ final class Learn_Dash {
 		$posts = get_posts(
 			array(
 				'post_type'        => Post_Type::SLUG,
-				'post_status'      => 'publish',
+				'post_status'      => array( 'publish', 'private', 'draft' ),
 				'posts_per_page'   => 1,
 				'fields'           => 'ids',
 				'no_found_rows'    => true,
