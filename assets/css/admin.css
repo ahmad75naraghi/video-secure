@@ -320,7 +320,7 @@
 	white-space: pre-wrap;
 }
 
-/* انتخاب دوره/درس در متاباکس ویدیو */
+/* انتخاب دوره/درس در متاباکس ویدیو — legacy fallback */
 .falnic-target th {
 	width: 90px;
 	font-weight: 600;
@@ -328,4 +328,348 @@
 
 .falnic-target select {
 	max-width: 100%;
+}
+
+/* ── متاباکس ویدیوی امن — بازطراحی 3.5 ────────────────────────── */
+.falnic-video-edit {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.falnic-ve-overview {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 14px 16px;
+}
+
+.falnic-ve-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.falnic-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	background: #f0f0f1;
+	color: #50575e;
+	border: 1px solid #dcdcde;
+}
+
+.falnic-pill code {
+	background: transparent;
+	padding: 0;
+	font-size: 12px;
+}
+
+.falnic-pill-ok {
+	background: #edfaef;
+	color: #0a4b16;
+	border-color: #b8e6c0;
+}
+
+.falnic-pill-warn {
+	background: #fcf3e6;
+	color: #7c4d00;
+	border-color: #f5d8a8;
+}
+
+.falnic-pill-lock {
+	background: #e7f3ff;
+	color: #0a4a7a;
+	border-color: #b8d7f5;
+}
+
+.falnic-pill-muted {
+	background: #f6f7f7;
+	color: #646970;
+}
+
+.falnic-ve-tools {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+@media ( max-width: 782px ) {
+	.falnic-ve-tools {
+		grid-template-columns: 1fr;
+	}
+}
+
+.falnic-ve-tool {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.falnic-copy-row {
+	display: flex;
+	gap: 6px;
+}
+
+.falnic-copy-input {
+	flex: 1;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	direction: ltr;
+	text-align: left;
+}
+
+.falnic-copy-btn.is-copied {
+	background: #edfaef;
+	border-color: #b8e6c0;
+	color: #0a4b16;
+}
+
+.falnic-ve-hint {
+	margin: 6px 0 0;
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.7;
+}
+
+.falnic-ve-section {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 16px 18px;
+}
+
+.falnic-ve-title {
+	margin: 0 0 12px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #1d2327;
+	border-bottom: 1px solid #f0f0f1;
+	padding-bottom: 8px;
+}
+
+.falnic-ve-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f0f1;
+	color: #50575e;
+	padding: 2px 8px;
+	border-radius: 999px;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.falnic-ve-notice {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 10px 12px;
+	font-size: 13px;
+	line-height: 1.7;
+}
+
+.falnic-ve-notice-warn {
+	background: #fcf3e6;
+	border-color: #f5d8a8;
+	color: #7c4d00;
+}
+
+.falnic-ve-summary {
+	margin-bottom: 12px;
+}
+
+.falnic-ve-summary-line {
+	margin: 0 0 6px;
+	font-size: 13px;
+	line-height: 1.8;
+}
+
+.falnic-ve-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+}
+
+@media ( max-width: 900px ) {
+	.falnic-ve-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.falnic-ve-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.falnic-ve-label {
+	font-weight: 700;
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.falnic-ve-select-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.falnic-ve-search {
+	width: 100%;
+	font-size: 13px;
+}
+
+.falnic-ve-search:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.falnic-ve-drop {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 18px;
+	border: 2px dashed #c3c4c7;
+	border-radius: 8px;
+	background: #f6f7f7;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+	text-align: center;
+}
+
+.falnic-ve-drop:hover,
+.falnic-ve-drop:focus-within {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.falnic-ve-drop input[type=\"file\"] {
+	width: 100%;
+	max-width: 360px;
+}
+
+.falnic-ve-drop-text {
+	font-size: 13px;
+	color: #50575e;
+	line-height: 1.7;
+}
+
+.falnic-ve-linked {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px dashed #dcdcde;
+}
+
+.falnic-ve-linked-list {
+	margin: 8px 0 0;
+	padding-right: 18px;
+	font-size: 13px;
+}
+
+.falnic-ve-linked-list li {
+	margin: 4px 0;
+}
+
+.falnic-ve-stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
+	margin-bottom: 14px;
+}
+
+@media ( max-width: 700px ) {
+	.falnic-ve-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.falnic-ve-stat {
+	background: #f6f7f7;
+	border: 1px solid #f0f0f1;
+	border-radius: 8px;
+	padding: 10px 12px;
+	text-align: center;
+}
+
+.falnic-ve-stat strong {
+	display: block;
+	font-size: 20px;
+	color: #1d2327;
+	line-height: 1.2;
+}
+
+.falnic-ve-stat span {
+	font-size: 11px;
+	color: #646970;
+}
+
+.falnic-ve-table-wrap {
+	overflow: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.falnic-ve-table {
+	margin: 0;
+	border: 0;
+}
+
+.falnic-ve-table th {
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.falnic-ve-table td {
+	font-size: 13px;
+	vertical-align: middle;
+}
+
+.falnic-ve-user small {
+	color: #646970;
+}
+
+.falnic-ve-empty {
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 8px;
+	padding: 16px;
+	text-align: center;
+	color: #50575e;
+	line-height: 1.8;
+}
+
+.falnic-ve-actions {
+	margin-top: 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.falnic-ve-section .falnic-subtitle-list {
+	margin: 0 0 10px;
+	padding: 0;
+	list-style: none;
+}
+
+.falnic-ve-section .falnic-subtitle-list li {
+	margin: 6px 0;
+}
+
+/* فوکوس قابل مشاهده برای دسترس‌پذیری */
+.falnic-video-edit a:focus,
+.falnic-video-edit button:focus,
+.falnic-video-edit select:focus,
+.falnic-video-edit input:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
 }

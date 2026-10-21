@@ -424,12 +424,18 @@ const php74Banned = [
 	[ /\):\s*\w+\|\w+/, 'union type' ],
 	[ /\?->/, 'nullsafe operator' ]
 ];
-const newFiles = token + access + stream + learnDash + storage + player + keyServer
+// حذف رشته‌های داخل '...' و \"...\" تا ویژگی HTML مثل readonly اشتباه شناسایی نشود.
+function stripStrings( code ) {
+	return code.replace( /'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*"/g, '' );
+}
+const newFilesStripped = stripStrings( token + access + stream + learnDash + storage + player + keyServer
 	+ queue + watchLog + registry + plugin + installer + metaBox + read( 'admin/class-admin-menu.php' )
-	+ read( 'admin/views/watch-log.php' ) + read( 'admin/views/settings.php' ) + adminEncode;
+	+ read( 'admin/views/watch-log.php' ) + read( 'admin/views/settings.php' ) + adminEncode );
+const updaterStripped = stripStrings( updater );
+const pageStripped = stripStrings( page );
 php74Banned.forEach( ( pair ) => {
 	check(
-		! pair[ 0 ].test( updater ) && ! pair[ 0 ].test( page ) && ! pair[ 0 ].test( newFiles ),
+		! pair[ 0 ].test( updaterStripped ) && ! pair[ 0 ].test( pageStripped ) && ! pair[ 0 ].test( newFilesStripped ),
 		'سازگار با PHP 7.4: بدون ' + pair[ 1 ]
 	);
 } );

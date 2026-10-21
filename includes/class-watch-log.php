@@ -485,6 +485,96 @@ final class Watch_Log {
 	}
 
 	/**
+	 * آمار فشرده‌ی یک ویدیو برای نمایش در صفحه‌ی ویرایش.
+	 *
+	 * برای تست‌پذیری، منطق خالص در `stats_for_video_rows()` جدا شده است.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @param int    $days بازه‌ی روز.
+	 * @return array{total:int,unique:int,today:int,avg_seconds:int}
+	 */
+	public static function stats_for_video( string $name, int $days = 30 ): array {
+		if ( '' === $name || ! self::exists() ) {
+			return array(
+				'total'       => 0,
+				'unique'      => 0,
+				'today'       => 0,
+				'avg_seconds' => 0,
+			);
+		}
+
+		global $wpdb;
+
+		if ( ! isset( $wpdb ) || ! is_object( $wpdb ) ) {
+			return array(
+				'total'       => 0,
+				'unique'      => 0,
+				'today'       => 0,
+				'avg_seconds' => 0,
+			);
+		}
+
+		$table = self::table();
+		$since = gmdate( 'Y-m-d H:i:s', time() - ( max( 1, $days ) * DAY_IN_SECONDS ) );
+		$today = gmdate( 'Y-m-d 00:00:00', time() );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) AS total, COUNT(DISTINCT user_id) AS uniq, AVG(seconds) AS avg_sec FROM {$table} WHERE video = %s AND started_at >= %s",
+				substr( $name, 0, 100 ),
+				$since
+			),
+			ARRAY_A
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$today_count = $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM {$table} WHERE video = %s AND started_at >= %s",
+				substr( $name, 0, 100 ),
+				$today
+			)
+		);
+
+		if ( ! is_array( $row ) ) {
+			$row = array();
+		}
+
+		return array(
+			'total'       => (int) ( $row['total'] ?? 0 ),
+			'unique'      => (int) ( $row['uniq'] ?? 0 ),
+			'today'       => (int) $today_count,
+			'avg_seconds' => (int) round( (float) ( $row['avg_sec'] ?? 0 ) ),
+		);
+	}
+
+	/**
+	 * نشست‌های اخیر یک ویدیو (برای متاباکس ویرایش).
+	 *
+	 * @param string $name     نام ویدیو.
+	 * @param int    $days     بازه.
+	 * @param int    $per_page تعداد.
+	 * @return array
+	 */
+	public static function recent_for_video( string $name, int $days = 30, int $per_page = 15 ): array {
+		if ( '' === $name ) {
+			return array();
+		}
+
+		return self::query(
+			array(
+				'video'    => $name,
+				'days'     => $days,
+				'per_page' => max( 1, min( 50, $per_page ) ),
+				'page'     => 1,
+			)
+		);
+	}
+
+	/**
 	 * حذف ردیف‌های قدیمی‌تر از دوره‌ی نگه‌داری.
 	 *
 	 * @return void

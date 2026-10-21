@@ -1,6 +1,9 @@
 <?php
 /**
- * متاباکس آپلود و پردازش ذخیره‌ی پست.
+ * متاباکس آپلود، دسترسی و گزارش بینندگان در صفحه‌ی ویرایش ویدیو.
+ *
+ * هدف این متاباکس: همه‌ی کارهای مهم یک ویدیو — آپلود، اتصال به دوره،
+ * پیش‌نمایش دسترسی و «چه کسی دیده» — در یک صفحه قابل انجام باشد.
  *
  * @package Falnic\SecureHLS
  */
@@ -12,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * آپلود فایل MP4 و اجرای انکود.
+ * آپلود فایل MP4، اتصال به دوره و نمایش بینندگان.
  */
 final class Meta_Box {
 
@@ -29,7 +32,7 @@ final class Meta_Box {
 	}
 
 	/**
-	 * بارگذاری اسکریپت وضعیت صف در صفحه‌ی ویرایش ویدیو.
+	 * بارگذاری اسکریپت وضعیت صف و تعاملات ویرایش ویدیو.
 	 *
 	 * @param string $hook صفحه‌ی جاری.
 	 * @return void
@@ -47,6 +50,7 @@ final class Meta_Box {
 
 		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
 		wp_enqueue_script( 'falnic-admin-encode', FALNIC_URL . 'assets/js/admin-encode.js', array(), FALNIC_VERSION, true );
+		wp_enqueue_script( 'falnic-admin-video', FALNIC_URL . 'assets/js/admin-video-edit.js', array(), FALNIC_VERSION, true );
 	}
 
 	/**
@@ -70,7 +74,7 @@ final class Meta_Box {
 	public static function register(): void {
 		add_meta_box(
 			'falnic_video_upload_box',
-			__( '🎬 آپلود و انکود ویدیو (سیستم اتوماتیک)', 'falnic-secure-hls' ),
+			__( '🎬 ویدیوی امن — آپلود، دسترسی و بینندگان', 'falnic-secure-hls' ),
 			array( __CLASS__, 'render' ),
 			Post_Type::SLUG,
 			'normal',
@@ -87,30 +91,198 @@ final class Meta_Box {
 	public static function render( $post ): void {
 		wp_nonce_field( 'falnic_video_upload', 'falnic_video_upload_nonce' );
 
-		$name = Post_Type::video_name( $post );
+		$name   = Post_Type::video_name( $post );
+		$course = (int) get_post_meta( $post->ID, Access::COURSE_META, true );
+		$lesson = (int) get_post_meta( $post->ID, Access::STEP_META, true );
 
+		echo '<div class="falnic-video-edit" dir="rtl">';
+
+		self::render_overview( $post, $name, $course, $lesson );
 		self::render_status( $post, $name );
-
-		echo '<input type="file" name="falnic_video_file" accept="video/mp4,video/x-m4v" style="width:100%;padding:10px;border:1px dashed #ccc;">';
-
-		self::render_target( $post );
-
+		self::render_upload_field();
+		self::render_access( $post, $course, $lesson, $name );
+		self::render_viewers( $name );
 		self::render_subtitles( $name );
+
+		echo '</div>';
 	}
 
 	/**
-	 * انتخاب دوره و درس LearnDash برای دسترسی.
+	 * کارت خلاصه‌ی بالای متاباکس: وضعیت، دسترسی و ابزار کپی.
 	 *
-	 * @param \WP_Post $post پست.
+	 * @param \WP_Post $post   پست.
+	 * @param string   $name   نام ویدیو.
+	 * @param int      $course شناسه‌ی دوره.
+	 * @param int      $lesson شناسه‌ی درس.
 	 * @return void
 	 */
-	private static function render_target( $post ): void {
-		if ( ! Learn_Dash::is_active() ) {
+	private static function render_overview( $post, string $name, int $course, int $lesson ): void {
+		if ( '' === $name && 0 === $course && 0 === $lesson ) {
 			return;
 		}
 
-		$course = (int) get_post_meta( $post->ID, Access::COURSE_META, true );
-		$lesson = (int) get_post_meta( $post->ID, Access::STEP_META, true );
+		$encoded = '' !== $name && Storage::is_encoded( $name );
+		$has_access = $course > 0 || $lesson > 0;
+		$shortcode = '' !== $name ? '[secure_video name="' . $name . '"]' : '';
+		$embed_url = '' !== $name ? add_query_arg( 'falnic_embed', $name, home_url( '/' ) ) : '';
+
+		echo '<div class="falnic-ve-overview">';
+
+		// ردیف وضعیت‌ها.
+		echo '<div class="falnic-ve-pills">';
+		if ( '' !== $name ) {
+			printf(
+				'<span class="falnic-pill">%s <code>%s</code></span>',
+				esc_html__( 'شناسه:', 'falnic-secure-hls' ),
+				esc_html( $name )
+			);
+		}
+
+		if ( '' !== $name ) {
+			if ( $encoded ) {
+				echo '<span class="falnic-pill falnic-pill-ok">✔ ' . esc_html__( 'آماده‌ی پخش', 'falnic-secure-hls' ) . '</span>';
+			} else {
+				echo '<span class="falnic-pill falnic-pill-warn">⏳ ' . esc_html__( 'در انتظار انکود', 'falnic-secure-hls' ) . '</span>';
+			}
+		}
+
+		if ( $has_access ) {
+			$title = $course > 0 ? get_the_title( $course ) : get_the_title( $lesson );
+			if ( '' !== (string) $title ) {
+				printf(
+					'<span class="falnic-pill falnic-pill-lock">🔒 %s</span>',
+					esc_html( $title )
+				);
+			} else {
+				echo '<span class="falnic-pill falnic-pill-lock">🔒 ' . esc_html__( 'محدود به دوره', 'falnic-secure-hls' ) . '</span>';
+			}
+		} else {
+			echo '<span class="falnic-pill falnic-pill-muted">👁 ' . esc_html__( 'فعلاً فقط مدیران', 'falnic-secure-hls' ) . '</span>';
+		}
+
+		echo '</div>';
+
+		// ابزارهای کپی.
+		if ( '' !== $shortcode ) {
+			echo '<div class="falnic-ve-tools">';
+			printf(
+				'<label class="falnic-ve-tool"><span>%s</span><span class="falnic-copy-row"><input type="text" readonly value="%s" class="falnic-copy-input" data-falnic-copy><button type="button" class="button falnic-copy-btn" data-falnic-copy-btn>%s</button></span></label>',
+				esc_html__( 'شورت‌کد', 'falnic-secure-hls' ),
+				esc_attr( $shortcode ),
+				esc_html__( 'کپی', 'falnic-secure-hls' )
+			);
+			printf(
+				'<label class="falnic-ve-tool"><span>%s</span><span class="falnic-copy-row"><input type="text" readonly value="%s" class="falnic-copy-input" data-falnic-copy><button type="button" class="button falnic-copy-btn" data-falnic-copy-btn>%s</button></span></label>',
+				esc_html__( 'لینک امن', 'falnic-secure-hls' ),
+				esc_attr( $embed_url ),
+				esc_html__( 'کپی', 'falnic-secure-hls' )
+			);
+			echo '</div>';
+			echo '<p class="falnic-ve-hint">' . esc_html__( 'این لینک/شورت‌کد فقط برای کسانی که در دوره‌ی متصل ثبت‌نام کرده‌اند کار می‌کند. در مرورگر ناشناس بدون لاگین، خطای «برای تماشا ثبت‌نام کنید» می‌دهد.', 'falnic-secure-hls' ) . '</p>';
+		}
+
+		// لینک پیش‌نمایش سریع وقتی آماده است.
+		if ( $encoded && current_user_can( 'read' ) ) {
+			$preview = add_query_arg(
+				array(
+					'falnic_preview' => $name,
+					'post'           => (int) $post->ID,
+				),
+				admin_url( 'post.php' )
+			);
+			// فعلاً فقط شورت‌کد کافی است؛ پیش‌نمایش داخل ادمین در فاز بعد فعال می‌شود.
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * فیلد آپلود با ظاهر درست.
+	 *
+	 * @return void
+	 */
+	private static function render_upload_field(): void {
+		echo '<div class="falnic-ve-section">';
+		echo '<h3 class="falnic-ve-title">📤 ' . esc_html__( 'آپلود ویدیو', 'falnic-secure-hls' ) . '</h3>';
+		echo '<label for="falnic_video_file" class="falnic-ve-drop">';
+		echo '<input type="file" name="falnic_video_file" id="falnic_video_file" accept="video/mp4,video/x-m4v,video/quicktime"> ';
+		echo '<span class="falnic-ve-drop-text">' . esc_html__( 'فایل MP4/M4V/MOV را بکشید یا کلیک کنید — پس از ذخیره، انکود در پس‌زمینه انجام می‌شود.', 'falnic-secure-hls' ) . '</span>';
+		echo '</label>';
+		echo '<p class="falnic-ve-hint">' . esc_html__( 'عنوان فارسی مشکلی ندارد؛ شناسه‌ی فنی ویدیو جدا ذخیره می‌شود و با تغییر عنوان، فایل‌ها گم نمی‌شوند. حداکثر حجم از تنظیمات (پیش‌فرض ۲ گیگ) خوانده می‌شود.', 'falnic-secure-hls' ) . '</p>';
+		echo '</div>';
+	}
+
+	/**
+	 * انتخاب دوره و درس LearnDash برای دسترسی — بازطراحی‌شده.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @param int      $course دوره‌ی فعلی.
+	 * @param int      $lesson درس فعلی.
+	 * @param string   $name نام ویدیو برای یافتن اتصال‌های معکوس.
+	 * @return void
+	 */
+	private static function render_target( $post ): void {
+		// برای سازگاری: تست‌ها این متد را با یک آرگومان صدا می‌زنند.
+		$args = func_get_args();
+		$post = $args[0];
+		$course = isset( $args[1] ) ? (int) $args[1] : (int) get_post_meta( $post->ID, Access::COURSE_META, true );
+		$lesson = isset( $args[2] ) ? (int) $args[2] : (int) get_post_meta( $post->ID, Access::STEP_META, true );
+		$name   = isset( $args[3] ) ? (string) $args[3] : (string) Post_Type::video_name( $post );
+
+		self::render_access( $post, $course, $lesson, $name );
+	}
+
+	/**
+	 * بخش دسترسی — چه کسی می‌بیند؟ چه درس‌هایی این ویدیو را دارند؟
+	 *
+	 * @param \WP_Post $post پست.
+	 * @param int      $course دوره.
+	 * @param int      $lesson درس.
+	 * @param string   $name نام ویدیو.
+	 * @return void
+	 */
+	private static function render_access( $post, int $course, int $lesson, string $name ): void {
+		$has_access = $course > 0 || $lesson > 0;
+		$ld_active  = Learn_Dash::is_active();
+
+		echo '<div class="falnic-ve-section falnic-ve-access">';
+		echo '<h3 class="falnic-ve-title">🔐 ' . esc_html__( 'دسترسی — چه کسی می‌تواند ببیند؟', 'falnic-secure-hls' ) . '</h3>';
+
+		if ( ! $ld_active ) {
+			echo '<div class="falnic-ve-notice falnic-ve-notice-warn">⚠️ ' . esc_html__( 'LearnDash فعال نیست. تا فعال‌سازی، ویدیو فقط برای مدیران قابل پخش است و اتصال به دوره ذخیره می‌شود ولی اعمال نمی‌شود.', 'falnic-secure-hls' ) . '</div>';
+		}
+
+		// خلاصه‌ی وضعیت دسترسی.
+		echo '<div class="falnic-ve-summary">';
+
+		if ( $lesson > 0 ) {
+			$lesson_title = get_the_title( $lesson );
+			$owner        = (int) get_post_meta( $lesson, 'course_id', true );
+			$course_title = $owner > 0 ? get_the_title( $owner ) : ( $course > 0 ? get_the_title( $course ) : '' );
+
+			echo '<p class="falnic-ve-summary-line">🔒 ' . esc_html__( 'این ویدیو فقط برای ثبت‌نام‌شدگان', 'falnic-secure-hls' ) . ' <strong>' . esc_html( $lesson_title ? $lesson_title . ( $course_title ? ' — ' . $course_title : '' ) : __( 'درس انتخاب‌شده', 'falnic-secure-hls' ) ) . '</strong> ' . esc_html__( 'قابل پخش است (مدیران همیشه دسترسی دارند).', 'falnic-secure-hls' ) . '</p>';
+			if ( $owner > 0 ) {
+				printf(
+					'<p class="falnic-ve-hint">%s</p>',
+					esc_html__( 'دوره به‌صورت خودکار از درس انتخاب‌شده خوانده می‌شود؛ نیازی به انتخاب جداگانه نیست.', 'falnic-secure-hls' )
+				);
+			}
+		} elseif ( $course > 0 ) {
+			$course_title = get_the_title( $course );
+			echo '<p class="falnic-ve-summary-line">🔒 ' . esc_html__( 'این ویدیو فقط برای دانشجویان', 'falnic-secure-hls' ) . ' <strong>' . esc_html( $course_title ? $course_title : __( 'دوره‌ی انتخاب‌شده', 'falnic-secure-hls' ) ) . '</strong> ' . esc_html__( 'قابل پخش است.', 'falnic-secure-hls' ) . '</p>';
+			echo '<p class="falnic-ve-hint">' . esc_html__( 'برای محدود کردن به یک درس خاص (Drip/پیش‌نیاز)، همان درس را هم انتخاب کنید.', 'falnic-secure-hls' ) . '</p>';
+		} else {
+			echo '<div class="falnic-ve-notice">';
+			echo '👁 ' . esc_html__( 'هنوز به هیچ دوره‌ای وصل نیست — فقط مدیران می‌بینند. برای فعال‌سازی محدودیت، پایین یک دوره (یا درس) انتخاب و ذخیره کنید.', 'falnic-secure-hls' );
+			echo '</div>';
+		}
+
+		echo '</div>';
+
+		if ( ! $ld_active ) {
+			echo '</div>';
+			return;
+		}
 
 		$courses = self::courses();
 		$lessons = self::lessons();
@@ -133,10 +305,14 @@ final class Meta_Box {
 			}
 		}
 
-		echo '<hr><table class="form-table falnic-target"><tbody>';
+		echo '<div class="falnic-ve-grid">';
 
-		echo '<tr><th scope="row"><label for="falnic_course_id">' . esc_html__( 'دوره', 'falnic-secure-hls' ) . '</label></th><td>';
-		echo '<select name="falnic_course_id" id="falnic_course_id" style="min-width:320px;">';
+		echo '<label class="falnic-ve-field">';
+		echo '<span class="falnic-ve-label">' . esc_html__( 'دوره', 'falnic-secure-hls' ) . '</span>';
+		echo '<span class="falnic-ve-hint">' . esc_html__( 'برای «تمام دوره» آن را روی “کل دوره” بگذارید و فقط دوره را پر کنید.', 'falnic-secure-hls' ) . '</span>';
+		echo '<span class="falnic-ve-select-wrap" data-falnic-search>';
+		echo '<input type="search" class="falnic-ve-search" placeholder="' . esc_attr__( 'جست‌وجوی دوره…', 'falnic-secure-hls' ) . '" aria-label="' . esc_attr__( 'جست‌وجوی دوره', 'falnic-secure-hls' ) . '">';
+		echo '<select name="falnic_course_id" id="falnic_course_id" data-falnic-select>';
 		echo '<option value="0">' . esc_html__( '— انتخاب دوره —', 'falnic-secure-hls' ) . '</option>';
 
 		foreach ( $courses as $item ) {
@@ -148,10 +324,15 @@ final class Meta_Box {
 			);
 		}
 
-		echo '</select></td></tr>';
+		echo '</select></span>';
+		echo '</label>';
 
-		echo '<tr><th scope="row"><label for="falnic_lesson_id">' . esc_html__( 'درس', 'falnic-secure-hls' ) . '</label></th><td>';
-		echo '<select name="falnic_lesson_id" id="falnic_lesson_id" style="min-width:320px;">';
+		echo '<label class="falnic-ve-field">';
+		echo '<span class="falnic-ve-label">' . esc_html__( 'درس', 'falnic-secure-hls' ) . '</span>';
+		echo '<span class="falnic-ve-hint">' . esc_html__( 'اختیاری — اگر خالی بماند، تمام دروس دوره دسترسی دارند.', 'falnic-secure-hls' ) . '</span>';
+		echo '<span class="falnic-ve-select-wrap" data-falnic-search>';
+		echo '<input type="search" class="falnic-ve-search" placeholder="' . esc_attr__( 'جست‌وجوی درس…', 'falnic-secure-hls' ) . '" aria-label="' . esc_attr__( 'جست‌وجوی درس', 'falnic-secure-hls' ) . '">';
+		echo '<select name="falnic_lesson_id" id="falnic_lesson_id" data-falnic-select>';
 		echo '<option value="0">' . esc_html__( '— کل دوره —', 'falnic-secure-hls' ) . '</option>';
 
 		foreach ( $lessons as $item ) {
@@ -170,8 +351,69 @@ final class Meta_Box {
 			);
 		}
 
-		echo '</select></td></tr>';
-		echo '</tbody></table>';
+		echo '</select></span>';
+		echo '</label>';
+
+		echo '</div>';
+
+		// لینک‌های مدیریتی.
+		if ( $course > 0 ) {
+			$edit_course = get_edit_post_link( $course );
+			if ( $edit_course ) {
+				printf(
+					'<p class="falnic-ve-hint">↗ <a href="%s">%s</a></p>',
+					esc_url( $edit_course ),
+					esc_html__( 'ویرایش دوره در LearnDash', 'falnic-secure-hls' )
+				);
+			}
+		}
+
+		if ( $lesson > 0 ) {
+			$edit_lesson = get_edit_post_link( $lesson );
+			if ( $edit_lesson ) {
+				printf(
+					'<p class="falnic-ve-hint">↗ <a href="%s">%s</a></p>',
+					esc_url( $edit_lesson ),
+					esc_html__( 'ویرایش درس', 'falnic-secure-hls' )
+				);
+			}
+		}
+
+		// درس‌هایی که این ویدیو را دارند (اتصال معکوس از LearnDash).
+		if ( '' !== $name ) {
+			$linked = Access::linked_lesson_ids( $name );
+
+			if ( ! empty( $linked ) ) {
+				echo '<div class="falnic-ve-linked">';
+				echo '<strong>' . esc_html__( 'درس‌هایی که همین ویدیو را نمایش می‌دهند:', 'falnic-secure-hls' ) . '</strong>';
+				echo '<ul class="falnic-ve-linked-list">';
+				foreach ( array_slice( $linked, 0, 10 ) as $lesson_id ) {
+					$title = get_the_title( $lesson_id );
+					$link  = get_edit_post_link( $lesson_id );
+					printf(
+						'<li><a href="%s">%s</a> <code>#%d</code></li>',
+						esc_url( $link ? $link : get_permalink( $lesson_id ) ),
+						esc_html( $title ? $title : sprintf( __( 'درس %d', 'falnic-secure-hls' ), (int) $lesson_id ) ),
+						(int) $lesson_id
+					);
+				}
+				if ( count( $linked ) > 10 ) {
+					printf(
+						'<li class="falnic-ve-hint">%s</li>',
+						esc_html( sprintf( __( 'و %d مورد دیگر…', 'falnic-secure-hls' ), count( $linked ) - 10 ) )
+					);
+				}
+				echo '</ul>';
+				echo '<p class="falnic-ve-hint">' . esc_html__( 'این‌ها از کادر «ویدیوی امن این درس» در ویرایشگر درس وصل شده‌اند. برای حذف، همان درس را ویرایش کنید.', 'falnic-secure-hls' ) . '</p>';
+				echo '</div>';
+			} else {
+				if ( '' !== $name && $has_access ) {
+					echo '<p class="falnic-ve-hint">' . esc_html__( 'هنوز هیچ درسی این ویدیو را به‌صورت مستقیم embed نکرده؛ دسترسی از همین صفحه (دوره/درس بالا) اعمال می‌شود.', 'falnic-secure-hls' ) . '</p>';
+				}
+			}
+		}
+
+		echo '</div>';
 	}
 
 	/**
@@ -238,6 +480,7 @@ final class Meta_Box {
 	 */
 	private static function render_status( $post, string $name ): void {
 		if ( '' === $name ) {
+			echo '<div class="falnic-ve-notice">' . esc_html__( 'این ویدیو هنوز شناسه ندارد — عنوان را بنویسید و یک‌بار ذخیره کنید تا شناسه ساخته شود.', 'falnic-secure-hls' ) . '</div>';
 			return;
 		}
 
@@ -289,6 +532,161 @@ final class Meta_Box {
 	}
 
 	/**
+	 * کارت بینندگان — چه کسی این ویدیو را دیده؟
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return void
+	 */
+	private static function render_viewers( string $name ): void {
+		echo '<div class="falnic-ve-section falnic-ve-viewers">';
+		echo '<h3 class="falnic-ve-title">👁 ' . esc_html__( 'کسانی که این ویدیو را دیده‌اند', 'falnic-secure-hls' ) . ' <span class="falnic-ve-badge">' . esc_html__( '۳۰ روز اخیر', 'falnic-secure-hls' ) . '</span></h3>';
+
+		if ( '' === $name ) {
+			echo '<p class="falnic-ve-hint">' . esc_html__( 'پس از ذخیره و اولین پخش، این بخش پر می‌شود — بدون شناسه، گزارشی وجود ندارد.', 'falnic-secure-hls' ) . '</p>';
+			echo '</div>';
+			return;
+		}
+
+		if ( ! Watch_Log::exists() ) {
+			echo '<div class="falnic-ve-notice falnic-ve-notice-warn">' . esc_html__( 'جدول گزارش هنوز ساخته نشده است. افزونه را یک‌بار غیرفعال و دوباره فعال کنید.', 'falnic-secure-hls' ) . '</div>';
+			echo '</div>';
+			return;
+		}
+
+		$stats = Watch_Log::stats_for_video( $name, 30 );
+		$rows  = Watch_Log::recent_for_video( $name, 30, 12 );
+
+		echo '<div class="falnic-ve-stats">';
+		printf(
+			'<div class="falnic-ve-stat"><strong>%s</strong><span>%s</span></div>',
+			esc_html( number_format_i18n( (int) $stats['unique'] ) ),
+			esc_html__( 'نفر یکتا', 'falnic-secure-hls' )
+		);
+		printf(
+			'<div class="falnic-ve-stat"><strong>%s</strong><span>%s</span></div>',
+			esc_html( number_format_i18n( (int) $stats['total'] ) ),
+			esc_html__( 'پخش کل', 'falnic-secure-hls' )
+		);
+		printf(
+			'<div class="falnic-ve-stat"><strong>%s</strong><span>%s</span></div>',
+			esc_html( number_format_i18n( (int) $stats['today'] ) ),
+			esc_html__( 'امروز', 'falnic-secure-hls' )
+		);
+		if ( $stats['avg_seconds'] > 0 ) {
+			printf(
+				'<div class="falnic-ve-stat"><strong>%s</strong><span>%s</span></div>',
+				esc_html( self::human_minutes( (int) $stats['avg_seconds'] ) ),
+				esc_html__( 'میانگین تماشا', 'falnic-secure-hls' )
+			);
+		}
+		echo '</div>';
+
+		if ( empty( $rows ) ) {
+			echo '<div class="falnic-ve-empty">';
+			echo '<p>' . esc_html__( 'هنوز کسی این ویدیو را در ۳۰ روز اخیر ندیده است. پس از اولین پخش واقعی (با لاگین)، همین‌جا نام، ایمیل و زمان تماشا نمایش داده می‌شود.', 'falnic-secure-hls' ) . '</p>';
+			echo '<p class="falnic-ve-hint">' . esc_html__( 'نکتهٔ حریم خصوصی: IP فقط به‌صورت هش یک‌طرفه ذخیره می‌شود — مقدار خام IP هرگز نگه داشته نمی‌شود.', 'falnic-secure-hls' ) . '</p>';
+			echo '</div>';
+		} else {
+			echo '<div class="falnic-ve-table-wrap">';
+			echo '<table class="widefat striped falnic-ve-table"><thead><tr>';
+			echo '<th>' . esc_html__( 'کاربر', 'falnic-secure-hls' ) . '</th>';
+			echo '<th>' . esc_html__( 'آخرین تماشا', 'falnic-secure-hls' ) . '</th>';
+			echo '<th>' . esc_html__( 'مدت', 'falnic-secure-hls' ) . '</th>';
+			echo '<th>' . esc_html__( 'سگمنت', 'falnic-secure-hls' ) . '</th>';
+			echo '<th>' . esc_html__( 'دستگاه', 'falnic-secure-hls' ) . '</th>';
+			echo '</tr></thead><tbody>';
+
+			foreach ( $rows as $row ) {
+				$user_id = (int) ( $row['user_id'] ?? 0 );
+				$user    = $user_id > 0 ? get_userdata( $user_id ) : null;
+				$seconds = (int) ( $row['seconds'] ?? 0 );
+				$ago     = isset( $row['last_seen'] ) ? self::human_diff( (string) $row['last_seen'] ) : '';
+
+				echo '<tr>';
+				echo '<td class="falnic-ve-user">';
+				if ( $user ) {
+					$profile = get_edit_user_link( $user_id );
+					printf(
+						'<a href="%s"><strong>%s</strong></a><br><small>%s</small>',
+						esc_url( $profile ),
+						esc_html( $user->user_login ),
+						esc_html( $user->user_email )
+					);
+				} else {
+					printf( '<code>#%d</code>', (int) $user_id );
+				}
+				echo '</td>';
+				printf( '<td>%s</td>', esc_html( $ago ? $ago : (string) ( $row['started_at'] ?? '' ) ) );
+				printf( '<td>%s</td>', esc_html( self::human_minutes( $seconds ) ) );
+				printf( '<td>%s</td>', esc_html( number_format_i18n( (int) ( $row['segments'] ?? 0 ) ) ) );
+				printf( '<td>%s</td>', esc_html( (string) ( $row['agent'] ?? '' ) ) );
+				echo '</tr>';
+			}
+
+			echo '</tbody></table>';
+			echo '</div>';
+
+			$report_url = add_query_arg(
+				array(
+					'post_type' => Post_Type::SLUG,
+					'page'      => 'falnic_watch_log',
+					'video'     => $name,
+					'days'      => 30,
+				),
+				admin_url( 'edit.php' )
+			);
+			printf(
+				'<p class="falnic-ve-actions"><a href="%s" class="button">%s</a> <span class="falnic-ve-hint">%s</span></p>',
+				esc_url( $report_url ),
+				esc_html__( 'مشاهدهٔ گزارش کامل این ویدیو', 'falnic-secure-hls' ),
+				esc_html__( 'با فیلتر، صفحه‌بندی و خروجی CSV', 'falnic-secure-hls' )
+			);
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * تبدیل ثانیه به «X دقیقه».
+	 *
+	 * @param int $seconds ثانیه.
+	 * @return string
+	 */
+	private static function human_minutes( int $seconds ): string {
+		if ( $seconds <= 0 ) {
+			return '—';
+		}
+
+		$min = max( 1, (int) round( $seconds / 60 ) );
+
+		return sprintf(
+			/* translators: %s: دقیقه */
+			__( '%s دقیقه', 'falnic-secure-hls' ),
+			number_format_i18n( $min )
+		);
+	}
+
+	/**
+	 * فاصله‌ی زمانی خوانا نسبت به الان.
+	 *
+	 * @param string $mysql تاریخ MySQL UTC.
+	 * @return string
+	 */
+	private static function human_diff( string $mysql ): string {
+		$time = strtotime( $mysql . ' +00:00' );
+
+		if ( ! $time ) {
+			return $mysql;
+		}
+
+		if ( function_exists( 'human_time_diff' ) ) {
+			return human_time_diff( $time, time() ) . ' ' . __( 'پیش', 'falnic-secure-hls' );
+		}
+
+		return $mysql;
+	}
+
+	/**
 	 * بخش زیرنویس‌ها.
 	 *
 	 * @param string $name نام ویدیو.
@@ -301,7 +699,8 @@ final class Meta_Box {
 
 		$existing = Storage::subtitles( $name );
 
-		echo '<hr><h4>' . esc_html__( 'زیرنویس (اختیاری)', 'falnic-secure-hls' ) . '</h4>';
+		echo '<div class="falnic-ve-section">';
+		echo '<h3 class="falnic-ve-title">💬 ' . esc_html__( 'زیرنویس (اختیاری)', 'falnic-secure-hls' ) . '</h3>';
 
 		if ( ! empty( $existing ) ) {
 			echo '<ul class="falnic-subtitle-list">';
@@ -320,6 +719,7 @@ final class Meta_Box {
 		echo '<p><label for="falnic-subtitle-lang">' . esc_html__( 'زبان', 'falnic-secure-hls' ) . '</label> ';
 		echo '<input type="text" id="falnic-subtitle-lang" name="falnic_subtitle_lang" value="fa" size="5" placeholder="fa"> ';
 		echo '<input type="file" name="falnic_subtitle" accept=".vtt,text/vtt,text/plain"></p>';
+		echo '</div>';
 	}
 
 	/**

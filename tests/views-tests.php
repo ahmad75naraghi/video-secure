@@ -15,7 +15,7 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
-define( 'FALNIC_VERSION', '3.4.2' );
+define( 'FALNIC_VERSION', '3.5.0' );
 define( 'FALNIC_DIR', dirname( __DIR__ ) . '/' );
 define( 'FALNIC_URL', 'https://example.test/wp-content/plugins/falnic-secure-hls/' );
 define( 'FALNIC_BASENAME', 'falnic-secure-hls/falnic-secure-hls.php' );
@@ -676,6 +676,42 @@ function is_user_logged_in() {
 	return true;
 }
 
+/** @param string $path @param string $scheme @return string */
+function home_url( $path = '', $scheme = null ) { // phpcs:ignore
+	return 'https://example.test/' . ltrim( (string) $path, '/' );
+}
+
+/** @param string $url @param string $scheme @return string */
+function set_url_scheme( $url, $scheme = null ) { // phpcs:ignore
+	return (string) $url;
+}
+
+/** @param int $post_id @return string|false */
+function get_edit_post_link( $post_id = 0, $context = 'display' ) { // phpcs:ignore
+	$post_id = (int) $post_id;
+	return $post_id > 0 ? 'https://example.test/wp-admin/post.php?post=' . $post_id . '&action=edit' : '';
+}
+
+/** @param string $file @return string */
+function plugin_dir_path( $file ) {
+	return dirname( (string) $file ) . '/';
+}
+
+/** @param string $file @return string */
+function plugin_dir_url( $file ) {
+	return 'https://example.test/wp-content/plugins/' . basename( dirname( (string) $file ) ) . '/';
+}
+
+/** @param string $file @return string */
+function plugin_basename( $file ) {
+	return basename( dirname( (string) $file ) ) . '/' . basename( (string) $file );
+}
+
+/** @param int|null $blog_id @return int */
+function get_current_blog_id() {
+	return 1;
+}
+
 /* -------------------------------------------------------------------------
  * شبیه‌سازی LearnDash (با --no-ld یا FALNIC_TEST_LD=off خاموش می‌شود)
  * ---------------------------------------------------------------------- */
@@ -855,7 +891,7 @@ $falnic_views = array(
 			),
 			'error'        => '',
 			'notice'       => '',
-			'version'      => '3.4.2',
+			'version'      => '3.5.0',
 			'main_file'    => 'falnic-secure-hls/falnic-secure-hls.php',
 			'plugin_dir'   => '/var/www/wp-content/plugins/falnic-secure-hls/',
 			'backup_root'  => '/var/www/wp-content/uploads/falnic-backups/',
