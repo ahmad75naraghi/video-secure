@@ -36,7 +36,7 @@
 			return;
 		}
 
-		if ( ! config.src ) {
+		if ( ! config.src && ! config.sessionUrl ) {
 			return;
 		}
 

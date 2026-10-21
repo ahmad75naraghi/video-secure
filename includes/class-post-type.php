@@ -164,7 +164,29 @@ final class Post_Type {
 			)
 		);
 
-		return empty( $posts ) ? 0 : (int) $posts[0];
+		if ( ! empty( $posts ) ) {
+			return (int) $posts[0];
+		}
+
+		// Fallback برای ویدیوهای قدیمی که META_NAME هنوز ذخیره نشده و نام از post_title مشتق است.
+		$all = get_posts(
+			array(
+				'post_type'        => self::SLUG,
+				'post_status'      => 'any',
+				'posts_per_page'   => 200,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+			)
+		);
+
+		foreach ( $all as $pid ) {
+			if ( $name === self::video_name( $pid ) ) {
+				return (int) $pid;
+			}
+		}
+
+		return 0;
 	}
 
 	/**

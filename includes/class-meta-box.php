@@ -68,14 +68,13 @@ final class Meta_Box {
 		}
 
 		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
-		wp_enqueue_style( 'falnic-player', FALNIC_URL . 'assets/css/player.css', array(), FALNIC_VERSION );
 		wp_enqueue_script( 'falnic-admin-encode', FALNIC_URL . 'assets/js/admin-encode.js', array(), FALNIC_VERSION, true );
 		wp_enqueue_script( 'falnic-admin-video', FALNIC_URL . 'assets/js/admin-video-edit.js', array(), FALNIC_VERSION, true );
-		// پیش‌نمایش فرانت دقیقاً با همان دارایی‌های فرانت رندر می‌شود.
-		wp_enqueue_style( 'falnic-plyr', FALNIC_URL . 'assets/vendor/plyr/plyr.css', array(), Assets::PLYR_VERSION );
-		wp_enqueue_script( 'falnic-plyr', FALNIC_URL . 'assets/vendor/plyr/plyr.min.js', array(), Assets::PLYR_VERSION, true );
-		wp_enqueue_script( 'falnic-hls', FALNIC_URL . 'assets/vendor/hls/hls.min.js', array(), Assets::HLS_VERSION, true );
-		wp_enqueue_script( 'falnic-player', FALNIC_URL . 'assets/js/player.js', array( 'falnic-plyr', 'falnic-hls' ), FALNIC_VERSION, true );
+		// پیش‌نمایش دقیقاً همان دارایی‌های فرانت (Plyr+HLS+player) را می‌خواهد — از Assets مرکزی.
+		if ( ! wp_style_is( 'falnic-plyr', 'registered' ) ) {
+			Assets::register();
+		}
+		Assets::enqueue();
 	}
 
 	/**
