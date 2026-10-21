@@ -70,8 +70,14 @@
 				return;
 			}
 
-			var rect  = root.getBoundingClientRect();
-			// در فول‌اسکرین rect ممکن است صفر باشد اگر display:none موقت باشد — از پنجره استفاده کن
+			var rect;
+			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+			// اگر در فول‌اسکرین هستیم، اندازهٔ المنت فول‌اسکرین را بگیر (Plyr روی .plyr فول‌اسکرین می‌کند نه root)
+			if ( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) {
+				rect = fsEl.getBoundingClientRect();
+			} else {
+				rect = root.getBoundingClientRect();
+			}
 			if ( ! rect.width || ! rect.height ) {
 				rect = { width: window.innerWidth || document.documentElement.clientWidth, height: window.innerHeight || document.documentElement.clientHeight };
 			}
@@ -307,7 +313,8 @@
 
 		window.addEventListener( 'resize', resizeCanvas );
 
-		// نگه‌داشتن مرجع Plyr برای مدیریت فول‌اسکرین سفارشی
+		// نگه‌داشتن مرجع Plyr — فول‌اسکرین را خودِ Plyr روی .plyr انجام می‌دهد؛
+		// بوم (canvas) باید داخل همان کانتینر باشد تا در تمام‌صفحه دیده شود.
 		var plyrInstance = null;
 		if ( window.Plyr ) {
 			// eslint-disable-next-line no-new
@@ -317,15 +324,29 @@
 				hideControls: true,
 				clickToPlay: true,
 				ratio: null,
-				fullscreen: { enabled: true, fallback: true, iosNative: false, container: root }
+				fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
 			} );
+			// بوم را داخل کانتینر Plyr ببر تا در فول‌اسکرین (native + fallback) همراه ویدیو باشد
+			try {
+				var plyrContainer = root.querySelector( '.plyr__video-wrapper' ) || root.querySelector( '.plyr' );
+				if ( plyrContainer && canvas.parentNode === root ) {
+					plyrContainer.appendChild( canvas );
+					// overlay را هم داخل همان wrapper ببر تا در فول‌اسکرین همراه باشد
+					if ( pauseOverlay && pauseOverlay.parentNode === root ) {
+						plyrContainer.appendChild( pauseOverlay );
+					}
+					// wrapper باید relative باشد تا canvas absolute درست قرار گیرد
+					if ( getComputedStyle( plyrContainer ).position === 'static' ) {
+						plyrContainer.style.position = 'relative';
+					}
+				}
+			} catch ( e ) {}
 		} else {
 			video.controls = true;
 		}
 
-		// در حالت فول‌اسکرین باید canvas دوباره اندازه بگیرد — Plyr آن را در container سفارشی می‌برد
+		// در حالت فول‌اسکرین باید canvas دوباره اندازه بگیرد
 		function onFullscreenChange() {
-			// تاخیر کوتاه تا مرورگر فول‌اسکرین را کامل کند
 			setTimeout( function () {
 				resizeCanvas();
 				draw();

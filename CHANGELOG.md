@@ -2,7 +2,7 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
-## [3.5.6] — 2026-10-23
+## [3.5.7] — 2026-10-23
 
 ### رفع
 - **«failed با percent:100» کاذب:** برخی بیلدهای ffmpeg (7.0.2-static) حتی با خروجی کامل، `exit != 0` می‌دهند و لاگ‌شان فقط آمار `libx264` است. حالا اگر `playlist + key` سالم باشند، `Encoder::process` آن را `done` می‌کند (با یادداشت «با هشدار تمام شد»).
