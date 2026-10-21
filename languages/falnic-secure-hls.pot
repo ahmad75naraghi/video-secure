@@ -110,7 +110,7 @@ msgstr ""
 msgid "۳) پشتیبان‌ها"
 msgstr ""
 
-#: includes/class-encoder.php:617
+#: includes/class-encoder.php:707
 msgid "ffmpeg با خطا پایان یافت."
 msgstr ""
 
@@ -237,7 +237,7 @@ msgstr ""
 msgid "اثر انگشت IP"
 msgstr ""
 
-#: includes/class-encoder.php:527
+#: includes/class-encoder.php:617
 msgid "اجرای ffmpeg ممکن نشد."
 msgstr ""
 
@@ -338,24 +338,24 @@ msgstr ""
 msgid "انتقال ویدیوهای قدیمی به پوشه‌ی امن"
 msgstr ""
 
-#: includes/class-encode-queue.php:303
+#: includes/class-encode-queue.php:305
 msgid "انکود با موفقیت تمام شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:471
+#: includes/class-encode-queue.php:473
 msgid "انکود پیش از شروع لغو شد."
 msgstr ""
 
-#: includes/class-encoder.php:263
+#: includes/class-encoder.php:265
 msgid "انکود توسط مدیر لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:329
-#: includes/class-encoder.php:607
+#: includes/class-encode-queue.php:331
+#: includes/class-encoder.php:697
 msgid "انکود لغو شد."
 msgstr ""
 
-#: includes/class-encode-queue.php:330
+#: includes/class-encode-queue.php:332
 msgid "انکود ناموفق بود."
 msgstr ""
 
@@ -401,7 +401,7 @@ msgstr ""
 msgid "این فایل پشتیبان برای همیشه حذف شود؟"
 msgstr ""
 
-#: includes/class-encode-queue.php:492
+#: includes/class-encode-queue.php:494
 msgid "این کار در حال اجراست."
 msgstr ""
 
@@ -804,7 +804,7 @@ msgstr ""
 msgid "خروجی CSV"
 msgstr ""
 
-#: includes/class-encoder.php:272
+#: includes/class-encoder.php:274
 msgid "خروجی ffmpeg قابل استفاده نیست."
 msgstr ""
 
@@ -882,7 +882,7 @@ msgstr ""
 msgid "در حال بررسی نسخه…"
 msgstr ""
 
-#: includes/class-encode-queue.php:453
+#: includes/class-encode-queue.php:455
 msgid "در حال لغو…"
 msgstr ""
 
@@ -895,7 +895,7 @@ msgid "در صف"
 msgstr ""
 
 #: includes/class-encode-queue.php:184
-#: includes/class-encode-queue.php:512
+#: includes/class-encode-queue.php:514
 msgid "در صف انکود…"
 msgstr ""
 
@@ -904,7 +904,7 @@ msgstr ""
 msgid "در مرحلهٔ جایگزینی فایل خطا رخ داد (%s)؛ از بخش پشتیبان‌ها Rollback را اجرا کنید."
 msgstr ""
 
-#: includes/class-encode-queue.php:575
+#: includes/class-encode-queue.php:577
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
@@ -965,7 +965,7 @@ msgstr ""
 #: admin/class-admin-menu.php:315
 #: admin/class-admin-menu.php:345
 #: admin/class-admin-menu.php:525
-#: includes/class-encode-queue.php:678
+#: includes/class-encode-queue.php:680
 msgid "دسترسی ندارید."
 msgstr ""
 
@@ -1014,7 +1014,7 @@ msgstr ""
 msgid "زبان"
 msgstr ""
 
-#: includes/class-encoder.php:585
+#: includes/class-encoder.php:675
 msgid "زمان انکود بیش از حد مجاز شد."
 msgstr ""
 
@@ -1124,7 +1124,7 @@ msgstr ""
 msgid "شناسه کاربر:"
 msgstr ""
 
-#: includes/class-encode-queue.php:593
+#: includes/class-encode-queue.php:595
 msgid "شناسه‌ی ویدیو پیدا نشد."
 msgstr ""
 
@@ -1238,7 +1238,7 @@ msgstr ""
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
-#: includes/class-encode-queue.php:501
+#: includes/class-encode-queue.php:503
 msgid "فایل ورودی این کار دیگر موجود نیست؛ لطفاً ویدیو را دوباره آپلود کنید."
 msgstr ""
 
@@ -1311,11 +1311,11 @@ msgstr ""
 msgid "قفل کردن استریم روی IP کاربر"
 msgstr ""
 
-#: includes/class-encode-queue.php:526
+#: includes/class-encode-queue.php:528
 msgid "کار دوباره در صف قرار گرفت."
 msgstr ""
 
-#: includes/class-encode-queue.php:572
+#: includes/class-encode-queue.php:574
 msgid "کار فعالی برای لغو پیدا نشد."
 msgstr ""
 
@@ -1346,6 +1346,10 @@ msgstr ""
 
 #: admin/views/settings.php:100
 msgid "کیفیت پخش و پخش هم‌زمان"
+msgstr ""
+
+#: includes/class-encoder.php:251
+msgid "کیفیت چندگانه روی این نسخه‌ی ffmpeg ساخته نشد؛ ویدیو با یک کیفیت آماده شد."
 msgstr ""
 
 #: admin/views/template.php:33

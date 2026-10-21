@@ -238,6 +238,7 @@ final class Encoder {
 
 		$probe    = self::probe( $input_path );
 		$variants = self::variants( $probe );
+		$note     = '';
 
 		try {
 			$run = self::run( $input_path, $name, $variants, $keyinfo_file, $video_dir, $probe, $progress );
@@ -247,6 +248,7 @@ final class Encoder {
 				Storage::purge( $name, array( 'captions' ) );
 				wp_mkdir_p( $video_dir );
 
+				$note     = __( 'کیفیت چندگانه روی این نسخه‌ی ffmpeg ساخته نشد؛ ویدیو با یک کیفیت آماده شد.', 'falnic-secure-hls' );
 				$variants = self::single_variant( $probe );
 				$run      = self::run( $input_path, $name, $variants, $keyinfo_file, $video_dir, $probe, $progress );
 			}
@@ -287,6 +289,7 @@ final class Encoder {
 			'status'   => 'done',
 			'error'    => '',
 			'variants' => $variants,
+			'note'     => $note,
 		);
 	}
 
@@ -300,6 +303,66 @@ final class Encoder {
 	}
 
 	/**
+	 * نسخه‌ی ffmpeg نصب‌شده (کش‌شده)؛ '' یعنی نامشخص.
+	 *
+	 * @return string
+	 */
+	public static function ffmpeg_version(): string {
+		$cached = get_option( 'falnic_ffmpeg_version', '' );
+
+		if ( is_string( $cached ) && '' !== $cached ) {
+			return $cached;
+		}
+
+		if ( defined( 'FALNIC_SKIP_BINARY_PROBE' ) && FALNIC_SKIP_BINARY_PROBE ) {
+			return '';
+		}
+
+		if ( ! self::can_exec() ) {
+			return '';
+		}
+
+		$output = self::capture( array( self::ffmpeg_bin(), '-version' ), 10 );
+		$version = self::parse_version( $output );
+
+		update_option( 'falnic_ffmpeg_version', $version, false );
+
+		return $version;
+	}
+
+	/**
+	 * استخراج نسخه از خروجی `ffmpeg -version`.
+	 *
+	 * @param string $output خروجی فرمان.
+	 * @return string نسخه (مثل 4.4.2) یا ''.
+	 */
+	public static function parse_version( string $output ): string {
+		if ( preg_match( '/ffmpeg version (\d+)\.(\d+)(?:\.(\d+))?/', $output, $matches ) ) {
+			return $matches[1] . '.' . $matches[2] . ( isset( $matches[3] ) && '' !== $matches[3] ? '.' . $matches[3] : '' );
+		}
+
+		return '';
+	}
+
+	/**
+	 * آیا ffmpeg از `name:` در var_stream_map پشتیبانی می‌کند؟ (۴.۳+)
+	 *
+	 * نسخه‌های قدیمی‌تر با چند کیفیت خطا می‌دهند؛ در آن حالت تک‌کیفیتی ساخته می‌شود.
+	 *
+	 * @return bool
+	 */
+	public static function supports_named_variants(): bool {
+		$version = self::ffmpeg_version();
+
+		if ( '' === $version ) {
+			// نامشخص: مسیر چندکیفیتی امتحان می‌شود و در صورت خطا تک‌کیفیتی جایگزین می‌شود.
+			return true;
+		}
+
+		return version_compare( $version, '4.3', '>=' );
+	}
+
+	/**
 	 * تعیین کیفیت‌های خروجی بر اساس منبع و تنظیمات.
 	 *
 	 * @param array $probe نتیجه‌ی probe.
@@ -309,6 +372,10 @@ final class Encoder {
 		$mode = (string) get_option( 'falnic_hls_quality', 'auto' );
 
 		if ( 'single' === $mode ) {
+			return self::single_variant( $probe );
+		}
+
+		if ( ! self::supports_named_variants() ) {
 			return self::single_variant( $probe );
 		}
 
@@ -413,7 +480,26 @@ final class Encoder {
 			return $info;
 		}
 
-		$data = json_decode( $output, true );
+		return self::parse_probe( $output );
+	}
+
+	/**
+	 * تبدیل خروجی JSON ی ffprobe به مشخصات ویدیو.
+	 *
+	 * جدا شده تا بتوان با خروجی واقعی ffprobe تستش کرد (بدون اجرای فرمان).
+	 *
+	 * @param string $json خروجی ffprobe با `-of json`.
+	 * @return array{width:int,height:int,duration:int,audio:bool}
+	 */
+	public static function parse_probe( string $json ): array {
+		$info = array(
+			'width'    => 0,
+			'height'   => 0,
+			'duration' => 0,
+			'audio'    => false,
+		);
+
+		$data = json_decode( $json, true );
 
 		if ( ! is_array( $data ) ) {
 			return $info;
@@ -422,6 +508,10 @@ final class Encoder {
 		$info['duration'] = (int) round( (float) ( $data['format']['duration'] ?? 0 ) );
 
 		foreach ( (array) ( $data['streams'] ?? array() ) as $stream ) {
+			if ( ! is_array( $stream ) ) {
+				continue;
+			}
+
 			if ( 'audio' === ( $stream['codec_type'] ?? '' ) ) {
 				$info['audio'] = true;
 				continue;
@@ -729,7 +819,9 @@ final class Encoder {
 					'-bufsize',
 					( $variant['kbps'] * 2 ) . 'k',
 					'-vf',
-					'scale=-2:min(' . (int) $variant['height'] . '\\,ih)',
+					// یک بک‌اسلش کافی است: در proc_open (argv بدون shell) همان‌طور به ffmpeg می‌رسد
+					// و در run_exec داخل کوتیشن تک‌نقلب escapeshellarg هم دست‌نخورده می‌ماند.
+					'scale=-2:min(' . (int) $variant['height'] . '\,ih)',
 				),
 				$has_audio ? array_merge( $audio_args, array( '-ac', '2' ) ) : array(),
 				self::pair_args( $base, array( '-hls_time', '-hls_playlist_type' ) ),

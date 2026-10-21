@@ -393,6 +393,19 @@ check(
 	'دوره از درس انتخاب‌شده مشتق می‌شود'
 );
 
+/* ۱۲.۶.۱) سازگاری فرمان ffmpeg با argv (بدون shell) */
+const encoderSrc = read( 'includes/class-encoder.php' );
+const BS = String.fromCharCode( 92 );
+
+check(
+	encoderSrc.indexOf( "'" + BS + ",ih)'" ) !== -1 && encoderSrc.indexOf( "'" + BS.repeat( 4 ) + ",ih)'" ) === -1,
+	'فیلتر مقیاس ffmpeg بک‌اسلش دوبل ندارد (argv بدون shell)'
+);
+check(
+	/supports_named_variants/.test( encoderSrc ) && /parse_version/.test( encoderSrc ),
+	'نسخه‌ی ffmpeg تشخیص داده می‌شود و نام‌گذاری کیفیت بررسی می‌شود'
+);
+
 /* ۱۲.۷) تست رندر نماها در CI اجرا می‌شود */
 check(
 	fs.existsSync( path.join( ROOT, 'tests/views-tests.php' ) ),

@@ -519,6 +519,31 @@ falnic_check( false !== strpos( implode( ' ', $command ), '%v/segment_%05d.ts' )
 $no_audio = Falnic\SecureHLS\Encoder::build_command( '/tmp/in.mp4', 'lesson-1', array( array( 'height' => 480, 'kbps' => 1400, 'name' => '480p' ) ), '/tmp/k', $video_dir, false );
 falnic_check( ! in_array( '0:a:0', $no_audio, true ), 'ویدیوی بدون صدا نگاشت صوتی نمی‌گیرد' );
 
+// رگرسیون: در argv (proc_open بدون shell) فقط یک بک‌اسلش لازم است.
+// با دو بک‌اسلش، ffmpeg خطای «Conversion failed» می‌دهد و هیچ ویدیویی ساخته نمی‌شود.
+$single_command = Falnic\SecureHLS\Encoder::build_command( '/tmp/in.mp4', 'lesson-1', array( array( 'height' => 360, 'kbps' => 800, 'name' => '' ) ), '/tmp/k', $video_dir, true );
+$scale_filter   = falnic_flag_value( $single_command, '-vf' );
+
+falnic_check( 'scale=-2:min(360\\,ih)' === $scale_filter, 'فیلتر مقیاس تک‌بک‌اسلش است (سازگار با argv بدون shell)', (string) $scale_filter );
+falnic_check( false === strpos( (string) $scale_filter, '\\\\,' ), 'فیلتر مقیاس بک‌اسلش دوبل ندارد (رگرسیون انکود)', (string) $scale_filter );
+
+// تشخیص نسخه‌ی ffmpeg و پشتیبانی از نام‌گذاری کیفیت‌ها.
+falnic_check( '4.4.2' === Falnic\SecureHLS\Encoder::parse_version( "ffmpeg version 4.4.2-0ubuntu0.22.04.1 Copyright (c) 2000-2021" ), 'نسخه‌ی ffmpeg از خروجی -version خوانده می‌شود' );
+falnic_check( '6.0' === Falnic\SecureHLS\Encoder::parse_version( 'ffmpeg version 6.0 Copyright (c) 2000-2023' ), 'نسخه‌ی دو بخشی ffmpeg خوانده می‌شود' );
+falnic_check( '' === Falnic\SecureHLS\Encoder::parse_version( 'ffmpeg version N-47683-g0e8eb07980-static' ), 'نسخه‌ی نامشخص، رشته‌ی خالی برمی‌گرداند' );
+falnic_check( '' === Falnic\SecureHLS\Encoder::parse_version( 'command not found' ), 'خروجی نامعتبر نسخه، رشته‌ی خالی برمی‌گرداند' );
+
+$GLOBALS['falnic_options']['falnic_ffmpeg_version'] = '4.2.7';
+falnic_check( false === Falnic\SecureHLS\Encoder::supports_named_variants(), 'ffmpeg 4.2 از نام‌گذاری کیفیت پشتیبانی نمی‌کند' );
+$GLOBALS['falnic_options']['falnic_hls_quality']    = 'auto';
+$GLOBALS['falnic_options']['falnic_hls_max_renditions'] = 2;
+falnic_check( 1 === count( Falnic\SecureHLS\Encoder::variants( array( 'height' => 1080, 'audio' => true ) ) ), 'روی ffmpeg قدیمی فقط تک‌کیفیتی ساخته می‌شود' );
+
+$GLOBALS['falnic_options']['falnic_ffmpeg_version'] = '4.4.2';
+falnic_check( true === Falnic\SecureHLS\Encoder::supports_named_variants(), 'ffmpeg 4.4 از نام‌گذاری کیفیت پشتیبانی می‌کند' );
+falnic_check( 2 === count( Falnic\SecureHLS\Encoder::variants( array( 'height' => 1080, 'audio' => true ) ) ), 'روی ffmpeg جدید چند کیفیت ساخته می‌شود' );
+unset( $GLOBALS['falnic_options']['falnic_ffmpeg_version'] );
+
 /* -------------------------------------------------------------------------
  * ۲) درصد پیشرفت
  * ---------------------------------------------------------------------- */

@@ -300,7 +300,9 @@ final class Encode_Queue {
 				array(
 					'state'    => 'done',
 					'percent'  => 100,
-					'message'  => __( 'انکود با موفقیت تمام شد.', 'falnic-secure-hls' ),
+					'message'  => ! empty( $result['note'] )
+						? (string) $result['note']
+						: __( 'انکود با موفقیت تمام شد.', 'falnic-secure-hls' ),
 					'variants' => (array) ( $result['variants'] ?? array() ),
 					'errors'   => '',
 				)

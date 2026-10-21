@@ -40,11 +40,11 @@ php tests/lint-all.php          # syntax ۴۰ فایل با TOKEN_PARSE
 php tests/access-tests.php      # ۶۶ assertion: توکن، دسترسی، مسیر، manifest، مهاجرت، شناسه‌ی پایدار
 php tests/views-tests.php       # ۳۳ assertion: رندر هر پنج نمای پنل + متاباکس ویدیو بدون هیچ خطا/هشدار
 php tests/run-tests.php         # ۸۱ assertion: موتور آپدیت از گیت، پشتیبان و بازگردانی
-php tests/queue-tests.php       # ۱۱۰ assertion: صف انکود، کیفیت ABR، رجیستری پخش، گزارش تماشا، زیرنویس
+php tests/queue-tests.php       # ۱۲۰ assertion: صف انکود، کیفیت ABR، رجیستری پخش، گزارش تماشا، زیرنویس
 php tests/access-tests.php --no-ld             # همان مسیر بدون LearnDash (۶۶ assertion)
 php tests/views-tests.php --no-ld              # متاباکس بدون LearnDash (۲۵ assertion)
-node tests/static-checks.js     # ۹۶ بررسی امنیتی/ساختاری ایستا (بدون وابستگی)
-node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۹۸ رشته)
+node tests/static-checks.js     # ۹۸ بررسی امنیتی/ساختاری ایستا (بدون وابستگی)
+node bin/make-pot.js --check    # همگام بودن قالب ترجمه (۳۹۹ رشته)
 bash bin/build-release.sh       # ساخت ZIP نصب (dist/falnic-secure-hls.zip با پوشه‌ی ریشه)
 ```
 
