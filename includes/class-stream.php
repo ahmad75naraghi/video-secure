@@ -221,7 +221,9 @@ final class Stream {
 			wp_send_json_error( array( 'reason' => $sid->get_error_code(), 'message' => $sid->get_error_message() ), 409 );
 		}
 
-		$ttl   = max( 60, (int) get_option( 'falnic_token_ttl', 600 ) );
+		// پیش‌نمایش ادمین: TTL طولانی‌تر (۱ ساعت) تا ادمین فرصت کافی برای تست داشته باشد
+		$ttl   = max( 600, (int) get_option( 'falnic_preview_ttl', 3600 ) );
+		$ttl   = min( 3600, $ttl ); // سقف ۱ ساعت برای امنیت
 		$extra = array( 'sid' => $sid, 'preview' => 1, 'pid' => $post_id );
 
 		wp_send_json_success( array(

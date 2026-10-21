@@ -457,10 +457,10 @@ msgstr ""
 msgid "این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-stream.php:262
-#: includes/class-stream.php:342
-#: includes/class-stream.php:386
-#: includes/class-stream.php:442
+#: includes/class-stream.php:264
+#: includes/class-stream.php:344
+#: includes/class-stream.php:388
+#: includes/class-stream.php:444
 msgid "این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -645,11 +645,11 @@ msgstr ""
 msgid "پلیر بالای محتوای درس نمایش داده شود"
 msgstr ""
 
-#: includes/class-stream.php:269
+#: includes/class-stream.php:271
 msgid "پلی‌لیست این ویدیو پیدا نشد."
 msgstr ""
 
-#: includes/class-stream.php:279
+#: includes/class-stream.php:281
 msgid "پلی‌لیست قابل خواندن نیست."
 msgstr ""
 
@@ -1035,8 +1035,8 @@ msgstr ""
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
-#: includes/class-stream.php:273
-#: includes/class-stream.php:448
+#: includes/class-stream.php:275
+#: includes/class-stream.php:450
 msgid "درخواست معتبر نیست."
 msgstr ""
 
@@ -1053,15 +1053,15 @@ msgstr ""
 msgid "درخواست‌ها بیش از حد مجاز است. کمی بعد تلاش کنید."
 msgstr ""
 
-#: includes/class-stream.php:483
+#: includes/class-stream.php:485
 msgid "درخواست‌های بیش از حد."
 msgstr ""
 
 #: includes/class-key-server.php:64
 #: includes/class-stream.php:149
 #: includes/class-stream.php:214
-#: includes/class-stream.php:347
-#: includes/class-stream.php:391
+#: includes/class-stream.php:349
+#: includes/class-stream.php:393
 msgid "درخواست‌های بیش از حد. کمی بعد تلاش کنید."
 msgstr ""
 
@@ -1188,7 +1188,7 @@ msgstr ""
 msgid "زیرنویس (اختیاری)"
 msgstr ""
 
-#: includes/class-stream.php:454
+#: includes/class-stream.php:456
 msgid "زیرنویس یافت نشد."
 msgstr ""
 
@@ -1406,7 +1406,7 @@ msgstr ""
 msgid "فایل دانلودشده خالی یا ناقص است."
 msgstr ""
 
-#: includes/class-stream.php:354
+#: includes/class-stream.php:356
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
@@ -1529,12 +1529,12 @@ msgid "کسانی که این ویدیو را دیده‌اند"
 msgstr ""
 
 #: includes/class-key-server.php:80
-#: includes/class-stream.php:403
+#: includes/class-stream.php:405
 msgid "کلید قابل خواندن نیست."
 msgstr ""
 
 #: includes/class-key-server.php:74
-#: includes/class-stream.php:397
+#: includes/class-stream.php:399
 msgid "کلید یافت نشد."
 msgstr ""
 
@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "نشست"
 msgstr ""
 
-#: includes/class-stream.php:493
+#: includes/class-stream.php:495
 msgid "نشست پخش پایان یافت. اگر در دستگاه دیگری وارد شده‌اید، همان پخش فعال است."
 msgstr ""
 

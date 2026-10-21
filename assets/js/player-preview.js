@@ -115,8 +115,27 @@
 		function showError(msg) {
 			if (loadingEl) loadingEl.classList.add('is-hidden');
 			if (errorEl) {
-				errorEl.textContent = msg || i18n.error || 'خطا در پخش';
+				errorEl.innerHTML = '';
+				var msgSpan = document.createElement('span');
+				msgSpan.textContent = msg || i18n.error || 'خطا در پخش';
+				errorEl.appendChild(msgSpan);
+				if (msg && (msg.indexOf('توکن') !== -1 || msg.indexOf('زمان') !== -1 || msg.indexOf('انقضا') !== -1 || msg.indexOf('بارگذاری') !== -1)) {
+					var btn = document.createElement('button');
+					btn.textContent = '🔄 بارگذاری مجدد';
+					btn.className = 'falnic-preview-retry-btn';
+					btn.style.cssText = 'margin-top:10px;padding:8px 16px;background:#2271b1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:Tahoma,sans-serif;font-size:13px;';
+					btn.onclick = function() {
+						errorEl.style.display = 'none';
+						if (loadingEl) loadingEl.classList.remove('is-hidden');
+						if (state.hls) { try { state.hls.destroy(); } catch(e) {} state.hls = null; }
+						state.loading = false;
+						loadStream();
+					};
+					errorEl.appendChild(document.createElement('br'));
+					errorEl.appendChild(btn);
+				}
 				errorEl.style.display = 'flex';
+				errorEl.style.flexDirection = 'column';
 			}
 			console.error('[Falnic Preview] ' + msg);
 		}
@@ -134,6 +153,9 @@
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
 				body: body
 			}).then(function (r) {
+				if (r.status === 403) {
+					return r.json().catch(function(){ return {success:false, data:{message: i18n.expired || 'زمان دسترسی تمام شد'}} }).then(function(j){ throw new Error(j.data.message); });
+				}
 				return r.json().catch(function () { return null; });
 			}).then(function (payload) {
 				if (!payload || !payload.success || !payload.data || !payload.data.src) {
@@ -147,6 +169,7 @@
 			});
 		}
 
+		var retryCount = 0;
 		function startStream(src) {
 			if (!src) {
 				showError(i18n.error || 'منبع ویدیو یافت نشد');
@@ -165,8 +188,24 @@
 				state.hls.on(window.Hls.Events.ERROR, function (event, data) {
 					console.warn('[Falnic Preview] HLS error', data);
 					if (!data || !data.fatal) return;
+					if (retryCount < 2) {
+						retryCount++;
+						console.log('[Falnic Preview] retry ' + retryCount);
+						try { state.hls.destroy(); } catch(e) {}
+						state.hls = null;
+						if (loadingEl) loadingEl.classList.remove('is-hidden');
+						if (errorEl) errorEl.style.display = 'none';
+						fetchSession().then(function (newSession) {
+							state.session = newSession;
+							applyWatermark(newSession.watermark);
+							startStream(newSession.src);
+						}).catch(function (e) {
+							showError(i18n.expired || 'زمان توکن تمام شد؛ صفحه را رفرش کنید');
+						});
+						return;
+					}
 					if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
-						showError('خطا در دریافت ویدیو (شبکه). لطفاً دوباره تلاش کنید.');
+						showError('خطا در دریافت ویدیو (شبکه). لطفاً صفحه را رفرش کنید.');
 						return;
 					}
 					if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
@@ -177,9 +216,9 @@
 				});
 
 				state.hls.on(window.Hls.Events.MANIFEST_PARSED, function () {
+					if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = 0; }
 					hideLoading();
 					video.play().catch(function () {
-						// autoplay ممکن است بلاک شود — کاربر باید کلیک کند
 						hideLoading();
 					});
 				});
@@ -222,11 +261,21 @@
 			}, 30000);
 		}
 
+		var loadTimeout = 0;
 		function loadStream() {
 			if (state.loading || state.destroyed) return;
 			state.loading = true;
 			if (loadingEl) loadingEl.classList.remove('is-hidden');
+			if (errorEl) errorEl.style.display = 'none';
+			if (loadTimeout) clearTimeout(loadTimeout);
+			loadTimeout = setTimeout(function() {
+				if (state.loading && !state.destroyed) {
+					state.loading = false;
+					showError('بارگذاری ویدیو بیش از حد طول کشید. لطفاً اتصال اینترنت را بررسی کنید و دوباره تلاش کنید.');
+				}
+			}, 15000);
 			fetchSession().then(function (session) {
+				if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = 0; }
 				state.loading = false;
 				state.session = session;
 				applyWatermark(session.watermark);
@@ -240,6 +289,7 @@
 					video.removeEventListener('playing', onPlay);
 				});
 			}).catch(function (err) {
+				if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = 0; }
 				state.loading = false;
 				showError(err && err.message ? err.message : (i18n.sessionError || 'خطا در ارتباط با سرور'));
 			});
