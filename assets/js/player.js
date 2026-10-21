@@ -94,7 +94,7 @@
 			canvas.height = Math.max( 1, Math.round( video.videoHeight * scale ) );
 
 			// اگر واترمارک بیرون از کادر جدید افتاد، دوباره داخل بیاور
-			var bounds = measureWatermarkBounds ? measureWatermarkBounds() : null;
+			var bounds = ( typeof measureWatermarkBounds === 'function' ? measureWatermarkBounds() : null );
 			if ( bounds ) {
 				var maxX = canvas.width - bounds.maxW - bounds.pad;
 				var maxY = canvas.height - bounds.totalH - bounds.pad;
@@ -316,32 +316,39 @@
 		// نگه‌داشتن مرجع Plyr — فول‌اسکرین را خودِ Plyr روی .plyr انجام می‌دهد؛
 		// بوم (canvas) باید داخل همان کانتینر باشد تا در تمام‌صفحه دیده شود.
 		var plyrInstance = null;
-		if ( window.Plyr ) {
-			// eslint-disable-next-line no-new
-			plyrInstance = new window.Plyr( video, {
-				controls: [ 'play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen' ],
-				settings: [ 'quality', 'speed' ],
-				hideControls: true,
-				clickToPlay: true,
-				ratio: null,
-				fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
-			} );
-			// بوم را داخل کانتینر Plyr ببر تا در فول‌اسکرین (native + fallback) همراه ویدیو باشد
-			try {
-				var plyrContainer = root.querySelector( '.plyr__video-wrapper' ) || root.querySelector( '.plyr' );
-				if ( plyrContainer && canvas.parentNode === root ) {
-					plyrContainer.appendChild( canvas );
-					// overlay را هم داخل همان wrapper ببر تا در فول‌اسکرین همراه باشد
-					if ( pauseOverlay && pauseOverlay.parentNode === root ) {
-						plyrContainer.appendChild( pauseOverlay );
+		try {
+			if ( window.Plyr ) {
+				// eslint-disable-next-line no-new
+				plyrInstance = new window.Plyr( video, {
+					controls: [ 'play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen' ],
+					settings: [ 'quality', 'speed' ],
+					hideControls: true,
+					clickToPlay: true,
+					ratio: null,
+					fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
+				} );
+				try {
+					var plyrContainer = root.querySelector( '.plyr__video-wrapper' ) || root.querySelector( '.plyr' );
+					if ( plyrContainer && canvas.parentNode === root ) {
+						plyrContainer.appendChild( canvas );
+						if ( pauseOverlay && pauseOverlay.parentNode === root ) {
+							plyrContainer.appendChild( pauseOverlay );
+						}
+						if ( getComputedStyle( plyrContainer ).position === 'static' ) {
+							plyrContainer.style.position = 'relative';
+						}
 					}
-					// wrapper باید relative باشد تا canvas absolute درست قرار گیرد
-					if ( getComputedStyle( plyrContainer ).position === 'static' ) {
-						plyrContainer.style.position = 'relative';
-					}
-				}
-			} catch ( e ) {}
-		} else {
+				} catch ( e ) {}
+			} else {
+				video.controls = true;
+			}
+		} catch ( e ) {
+			// اگر Plyr خراب شد (مثل SyntaxError قبلی) فال‌بک به کنترل‌های بومی
+			console.warn('Falnic Plyr init failed, fallback to native controls', e);
+			video.classList.remove('falnic-hidden-video');
+			video.style.setProperty('opacity','1','important');
+			video.style.setProperty('pointer-events','auto','important');
+			canvas.style.display = 'none';
 			video.controls = true;
 		}
 
@@ -433,6 +440,7 @@
 						return;
 					}
 
+					console.warn('Falnic HLS fatal', data);
 					showError( i18n.error );
 				} );
 
@@ -642,6 +650,16 @@
 		loadStream();
 
 		// جابجایی اولیه واترمارک + زمان‌بندی رندوم ۱۵-۳۰ ثانیه
+		// اگر ویدیو بعد از مدتی هنوز سیاه ماند، فال‌بک به نمایش مستقیم ویدیو (بدون بوم)
+		setTimeout( function () {
+			if ( ! canvas.width || video.paused || ! video.videoWidth ) {
+				// لااقل کنترل‌ها را نشان بده تا کاربر بتواند پلی کند
+				if ( video.readyState >= 1 ) {
+					video.style.opacity = '1';
+					video.style.pointerEvents = 'auto';
+				}
+			}
+		}, 3000 );
 		moveWatermark();
 		scheduleWatermarkMove();
 
