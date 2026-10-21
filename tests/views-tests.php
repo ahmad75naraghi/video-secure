@@ -15,7 +15,7 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
-define( 'FALNIC_VERSION', '3.5.2' );
+define( 'FALNIC_VERSION', '3.5.3' );
 define( 'FALNIC_DIR', dirname( __DIR__ ) . '/' );
 define( 'FALNIC_URL', 'https://example.test/wp-content/plugins/falnic-secure-hls/' );
 define( 'FALNIC_BASENAME', 'falnic-secure-hls/falnic-secure-hls.php' );
@@ -891,7 +891,7 @@ $falnic_views = array(
 			),
 			'error'        => '',
 			'notice'       => '',
-			'version'      => '3.5.2',
+			'version'      => '3.5.3',
 			'main_file'    => 'falnic-secure-hls/falnic-secure-hls.php',
 			'plugin_dir'   => '/var/www/wp-content/plugins/falnic-secure-hls/',
 			'backup_root'  => '/var/www/wp-content/uploads/falnic-backups/',

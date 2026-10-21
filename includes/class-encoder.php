@@ -274,6 +274,33 @@ final class Encoder {
 				return self::result( false, __( 'انکود توسط مدیر لغو شد.', 'falnic-secure-hls' ), 'canceled' );
 			}
 
+			// برخی بیلدهای ffmpeg (مثل 7.0.2-static) با وجود نوشتن کامل سگمنت‌ها
+			// با کد غیرصفر خارج می‌شوند و لاگ‌شان فقط آمار libx264 است؛ اگر
+			// پلی‌لیست و کلید سالم باشند، آن را موفقیت حساب می‌کنیم.
+			$playlist = Storage::playlist_path( $name );
+
+			if ( is_readable( $playlist ) && Storage::is_encoded( $name ) ) {
+				$note = '' !== $note ? $note : __( 'انکود با هشدار تمام شد اما خروجی قابل پخش است.', 'falnic-secure-hls' );
+
+				/**
+				 * پس از انکود موفق (با هشدار).
+				 *
+				 * @param string $name     نام ویدیو.
+				 * @param array  $variants کیفیت‌های ساخته‌شده.
+				 */
+				do_action( 'falnic_video_encoded', $name, $variants );
+
+				self::$last_status = 'done';
+
+				return array(
+					'ok'       => true,
+					'status'   => 'done',
+					'error'    => '',
+					'variants' => $variants,
+					'note'     => $note,
+				);
+			}
+
 			return self::result( false, $run['error'] );
 		}
 

@@ -4,7 +4,7 @@ Tags: hls, video, learndash, watermark, aes-128
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.5.2
+Stable tag: 3.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,9 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 مسیر پلی‌لیست باید با HTTPS در دسترس باشد و پاسخ با Content-Type درست برگردد.
 
 == Changelog ==
+
+= 3.5.3 =
+* رفع حالت «percent:100 اما failed» وقتی ffmpeg با وجود نوشتن کامل HLS با کد غیرصفر خارج می‌شود (مثل 7.0.2-static): اگر پلی‌لیست و کلید قابل خواندن باشند، انکود موفق حساب می‌شود.
 
 = 3.5.2 =
 * رفع باگ «کلید پیدا نشد» روی LiteSpeed/CageFS: پوشهٔ کلید پس از fallback چندکیفیتی پاک می‌شد و با مجوز 0600 ساخته می‌شد؛ حالا با 0755/0644 و بازسازی کلید در fallback، ffmpeg: error opening key file رخ نمی‌دهد. ریشهٔ falnic-secure هم هنگام ساخت 0755 می‌گیرد تا lsphp به‌عنوان زیرپروسهٔ lshttpd (nobody) به /home/edufalnic دسترسی داشته باشد.

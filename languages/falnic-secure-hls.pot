@@ -115,7 +115,7 @@ msgstr ""
 msgid "۳۰ روز اخیر"
 msgstr ""
 
-#: includes/class-encoder.php:716
+#: includes/class-encoder.php:743
 msgid "ffmpeg با خطا پایان یافت."
 msgstr ""
 
@@ -258,7 +258,7 @@ msgstr ""
 msgid "اثر انگشت IP"
 msgstr ""
 
-#: includes/class-encoder.php:626
+#: includes/class-encoder.php:653
 msgid "اجرای ffmpeg ممکن نشد."
 msgstr ""
 
@@ -371,6 +371,10 @@ msgstr ""
 msgid "انکود با موفقیت تمام شد."
 msgstr ""
 
+#: includes/class-encoder.php:283
+msgid "انکود با هشدار تمام شد اما خروجی قابل پخش است."
+msgstr ""
+
 #: includes/class-encode-queue.php:473
 msgid "انکود پیش از شروع لغو شد."
 msgstr ""
@@ -380,7 +384,7 @@ msgid "انکود توسط مدیر لغو شد."
 msgstr ""
 
 #: includes/class-encode-queue.php:331
-#: includes/class-encoder.php:706
+#: includes/class-encoder.php:733
 msgid "انکود لغو شد."
 msgstr ""
 
@@ -894,7 +898,7 @@ msgstr ""
 msgid "خروجی CSV"
 msgstr ""
 
-#: includes/class-encoder.php:283
+#: includes/class-encoder.php:310
 msgid "خروجی ffmpeg قابل استفاده نیست."
 msgstr ""
 
@@ -1133,7 +1137,7 @@ msgstr ""
 msgid "زبان"
 msgstr ""
 
-#: includes/class-encoder.php:684
+#: includes/class-encoder.php:711
 msgid "زمان انکود بیش از حد مجاز شد."
 msgstr ""
 
