@@ -347,9 +347,18 @@
 			var box = document.createElement( 'div' );
 
 			box.className   = 'falnic-error';
-			box.textContent = message || i18n.error || '';
+			// پیام را به‌صورت چندخطی نشان بده + لینک دوره‌ها اگر هست
+			if ( typeof message === 'string' && message.indexOf('<') !== -1 ) {
+				box.innerHTML = message;
+			} else {
+				box.textContent = message || i18n.error || '';
+			}
 			root.appendChild( box );
+			// هرگز سیاهِ خالی نماند: اگر fetch هنوز در حال لود بود، لودینگ را پنهان کن
+			var loading = root.querySelector('.falnic-preview-loading, .falnic-player-loading');
+			if (loading) loading.style.display='none';
 			stopLoop();
+			console.error('[Falnic] showError:', message);
 		}
 
 		/* ---------------------------------------------------------------------
@@ -445,9 +454,26 @@
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
 				body: body
 			} ).then( function ( response ) {
+				var ct = response.headers.get('content-type') || '';
+				var isJson = ct.indexOf('application/json') !== -1;
+				if (!isJson && !response.ok) {
+					return response.text().then(function(t){ throw new Error(t || 'HTTP '+response.status); });
+				}
 				return response.json().catch( function () {
 					return null;
-				} );
+				} ).then(function(payload){
+					// اگر 403 با debug برای ادمین بود، جزئیات را لاگ کن
+					if (payload && !payload.success && payload.data && payload.data.debug) {
+						console.warn('[Falnic] access debug', payload.data.debug);
+						// برای ادمین پیام دقیق‌تری نشان بده
+						if (payload.data.debug.reason) {
+							var d = payload.data.debug;
+							var extra = '\n[debug] video:' + d.name + ' reason:' + d.reason + ' course:' + (d.manual_course||d.manual.course) + ' enrolled:' + d.manual_enrolled + ' ld_active:' + d.learn_dash;
+							payload.data.message = (payload.data.message || '') + extra;
+						}
+					}
+					return payload;
+				});
 			} ).then( function ( payload ) {
 				if ( ! payload || ! payload.success || ! payload.data || ! payload.data.src ) {
 					var message = payload && payload.data && payload.data.message

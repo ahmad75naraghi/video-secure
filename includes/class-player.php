@@ -250,6 +250,12 @@ final class Player {
 		$message  = Access::message( $reason );
 		$courses  = in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array();
 		$login    = 'guest' === $reason ? wp_login_url( self::current_url() ) : '';
+		// برای ادمین: دلیل دقیق + دیوایس را در کامنت/متن مخفی بگذار تا 403 قابل عیب‌یابی باشد
+		$debug_html = '';
+		if ( current_user_can( 'manage_options' ) ) {
+			$diag = Access::diagnose( $name, (int) get_current_user_id() );
+			$debug_html = '<details style="margin-top:14px;text-align:left;direction:ltr;font-size:11px;background:rgba(255,255,255,0.06);padding:8px;border-radius:6px;"><summary style="cursor:pointer;color:#b9c6d6;">🔧 عیب‌یابی (فقط ادمین)</summary><pre style="white-space:pre-wrap;word-break:break-all;color:#8fb4d9;margin:8px 0 0;">' . esc_html( wp_json_encode( $diag, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) ) . '</pre></details>';
+		}
 		$icons    = array(
 			'guest'        => '🔐',
 			'not_ready'    => '⏳',
@@ -302,6 +308,7 @@ final class Player {
 						</a>
 					</p>
 				<?php endif; ?>
+				<?php echo $debug_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML امن. ?>
 			</div>
 		</div>
 		<?php

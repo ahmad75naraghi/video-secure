@@ -135,14 +135,17 @@ final class Stream {
 		if ( 'ok' !== $reason ) {
 			Watch_Log::log_denial( $reason, $name );
 
-			wp_send_json_error(
-				array(
-					'reason'  => $reason,
-					'message' => Access::message( $reason ),
-					'courses' => in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array(),
-				),
-				403
+			$err = array(
+				'reason'  => $reason,
+				'message' => Access::message( $reason ),
+				'courses' => in_array( $reason, array( 'not_enrolled', 'locked' ), true ) ? Access::courses_for( $name ) : array(),
 			);
+			// برای ادمین: اطلاعات عیب‌یابی کامل تا 403 قابل توضیح باشد
+			if ( current_user_can( 'manage_options' ) ) {
+				$err['debug'] = Access::diagnose( $name, (int) get_current_user_id() );
+			}
+
+			wp_send_json_error( $err, 403 );
 		}
 
 		if ( self::rate_limited( 'session', self::SESSION_LIMIT ) ) {

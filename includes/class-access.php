@@ -359,23 +359,74 @@ final class Access {
 	/**
 	 * آیا کاربر در دوره ثبت‌نام کرده است؟
 	 *
+	 * ترتیب: sfwd → ld_has_course_access → enrolled_courses → group → meta
+	 * با لاگ دقیق برای عیب‌یابی 403.
+	 *
 	 * @param int $course_id شناسه‌ی دوره.
 	 * @param int $user_id   کاربر.
 	 * @return bool
 	 */
 	private static function is_enrolled( int $course_id, int $user_id ): bool {
-		if ( function_exists( 'sfwd_lms_has_access' ) ) {
-			return (bool) sfwd_lms_has_access( $course_id, $user_id );
+		if ( $course_id <= 0 || $user_id <= 0 ) {
+			return false;
 		}
 
+		// 1) LearnDash اصلی — همه‌ی حالت‌ها (خرید، گروه، دستی) را پوشش می‌دهد
+		if ( function_exists( 'sfwd_lms_has_access' ) ) {
+			$has = (bool) sfwd_lms_has_access( $course_id, $user_id );
+			if ( $has ) {
+				return true;
+			}
+		}
+
+		// 1b) تابع جدید LD 4.x
+		if ( function_exists( 'learndash_user_has_course_access' ) ) {
+			try {
+				$has = (bool) learndash_user_has_course_access( $course_id, $user_id );
+				if ( $has ) {
+					return true;
+				}
+			} catch ( \Throwable $e ) {}
+		}
+		if ( function_exists( 'ld_course_check_user_access' ) ) {
+			try {
+				$has = (bool) ld_course_check_user_access( $course_id, $user_id );
+				if ( $has ) {
+					return true;
+				}
+			} catch ( \Throwable $e ) {}
+		}
+
+		// 2) لیست دوره‌های کاربر
 		if ( function_exists( 'learndash_user_get_enrolled_courses' ) ) {
 			$courses = (array) learndash_user_get_enrolled_courses( $user_id, true );
-
-			return in_array( $course_id, array_map( 'absint', $courses ), true );
+			if ( in_array( $course_id, array_map( 'absint', $courses ), true ) ) {
+				return true;
+			}
 		}
 
-		// سازگاری حداقلی: تاریخ دسترسی ذخیره‌شده توسط LearnDash.
-		return '' !== (string) get_user_meta( $user_id, 'course_' . $course_id . '_access_from', true );
+		// 2b) گروه
+		if ( function_exists( 'learndash_get_course_groups' ) && function_exists( 'learndash_is_user_in_group' ) ) {
+			try {
+				$groups = (array) learndash_get_course_groups( $course_id );
+				foreach ( $groups as $gid ) {
+					if ( (bool) learndash_is_user_in_group( (int) $gid, $user_id ) ) {
+						return true;
+					}
+				}
+			} catch ( \Throwable $e ) {}
+		}
+
+		// 3) meta قدیمی LearnDash
+		if ( '' !== (string) get_user_meta( $user_id, 'course_' . $course_id . '_access_from', true ) ) {
+			return true;
+		}
+		// meta جدید LD
+		if ( '' !== (string) get_user_meta( $user_id, 'ld_course_' . $course_id, true ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -488,6 +539,66 @@ final class Access {
 		}
 
 		return array_values( $courses );
+	}
+
+	/**
+	 * توضیح کامل علت رد دسترسی برای مدیران/لاگ.
+	 *
+	 * @param string $name    نام ویدیو.
+	 * @param int    $user_id کاربر.
+	 * @return array
+	 */
+	public static function diagnose( string $name, int $user_id = 0 ): array {
+		$user_id = $user_id > 0 ? $user_id : (int) get_current_user_id();
+		$valid   = Storage::is_valid_name( $name );
+		$encoded = $valid ? Storage::is_encoded( $name ) : false;
+		$manual  = $valid ? self::manual_target( $name ) : array( 'course' => 0, 'lesson' => 0 );
+		$lessons = $valid ? self::linked_lesson_ids( $name ) : array();
+		$reason  = $valid ? self::reason( $name, $user_id ) : 'invalid';
+
+		$course_checks = array();
+		$lesson_checks = array();
+
+		foreach ( $lessons as $lid ) {
+			$cid = self::course_id( (int) $lid );
+			$course_checks[ $cid ] = $cid > 0 ? self::is_enrolled( $cid, $user_id ) : false;
+			$lesson_checks[ $lid ] = array(
+				'course_id'   => $cid,
+				'is_enrolled' => $cid > 0 ? self::is_enrolled( $cid, $user_id ) : false,
+				'is_locked'   => $cid > 0 ? self::is_locked( (int) $lid, $cid, $user_id ) : false,
+				'sfwd'        => function_exists( 'sfwd_lms_has_access' ) ? ( $cid > 0 ? (bool) sfwd_lms_has_access( $cid, $user_id ) : null ) : 'no_fn',
+				'ld_has'      => function_exists( 'learndash_user_has_course_access' ) ? ( $cid > 0 ? (bool) learndash_user_has_course_access( $cid, $user_id ) : null ) : 'no_fn',
+			);
+		}
+
+		$manual_course = (int) ( $manual['course'] ?? 0 );
+		if ( $manual_course <= 0 && ! empty( $manual['lesson'] ) ) {
+			$manual_course = self::course_id( (int) $manual['lesson'] );
+		}
+		$manual_enrolled = $manual_course > 0 ? self::is_enrolled( $manual_course, $user_id ) : false;
+		$manual_locked   = ( $manual_course > 0 && ! empty( $manual['lesson'] ) ) ? self::is_locked( (int) $manual['lesson'], $manual_course, $user_id ) : false;
+
+		return array(
+			'name'           => $name,
+			'user_id'        => $user_id,
+			'user_login'     => $user_id ? ( get_userdata( $user_id )->user_login ?? '' ) : '',
+			'is_valid'       => $valid,
+			'is_encoded'     => $encoded,
+			'learn_dash'     => self::learn_dash_active(),
+			'enroll_required'=> self::enrollment_required(),
+			'reason'         => $reason,
+			'video_post_id'  => $valid ? self::video_post_id( $name ) : 0,
+			'manual'         => $manual,
+			'manual_course'  => $manual_course,
+			'manual_enrolled'=> $manual_enrolled,
+			'manual_locked'  => $manual_locked,
+			'linked_lessons' => $lessons,
+			'lesson_checks'  => $lesson_checks,
+			'course_checks'  => $course_checks,
+			'has_manage'     => $user_id ? user_can( $user_id, 'manage_options' ) : false,
+			'sfwd_exists'    => function_exists( 'sfwd_lms_has_access' ),
+			'ld_course_access_exists' => function_exists( 'learndash_user_has_course_access' ),
+		);
 	}
 
 	/**

@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.15] — 2026-10-23
+
+### رفع
+- **سیاهی/403 روی فرانت با وجود ثبت‌نام:** `Access::is_enrolled()` فقط `sfwd_lms_has_access()` را چک می‌کرد؛ اگر گروه یا متای `ld_course_*` فعال بود ولی آن تابع `false` می‌داد، کاربر با وجود ثبت‌نام `not_enrolled` می‌گرفت. اکنون به‌ترتیب `sfwd → learndash_user_has_course_access → ld_course_check_user_access → enrolled_courses → groups → course_*_access_from / ld_course_*` را امتحان می‌کند. `Access::diagnose()` و `debug` در پاسخ 403 (فقط برای `manage_options`) و `render_notice` اضافه شد تا ادمین علت دقیق (course/lesson/enrolled/locked/ LD فعال) را ببیند.
+
 ## [3.5.14] — 2026-10-23
 
 ### امنیت و رفع
