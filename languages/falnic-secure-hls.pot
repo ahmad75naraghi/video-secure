@@ -20,7 +20,7 @@ msgstr ""
 msgid "— انتخاب دوره —"
 msgstr ""
 
-#: includes/class-learn-dash.php:103
+#: includes/class-learn-dash.php:105
 msgid "— بدون ویدیو —"
 msgstr ""
 
@@ -83,7 +83,7 @@ msgstr ""
 msgid "🎬 ویدیوی امن — آپلود، دسترسی و بینندگان"
 msgstr ""
 
-#: includes/class-learn-dash.php:78
+#: includes/class-learn-dash.php:80
 msgid "🎬 ویدیوی امن این درس"
 msgstr ""
 
@@ -144,7 +144,7 @@ msgid "IP فقط به‌صورت هش یک‌طرفه ذخیره می‌شود؛
 msgstr ""
 
 #: admin/views/settings.php:62
-#: includes/class-learn-dash.php:273
+#: includes/class-learn-dash.php:422
 msgid "LearnDash روی این سایت فعال نیست. ویدیوهایی که به درس متصل شده‌اند تا فعال شدن LearnDash فقط برای مدیران قابل مشاهده‌اند."
 msgstr ""
 
@@ -1451,7 +1451,7 @@ msgstr ""
 msgid "فعلاً فقط مدیران"
 msgstr ""
 
-#: includes/class-learn-dash.php:119
+#: includes/class-learn-dash.php:121
 msgid "فقط دانشجویانی که در دوره‌ی این درس ثبت‌نام کرده‌اند ویدیو را می‌بینند. مدیر سایت همیشه دسترسی دارد."
 msgstr ""
 
@@ -1792,7 +1792,7 @@ msgstr ""
 msgid "هدر افزونه در فایل اصلی نسخهٔ جدید خوانده نشد."
 msgstr ""
 
-#: includes/class-learn-dash.php:123
+#: includes/class-learn-dash.php:125
 msgid "هشدار: فایل این ویدیو هنوز انکود نشده است و پخش نمی‌شود."
 msgstr ""
 
@@ -1903,7 +1903,7 @@ msgstr ""
 msgid "ویدیوی امن"
 msgstr ""
 
-#: includes/class-learn-dash.php:100
+#: includes/class-learn-dash.php:102
 msgid "ویدیوی این درس"
 msgstr ""
 

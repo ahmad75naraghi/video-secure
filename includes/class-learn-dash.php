@@ -4,6 +4,8 @@
  *
  * ویدیو از داخل ویرایشگر درس یا مبحث به آن مرحله متصل می‌شود و پس از آن
  * فقط دانشجویان ثبت‌نام‌کرده‌ی همان دوره به آن دسترسی دارند.
+ * همچنین از 3.5.13 اتصال از سمت ویدیو (falnic_course_id / falnic_lesson_id)
+ * هم در نمایش خودکار پشتیبانی می‌شود — هم روی صفحه‌ی دوره و هم روی درس.
  *
  * @package Falnic\SecureHLS
  */
@@ -51,7 +53,7 @@ final class Learn_Dash {
 	}
 
 	/**
-	 * نام ویدیوی متصل به یک درس/مبحث.
+	 * نام ویدیوی متصل به یک درس/مبحث (متای مستقیم).
 	 *
 	 * @param int $post_id شناسه.
 	 * @return string
@@ -164,7 +166,11 @@ final class Learn_Dash {
 	}
 
 	/**
-	 * نمایش خودکار بالای محتوای درس.
+	 * نمایش خودکار بالای محتوای درس/دوره.
+	 *
+	 * از 3.5.3 فقط _falnic_video_name روی درس/مبحث چک می‌شد؛ از 3.5.13
+	 * اتصال معکوس از سمت ویدیو (falnic_lesson_id / falnic_course_id) هم
+	 * پشتیبانی می‌شود و صفحه‌ی دوره (sfwd-courses) هم کاور می‌شود.
 	 *
 	 * @param string $content محتوا.
 	 * @return string
@@ -172,7 +178,7 @@ final class Learn_Dash {
 	public static function auto_embed( $content ): string {
 		$content = (string) $content;
 
-		if ( ! is_singular( Access::STEP_TYPES ) || ! is_main_query() ) {
+		if ( ! is_main_query() ) {
 			return $content;
 		}
 
@@ -181,7 +187,71 @@ final class Learn_Dash {
 		}
 
 		$post_id = (int) get_the_ID();
-		$name    = self::video_name( $post_id );
+
+		if ( $post_id <= 0 ) {
+			return $content;
+		}
+
+		// --- صفحه‌ی دوره: ویدیوهایی که مستقیم به این دوره وصل‌اند ---
+		if ( is_singular( 'sfwd-courses' ) ) {
+			$names = self::videos_for_course( $post_id );
+
+			if ( empty( $names ) ) {
+				return $content;
+			}
+
+			$html = '';
+			foreach ( $names as $name ) {
+				$rendered = Player::render( $name );
+				if ( '' !== $rendered ) {
+					$html .= $rendered;
+				}
+			}
+
+			if ( '' === $html ) {
+				return $content;
+			}
+
+			return 'after' === get_option( 'falnic_ld_position', 'before' )
+				? $content . $html
+				: $html . $content;
+		}
+
+		// --- درس / مبحث ---
+		if ( ! is_singular( Access::STEP_TYPES ) ) {
+			return $content;
+		}
+
+		$name = self::video_name( $post_id );
+
+		// fallback: اتصال از سمت ویدیو (ویدیو → این درس)
+		if ( '' === $name ) {
+			$name = self::video_for_lesson( $post_id );
+		}
+
+		// fallback دوم: ویدیوی سطح دوره (ویدیو → دوره‌ی این درس)
+		if ( '' === $name ) {
+			$course_id = Access::course_id( $post_id );
+
+			if ( $course_id > 0 ) {
+				$course_videos = self::videos_for_course( $course_id );
+
+				// فقط ویدیوهایی که lesson خاص ندارند (کل دوره) روی درس بیاید
+				// تا درس‌هایی که ویدیوی اختصاصی دارند، تداخل نکنند
+				foreach ( $course_videos as $candidate ) {
+					$vid_post = Post_Type::find_by_name( $candidate );
+
+					if ( $vid_post > 0 ) {
+						$lesson_meta = (int) get_post_meta( $vid_post, Access::STEP_META, true );
+
+						if ( 0 === $lesson_meta ) {
+							$name = $candidate;
+							break;
+						}
+					}
+				}
+			}
+		}
 
 		if ( '' === $name ) {
 			return $content;
@@ -212,7 +282,86 @@ final class Learn_Dash {
 
 		$name = self::video_name( $post_id );
 
+		if ( '' === $name ) {
+			$name = self::video_for_lesson( $post_id );
+		}
+
 		return '' === $name ? '' : Player::render( $name );
+	}
+
+	/**
+	 * ویدیوهای متصل به یک دوره از سمت ویدیو (falnic_course_id).
+	 *
+	 * @param int $course_id شناسه‌ی دوره.
+	 * @return string[] نام ویدیوها
+	 */
+	public static function videos_for_course( int $course_id ): array {
+		if ( $course_id <= 0 ) {
+			return array();
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'        => Post_Type::SLUG,
+				'post_status'      => 'publish',
+				'posts_per_page'   => 20,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_key'         => Access::COURSE_META,
+				'meta_value'       => $course_id,
+			)
+		);
+
+		$names = array();
+
+		foreach ( (array) $posts as $pid ) {
+			$name = Post_Type::video_name( $pid );
+
+			if ( '' !== $name && Storage::is_encoded( $name ) ) {
+				$names[] = $name;
+			} elseif ( '' !== $name ) {
+				// حتی اگر هنوز انکود نشده، نام را برگردان تا پیام "آماده نیست" نمایش داده شود
+				$names[] = $name;
+			}
+		}
+
+		return array_values( array_unique( $names ) );
+	}
+
+	/**
+	 * ویدیوی متصل به یک درس از سمت ویدیو (falnic_lesson_id).
+	 *
+	 * @param int $lesson_id شناسه‌ی درس/مبحث.
+	 * @return string
+	 */
+	public static function video_for_lesson( int $lesson_id ): string {
+		if ( $lesson_id <= 0 ) {
+			return '';
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'        => Post_Type::SLUG,
+				'post_status'      => 'publish',
+				'posts_per_page'   => 1,
+				'fields'           => 'ids',
+				'no_found_rows'    => true,
+				'suppress_filters' => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				'meta_key'         => Access::STEP_META,
+				'meta_value'       => $lesson_id,
+			)
+		);
+
+		if ( empty( $posts ) ) {
+			return '';
+		}
+
+		$name = Post_Type::video_name( (int) $posts[0] );
+
+		return Storage::is_valid_name( $name ) ? $name : '';
 	}
 
 	/**
@@ -265,7 +414,7 @@ final class Learn_Dash {
 
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
-		if ( ! $screen || ! in_array( (string) $screen->post_type, Access::STEP_TYPES, true ) ) {
+		if ( ! $screen || ! in_array( (string) $screen->post_type, array_merge( Access::STEP_TYPES, array( 'sfwd-courses' ) ), true ) ) {
 			return;
 		}
 

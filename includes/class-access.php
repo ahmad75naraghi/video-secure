@@ -342,7 +342,7 @@ final class Access {
 	 * @param int $lesson_id شناسه.
 	 * @return int
 	 */
-	private static function course_id( int $lesson_id ): int {
+	public static function course_id( int $lesson_id ): int {
 		if ( function_exists( 'learndash_get_course_id' ) ) {
 			$course_id = (int) learndash_get_course_id( $lesson_id );
 

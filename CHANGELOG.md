@@ -2,6 +2,14 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.13] — 2026-10-23
+
+### افزوده
+- **نمایش خودکار ویدیو روی صفحه‌ی دوره:** تا 3.5.12 فقط `_falnic_video_name` روی درس/مبحث باعث `auto_embed` می‌شد؛ اگر ویدیو را از سمت «ویدیوهای امن → ویرایش → دسترسی → دوره» وصل می‌کردید، روی خودِ صفحه‌ی دوره (`sfwd-courses`) هیچ‌چیز نمایش داده نمی‌شد. اکنون `Learn_Dash::auto_embed` برای `is_singular('sfwd-courses')` هم `falnic_course_id` را جستجو می‌کند و `Player::render` را تزریق می‌کند (با احترام به `falnic_ld_auto_embed` و `falnic_ld_position`).
+
+### بهبود
+- **fallback درس از سمت ویدیو:** اگر درس هیچ `_falnic_video_name` نداشته باشد ولی ویدیویی با `falnic_lesson_id == lesson_id` وجود داشته باشد (اتصال از سمت ویدیو)، روی همان درس نمایش داده می‌شود. همچنین ویدیوی سطح دوره (`falnic_course_id` با `falnic_lesson_id=0`) به‌عنوان fallback روی همه‌ی دروس آن دوره دیده می‌شود تا «تمام دوره یک ویدیو» کار کند. `Access::course_id()` عمومی شد تا `Learn_Dash` بتواند دوره‌ی والد درس را بخواند.
+
 ## [3.5.12] — 2026-10-23
 
 ### رفع
