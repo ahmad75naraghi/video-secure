@@ -29,6 +29,25 @@ final class Meta_Box {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'register' ) );
 		add_action( 'save_post_' . Post_Type::SLUG, array( __CLASS__, 'save' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
+		add_action( 'admin_head', array( __CLASS__, 'hide_editor' ) );
+	}
+
+	/**
+	 * مخفی کردن کامل ویرایشگر توضیحات (mceu_26-body) در CPT ویدیو.
+	 *
+	 * @return void
+	 */
+	public static function hide_editor(): void {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen || Post_Type::SLUG !== (string) $screen->post_type ) {
+			return;
+		}
+
+		// حذف پشتیبانی ویرایشگر برای این صفحه — mceu_26-body هرگز رندر نمی‌شود.
+		remove_post_type_support( Post_Type::SLUG, 'editor' );
+
+		echo '<style>.post-type-secure_video #postdivrich,.post-type-secure_video #wp-content-wrap,.post-type-secure_video #mceu_26,.post-type-secure_video #mceu_26-body{display:none !important;}</style>';
 	}
 
 	/**
@@ -49,8 +68,14 @@ final class Meta_Box {
 		}
 
 		wp_enqueue_style( 'falnic-admin', FALNIC_URL . 'assets/css/admin.css', array(), FALNIC_VERSION );
+		wp_enqueue_style( 'falnic-player', FALNIC_URL . 'assets/css/player.css', array(), FALNIC_VERSION );
 		wp_enqueue_script( 'falnic-admin-encode', FALNIC_URL . 'assets/js/admin-encode.js', array(), FALNIC_VERSION, true );
 		wp_enqueue_script( 'falnic-admin-video', FALNIC_URL . 'assets/js/admin-video-edit.js', array(), FALNIC_VERSION, true );
+		// پیش‌نمایش فرانت دقیقاً با همان دارایی‌های فرانت رندر می‌شود.
+		wp_enqueue_style( 'falnic-plyr', FALNIC_URL . 'assets/vendor/plyr/plyr.css', array(), Assets::PLYR_VERSION );
+		wp_enqueue_script( 'falnic-plyr', FALNIC_URL . 'assets/vendor/plyr/plyr.min.js', array(), Assets::PLYR_VERSION, true );
+		wp_enqueue_script( 'falnic-hls', FALNIC_URL . 'assets/vendor/hls/hls.min.js', array(), Assets::HLS_VERSION, true );
+		wp_enqueue_script( 'falnic-player', FALNIC_URL . 'assets/js/player.js', array( 'falnic-plyr', 'falnic-hls' ), FALNIC_VERSION, true );
 	}
 
 	/**
@@ -97,6 +122,7 @@ final class Meta_Box {
 
 		echo '<div class="falnic-video-edit" dir="rtl">';
 
+		self::render_preview( $post, $name );
 		self::render_overview( $post, $name, $course, $lesson );
 		self::render_status( $post, $name );
 		self::render_upload_field();
@@ -528,6 +554,43 @@ final class Meta_Box {
 			);
 		}
 
+		echo '</div>';
+	}
+
+	/**
+	 * پیش‌نمایش ویدیو — دقیقاً همانند فرانت، بدون بررسی دسترسی.
+	 *
+	 * ادمین باید بتواند ویدیو را حتی وقتی به هیچ دوره‌ای وصل نیست یا
+	 * خودش در دوره ثبت‌نام نکرده، همان شکلی که کاربر نهایی می‌بیند
+	 * (پلیر Plyr + HLS + واترمارک) ببیند. برای همین از
+	 * Player::render_preview استفاده می‌شود که شرط ثبت‌نام را نادیده می‌گیرد.
+	 *
+	 * @param \WP_Post $post پست.
+	 * @param string   $name نام ویدیو.
+	 * @return void
+	 */
+	private static function render_preview( $post, string $name ): void {
+		echo '<div class="falnic-ve-section falnic-ve-preview">';
+		echo '<h3 class="falnic-ve-title">🎬 ' . esc_html__( 'پیش‌نمایش — همانند نمایش در سایت', 'falnic-secure-hls' ) . ' <span class="falnic-ve-badge">' . esc_html__( 'بدون بررسی دسترسی', 'falnic-secure-hls' ) . '</span></h3>';
+
+		if ( '' === $name ) {
+			echo '<div class="falnic-ve-notice">' . esc_html__( 'هنوز ویدیویی آپلود نشده — پس از اولین ذخیره، پیش‌نمایش اینجا ظاهر می‌شود.', 'falnic-secure-hls' ) . '</div>';
+			echo '</div>';
+			return;
+		}
+
+		if ( ! Storage::is_encoded( $name ) ) {
+			echo '<div class="falnic-ve-notice falnic-ve-notice-warn">⏳ ' . esc_html__( 'ویدیو هنوز انکود نشده — پس از اتمام صف، همین‌جا پخش خواهد شد.', 'falnic-secure-hls' ) . '</div>';
+			echo '<p class="falnic-ve-hint">' . esc_html__( 'پیش‌نمایش دقیقاً با همان قالب، رنگ، نسبت تصویر و واترمارک تنظیم‌شده در «تنظیمات قالب» رندر می‌شود.', 'falnic-secure-hls' ) . '</p>';
+			echo '</div>';
+			return;
+		}
+
+		// پیش‌نمایش ادمین — بدون چک ثبت‌نام، دقیقاً مثل فرانت.
+		echo '<div class="falnic-ve-preview-player">';
+		echo Player::render_preview( $name ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo '</div>';
+		echo '<p class="falnic-ve-hint">💡 ' . esc_html__( 'این پیش‌نمایش بدون در نظر گرفتن اتصال دوره/درس یا ثبت‌نام است — همان پخش‌کننده‌ای که کاربر در سایت می‌بیند.', 'falnic-secure-hls' ) . '</p>';
 		echo '</div>';
 	}
 

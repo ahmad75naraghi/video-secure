@@ -59,7 +59,7 @@ final class Post_Type {
 				'show_ui'       => true,
 				'menu_position' => 6,
 				'menu_icon'     => 'dashicons-video-alt3',
-				'supports'      => array( 'title', 'editor' ),
+				'supports'      => array( 'title' ),
 			)
 		);
 	}

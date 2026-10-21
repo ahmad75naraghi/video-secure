@@ -673,3 +673,25 @@
 	outline: 2px solid #2271b1;
 	outline-offset: 2px;
 }
+
+/* ── پیش‌نمایش ویدیو در صفحه‌ی ویرایش ────────────────────────── */
+.falnic-ve-preview .falnic-ve-preview-player {
+	margin: 12px 0 8px;
+	border-radius: 8px;
+	overflow: hidden;
+	background: #000;
+}
+
+.falnic-ve-preview .falnic-ve-preview-player .falnic-secure-container {
+	border-radius: 8px;
+}
+
+/* ── مخفی کردن کامل بخش توضیحات / ویرایشگر کلاسیک در CPT ویدیو ─ */
+.post-type-secure_video #postdivrich,
+.post-type-secure_video #wp-content-editor-container,
+.post-type-secure_video #wp-content-wrap,
+.post-type-secure_video .wp-editor-container,
+.post-type-secure_video #mceu_26,
+.post-type-secure_video #mceu_26-body {
+	display: none !important;
+}

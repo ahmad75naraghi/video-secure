@@ -16,7 +16,7 @@ msgstr ""
 "X-Domain: falnic-secure-hls\n"
 "X-Generator: bin/make-pot.js\n"
 
-#: includes/class-meta-box.php:316
+#: includes/class-meta-box.php:342
 msgid "— انتخاب دوره —"
 msgstr ""
 
@@ -24,7 +24,7 @@ msgstr ""
 msgid "— بدون ویدیو —"
 msgstr ""
 
-#: includes/class-meta-box.php:336
+#: includes/class-meta-box.php:362
 msgid "— کل دوره —"
 msgstr ""
 
@@ -50,7 +50,7 @@ msgstr ""
 
 #. translators: %s: مدت زمان
 #: admin/views/watch-log.php:228
-#: includes/class-meta-box.php:664
+#: includes/class-meta-box.php:727
 msgid "%s دقیقه"
 msgstr ""
 
@@ -79,7 +79,7 @@ msgstr ""
 msgid "✅ ویدیوی"
 msgstr ""
 
-#: includes/class-meta-box.php:77
+#: includes/class-meta-box.php:102
 msgid "🎬 ویدیوی امن — آپلود، دسترسی و بینندگان"
 msgstr ""
 
@@ -111,7 +111,7 @@ msgstr ""
 msgid "۳) پشتیبان‌ها"
 msgstr ""
 
-#: includes/class-meta-box.php:542
+#: includes/class-meta-box.php:605
 msgid "۳۰ روز اخیر"
 msgstr ""
 
@@ -152,7 +152,7 @@ msgstr ""
 msgid "LearnDash فعال است"
 msgstr ""
 
-#: includes/class-meta-box.php:252
+#: includes/class-meta-box.php:278
 msgid "LearnDash فعال نیست. تا فعال‌سازی، ویدیو فقط برای مدیران قابل پخش است و اتصال به دوره ذخیره می‌شود ولی اعمال نمی‌شود."
 msgstr ""
 
@@ -201,11 +201,11 @@ msgid "آپدیت با موفقیت انجام شد."
 msgstr ""
 
 #. translators: %d: کد خطای آپلود
-#: includes/class-meta-box.php:785
+#: includes/class-meta-box.php:848
 msgid "آپلود فایل ناموفق بود (کد خطا: %d)."
 msgstr ""
 
-#: includes/class-meta-box.php:206
+#: includes/class-meta-box.php:232
 msgid "آپلود ویدیو"
 msgstr ""
 
@@ -213,7 +213,7 @@ msgstr ""
 msgid "آخرین پخش"
 msgstr ""
 
-#: includes/class-meta-box.php:593
+#: includes/class-meta-box.php:656
 msgid "آخرین تماشا"
 msgstr ""
 
@@ -233,7 +233,7 @@ msgstr ""
 msgid "آماده پخش است."
 msgstr ""
 
-#: includes/class-meta-box.php:143
+#: includes/class-meta-box.php:169
 msgid "آماده‌ی پخش"
 msgstr ""
 
@@ -279,7 +279,7 @@ msgstr ""
 msgid "اجرای فوری صف انجام شد؛ %d کار پردازش شد. وضعیت هر کار در جدول پایین است."
 msgstr ""
 
-#: includes/class-meta-box.php:332
+#: includes/class-meta-box.php:358
 msgid "اختیاری — اگر خالی بماند، تمام دروس دوره دسترسی دارند."
 msgstr ""
 
@@ -288,6 +288,7 @@ msgid "ارتباط با سرور برقرار نشد."
 msgstr ""
 
 #: includes/class-player.php:91
+#: includes/class-player.php:179
 msgid "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید."
 msgstr ""
 
@@ -347,7 +348,7 @@ msgstr ""
 msgid "الزام ثبت‌نام در دوره"
 msgstr ""
 
-#: includes/class-meta-box.php:573
+#: includes/class-meta-box.php:636
 msgid "امروز"
 msgstr ""
 
@@ -406,6 +407,10 @@ msgstr ""
 msgid "انگلیسی"
 msgstr ""
 
+#: includes/class-meta-box.php:593
+msgid "این پیش‌نمایش بدون در نظر گرفتن اتصال دوره/درس یا ثبت‌نام است — همان پخش‌کننده‌ای که کاربر در سایت می‌بیند."
+msgstr ""
+
 #: includes/class-token.php:126
 msgid "این توکن برای این درخواست صادر نشده است."
 msgstr ""
@@ -415,6 +420,7 @@ msgid "این توکن به کاربر دیگری تعلق دارد."
 msgstr ""
 
 #: includes/class-player.php:94
+#: includes/class-player.php:182
 msgid "این حساب در دستگاه دیگری در حال پخش است. ابتدا پخش قبلی را ببندید."
 msgstr ""
 
@@ -442,18 +448,19 @@ msgstr ""
 msgid "این لینک فقط برای دانشجویان ثبت‌نام‌شده در دوره‌ی مرتبط باز می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:181
+#: includes/class-meta-box.php:207
 msgid "این لینک/شورت‌کد فقط برای کسانی که در دوره‌ی متصل ثبت‌نام کرده‌اند کار می‌کند. در مرورگر ناشناس بدون لاگین، خطای «برای تماشا ثبت‌نام کنید» می‌دهد."
 msgstr ""
 
 #: includes/class-player.php:93
+#: includes/class-player.php:181
 msgid "این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-stream.php:207
-#: includes/class-stream.php:285
-#: includes/class-stream.php:327
-#: includes/class-stream.php:381
+#: includes/class-stream.php:262
+#: includes/class-stream.php:342
+#: includes/class-stream.php:386
+#: includes/class-stream.php:442
 msgid "این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -461,11 +468,11 @@ msgstr ""
 msgid "این ویدیو به هیچ دوره‌ای متصل نشده است؛ دسترسی فقط برای مدیران است."
 msgstr ""
 
-#: includes/class-meta-box.php:263
+#: includes/class-meta-box.php:289
 msgid "این ویدیو فقط برای ثبت‌نام‌شدگان"
 msgstr ""
 
-#: includes/class-meta-box.php:272
+#: includes/class-meta-box.php:298
 msgid "این ویدیو فقط برای دانشجویان"
 msgstr ""
 
@@ -481,11 +488,11 @@ msgstr ""
 msgid "این ویدیو هنوز آماده نیست. کمی بعد دوباره تلاش کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:483
+#: includes/class-meta-box.php:509
 msgid "این ویدیو هنوز شناسه ندارد — عنوان را بنویسید و یک‌بار ذخیره کنید تا شناسه ساخته شود."
 msgstr ""
 
-#: includes/class-meta-box.php:407
+#: includes/class-meta-box.php:433
 msgid "این‌ها از کادر «ویدیوی امن این درس» در ویرایشگر درس وصل شده‌اند. برای حذف، همان درس را ویرایش کنید."
 msgstr ""
 
@@ -493,7 +500,7 @@ msgstr ""
 msgid "با فعال بودن این گزینه (پیشنهادی)، ویدیویی که به هیچ درسی متصل نشده برای کاربران عادی قابل پخش نیست."
 msgstr ""
 
-#: includes/class-meta-box.php:642
+#: includes/class-meta-box.php:705
 msgid "با فیلتر، صفحه‌بندی و خروجی CSV"
 msgstr ""
 
@@ -517,15 +524,20 @@ msgstr ""
 msgid "بالای محتوای درس"
 msgstr ""
 
+#: includes/class-meta-box.php:574
+msgid "بدون بررسی دسترسی"
+msgstr ""
+
 #: admin/views/encoder.php:28
 msgid "بدون کار"
 msgstr ""
 
-#: includes/class-meta-box.php:312
+#: includes/class-meta-box.php:338
 msgid "برای «تمام دوره» آن را روی “کل دوره” بگذارید و فقط دوره را پر کنید."
 msgstr ""
 
 #: includes/class-player.php:88
+#: includes/class-player.php:176
 msgid "برای ادامه پخش روی صفحه کلیک کنید"
 msgstr ""
 
@@ -535,6 +547,10 @@ msgstr ""
 
 #: includes/class-play-registry.php:97
 msgid "برای پخش باید وارد شوید."
+msgstr ""
+
+#: includes/class-stream.php:200
+msgid "برای پیش‌نمایش وارد شوید."
 msgstr ""
 
 #: includes/class-access.php:502
@@ -549,7 +565,7 @@ msgstr ""
 msgid "برای حفظ توکن فعلی، این فیلد را خالی بگذارید."
 msgstr ""
 
-#: includes/class-meta-box.php:273
+#: includes/class-meta-box.php:299
 msgid "برای محدود کردن به یک درس خاص (Drip/پیش‌نیاز)، همان درس را هم انتخاب کنید."
 msgstr ""
 
@@ -605,11 +621,11 @@ msgstr ""
 msgid "پخش امروز"
 msgstr ""
 
-#: includes/class-meta-box.php:568
+#: includes/class-meta-box.php:631
 msgid "پخش کل"
 msgstr ""
 
-#: includes/class-meta-box.php:545
+#: includes/class-meta-box.php:608
 msgid "پس از ذخیره و اولین پخش، این بخش پر می‌شود — بدون شناسه، گزارشی وجود ندارد."
 msgstr ""
 
@@ -629,11 +645,11 @@ msgstr ""
 msgid "پلیر بالای محتوای درس نمایش داده شود"
 msgstr ""
 
-#: includes/class-stream.php:214
+#: includes/class-stream.php:269
 msgid "پلی‌لیست این ویدیو پیدا نشد."
 msgstr ""
 
-#: includes/class-stream.php:224
+#: includes/class-stream.php:279
 msgid "پلی‌لیست قابل خواندن نیست."
 msgstr ""
 
@@ -688,12 +704,20 @@ msgid "پیام کامیت"
 msgstr ""
 
 #: admin/views/encoder.php:148
-#: includes/class-meta-box.php:683
+#: includes/class-meta-box.php:746
 msgid "پیش"
 msgstr ""
 
 #: admin/views/encoder.php:120
 msgid "پیشرفت"
+msgstr ""
+
+#: includes/class-meta-box.php:574
+msgid "پیش‌نمایش — همانند نمایش در سایت"
+msgstr ""
+
+#: includes/class-meta-box.php:584
+msgid "پیش‌نمایش دقیقاً با همان قالب، رنگ، نسبت تصویر و واترمارک تنظیم‌شده در «تنظیمات قالب» رندر می‌شود."
 msgstr ""
 
 #: admin/views/git-update.php:61
@@ -732,7 +756,7 @@ msgstr ""
 msgid "تک‌کیفیت (سبک‌تر، مصرف CPU کمتر)"
 msgstr ""
 
-#: includes/class-meta-box.php:519
+#: includes/class-meta-box.php:545
 msgid "تلاش دوباره"
 msgstr ""
 
@@ -812,27 +836,27 @@ msgstr ""
 msgid "جدول گزارش هنوز ساخته نشده است. افزونه را یک‌بار غیرفعال و دوباره فعال کنید تا ساختار دیتابیس ساخته شود."
 msgstr ""
 
-#: includes/class-meta-box.php:551
+#: includes/class-meta-box.php:614
 msgid "جدول گزارش هنوز ساخته نشده است. افزونه را یک‌بار غیرفعال و دوباره فعال کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:526
+#: includes/class-meta-box.php:552
 msgid "جزئیات خطا"
 msgstr ""
 
-#: includes/class-meta-box.php:334
+#: includes/class-meta-box.php:360
 msgid "جست‌وجوی درس"
 msgstr ""
 
-#: includes/class-meta-box.php:334
+#: includes/class-meta-box.php:360
 msgid "جست‌وجوی درس…"
 msgstr ""
 
-#: includes/class-meta-box.php:314
+#: includes/class-meta-box.php:340
 msgid "جست‌وجوی دوره"
 msgstr ""
 
-#: includes/class-meta-box.php:314
+#: includes/class-meta-box.php:340
 msgid "جست‌وجوی دوره…"
 msgstr ""
 
@@ -854,11 +878,11 @@ msgid "حجم"
 msgstr ""
 
 #. translators: %s: حداکثر حجم به مگابایت
-#: includes/class-meta-box.php:806
+#: includes/class-meta-box.php:869
 msgid "حجم فایل بیش از حد مجاز است (حداکثر %s مگابایت)."
 msgstr ""
 
-#: includes/class-meta-box.php:918
+#: includes/class-meta-box.php:981
 msgid "حجم فایل زیرنویس بیش از ۵ مگابایت است."
 msgstr ""
 
@@ -907,6 +931,7 @@ msgid "خطا"
 msgstr ""
 
 #: includes/class-player.php:89
+#: includes/class-player.php:177
 msgid "خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
@@ -955,7 +980,7 @@ msgstr ""
 msgid "در php.ini یا کانفیگ هاست، disable_functions شامل proc_open و exec نباشد."
 msgstr ""
 
-#: includes/class-meta-box.php:145
+#: includes/class-meta-box.php:171
 msgid "در انتظار انکود"
 msgstr ""
 
@@ -1006,12 +1031,12 @@ msgstr ""
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
-#: includes/class-stream.php:218
-#: includes/class-stream.php:387
+#: includes/class-stream.php:273
+#: includes/class-stream.php:448
 msgid "درخواست معتبر نیست."
 msgstr ""
 
-#: includes/class-player.php:187
+#: includes/class-player.php:264
 msgid "درخواست نامعتبر"
 msgstr ""
 
@@ -1024,38 +1049,39 @@ msgstr ""
 msgid "درخواست‌ها بیش از حد مجاز است. کمی بعد تلاش کنید."
 msgstr ""
 
-#: includes/class-stream.php:422
+#: includes/class-stream.php:483
 msgid "درخواست‌های بیش از حد."
 msgstr ""
 
 #: includes/class-key-server.php:64
-#: includes/class-stream.php:143
-#: includes/class-stream.php:290
-#: includes/class-stream.php:332
+#: includes/class-stream.php:149
+#: includes/class-stream.php:214
+#: includes/class-stream.php:347
+#: includes/class-stream.php:391
 msgid "درخواست‌های بیش از حد. کمی بعد تلاش کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:331
+#: includes/class-meta-box.php:357
 msgid "درس"
 msgstr ""
 
-#: includes/class-meta-box.php:396
+#: includes/class-meta-box.php:422
 msgid "درس %d"
 msgstr ""
 
-#: includes/class-meta-box.php:263
+#: includes/class-meta-box.php:289
 msgid "درس انتخاب‌شده"
 msgstr ""
 
-#: includes/class-player.php:186
+#: includes/class-player.php:263
 msgid "درس هنوز باز نشده"
 msgstr ""
 
-#: includes/class-meta-box.php:388
+#: includes/class-meta-box.php:414
 msgid "درس‌هایی که همین ویدیو را نمایش می‌دهند:"
 msgstr ""
 
-#: includes/class-meta-box.php:249
+#: includes/class-meta-box.php:275
 msgid "دسترسی — چه کسی می‌تواند ببیند؟"
 msgstr ""
 
@@ -1067,8 +1093,12 @@ msgstr ""
 msgid "دسترسی به این مخزن وجود ندارد. برای مخزن خصوصی، توکن با مجوز مناسب لازم است."
 msgstr ""
 
-#: includes/class-player.php:185
-#: includes/class-player.php:190
+#: includes/class-stream.php:206
+msgid "دسترسی پیش‌نمایش ندارید."
+msgstr ""
+
+#: includes/class-player.php:262
+#: includes/class-player.php:267
 msgid "دسترسی محدود"
 msgstr ""
 
@@ -1085,19 +1115,19 @@ msgstr ""
 
 #: admin/class-admin-menu.php:607
 #: admin/views/watch-log.php:201
-#: includes/class-meta-box.php:596
+#: includes/class-meta-box.php:659
 msgid "دستگاه"
 msgstr ""
 
-#: includes/class-meta-box.php:311
+#: includes/class-meta-box.php:337
 msgid "دوره"
 msgstr ""
 
-#: includes/class-meta-box.php:267
+#: includes/class-meta-box.php:293
 msgid "دوره به‌صورت خودکار از درس انتخاب‌شده خوانده می‌شود؛ نیازی به انتخاب جداگانه نیست."
 msgstr ""
 
-#: includes/class-meta-box.php:272
+#: includes/class-meta-box.php:298
 msgid "دوره‌ی انتخاب‌شده"
 msgstr ""
 
@@ -1133,7 +1163,7 @@ msgstr ""
 msgid "ریشهٔ نسخهٔ جدید پیدا نشد."
 msgstr ""
 
-#: includes/class-meta-box.php:719
+#: includes/class-meta-box.php:782
 msgid "زبان"
 msgstr ""
 
@@ -1146,14 +1176,15 @@ msgid "زمان توکن دسترسی تمام شده است؛ صفحه را د�
 msgstr ""
 
 #: includes/class-player.php:92
+#: includes/class-player.php:180
 msgid "زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-meta-box.php:703
+#: includes/class-meta-box.php:766
 msgid "زیرنویس (اختیاری)"
 msgstr ""
 
-#: includes/class-stream.php:393
+#: includes/class-stream.php:454
 msgid "زیرنویس یافت نشد."
 msgstr ""
 
@@ -1186,7 +1217,7 @@ msgstr ""
 msgid "ساختار ZIP غیرمنتظره است (باید یک پوشهٔ ریشه داشته باشد)."
 msgstr ""
 
-#: includes/class-meta-box.php:937
+#: includes/class-meta-box.php:1000
 msgid "ساختار فایل زیرنویس معتبر نیست (باید با WEBVTT شروع شود)."
 msgstr ""
 
@@ -1205,7 +1236,7 @@ msgstr ""
 
 #: admin/class-admin-menu.php:606
 #: admin/views/watch-log.php:199
-#: includes/class-meta-box.php:595
+#: includes/class-meta-box.php:658
 msgid "سگمنت"
 msgstr ""
 
@@ -1248,7 +1279,7 @@ msgstr ""
 msgid "شناسه کاربر:"
 msgstr ""
 
-#: includes/class-meta-box.php:136
+#: includes/class-meta-box.php:162
 msgid "شناسه:"
 msgstr ""
 
@@ -1256,7 +1287,7 @@ msgstr ""
 msgid "شناسه‌ی ویدیو پیدا نشد."
 msgstr ""
 
-#: includes/class-meta-box.php:170
+#: includes/class-meta-box.php:196
 #: includes/class-post-type.php:74
 msgid "شورت‌کد"
 msgstr ""
@@ -1289,7 +1320,7 @@ msgstr ""
 msgid "عملیات"
 msgstr ""
 
-#: includes/class-meta-box.php:211
+#: includes/class-meta-box.php:237
 msgid "عنوان فارسی مشکلی ندارد؛ شناسه‌ی فنی ویدیو جدا ذخیره می‌شود و با تغییر عنوان، فایل‌ها گم نمی‌شوند. حداکثر حجم از تنظیمات (پیش‌فرض ۲ گیگ) خوانده می‌شود."
 msgstr ""
 
@@ -1305,7 +1336,7 @@ msgstr ""
 msgid "فایل"
 msgstr ""
 
-#: includes/class-meta-box.php:209
+#: includes/class-meta-box.php:235
 msgid "فایل MP4/M4V/MOV را بکشید یا کلیک کنید — پس از ذخیره، انکود در پس‌زمینه انجام می‌شود."
 msgstr ""
 
@@ -1371,7 +1402,7 @@ msgstr ""
 msgid "فایل دانلودشده خالی یا ناقص است."
 msgstr ""
 
-#: includes/class-stream.php:297
+#: includes/class-stream.php:354
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
@@ -1412,7 +1443,7 @@ msgstr ""
 msgid "فایل‌های حذف‌شده"
 msgstr ""
 
-#: includes/class-meta-box.php:160
+#: includes/class-meta-box.php:186
 msgid "فعلاً فقط مدیران"
 msgstr ""
 
@@ -1420,11 +1451,11 @@ msgstr ""
 msgid "فقط دانشجویانی که در دوره‌ی این درس ثبت‌نام کرده‌اند ویدیو را می‌بینند. مدیر سایت همیشه دسترسی دارد."
 msgstr ""
 
-#: includes/class-meta-box.php:926
+#: includes/class-meta-box.php:989
 msgid "فقط فایل زیرنویس با پسوند .vtt پذیرفته می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:823
+#: includes/class-meta-box.php:886
 msgid "فقط فایل‌های ویدیویی MP4/M4V/MOV پذیرفته می‌شوند."
 msgstr ""
 
@@ -1432,11 +1463,11 @@ msgstr ""
 msgid "فیلتر"
 msgstr ""
 
-#: includes/class-meta-box.php:263
+#: includes/class-meta-box.php:289
 msgid "قابل پخش است (مدیران همیشه دسترسی دارند)."
 msgstr ""
 
-#: includes/class-meta-box.php:272
+#: includes/class-meta-box.php:298
 msgid "قابل پخش است."
 msgstr ""
 
@@ -1471,7 +1502,7 @@ msgstr ""
 #: admin/class-admin-menu.php:601
 #: admin/views/watch-log.php:90
 #: admin/views/watch-log.php:195
-#: includes/class-meta-box.php:592
+#: includes/class-meta-box.php:655
 msgid "کاربر"
 msgstr ""
 
@@ -1484,22 +1515,22 @@ msgstr ""
 msgid "کامیت"
 msgstr ""
 
-#: includes/class-meta-box.php:172
-#: includes/class-meta-box.php:178
+#: includes/class-meta-box.php:198
+#: includes/class-meta-box.php:204
 msgid "کپی"
 msgstr ""
 
-#: includes/class-meta-box.php:542
+#: includes/class-meta-box.php:605
 msgid "کسانی که این ویدیو را دیده‌اند"
 msgstr ""
 
 #: includes/class-key-server.php:80
-#: includes/class-stream.php:344
+#: includes/class-stream.php:403
 msgid "کلید قابل خواندن نیست."
 msgstr ""
 
 #: includes/class-key-server.php:74
-#: includes/class-stream.php:338
+#: includes/class-stream.php:397
 msgid "کلید یافت نشد."
 msgstr ""
 
@@ -1531,7 +1562,7 @@ msgstr ""
 msgid "گیت‌هاب پاسخ ناموفق برگرداند (کد %d)."
 msgstr ""
 
-#: includes/class-meta-box.php:514
+#: includes/class-meta-box.php:540
 msgid "لغو انکود"
 msgstr ""
 
@@ -1543,7 +1574,7 @@ msgstr ""
 msgid "لینک Embed (مخصوص LearnDash)"
 msgstr ""
 
-#: includes/class-meta-box.php:176
+#: includes/class-meta-box.php:202
 msgid "لینک امن"
 msgstr ""
 
@@ -1555,7 +1586,7 @@ msgstr ""
 msgid "محتوای توکن دسترسی خوانده نشد."
 msgstr ""
 
-#: includes/class-meta-box.php:157
+#: includes/class-meta-box.php:183
 msgid "محدود به دوره"
 msgstr ""
 
@@ -1585,7 +1616,7 @@ msgid "مخزن و شاخه‌ای که نسخهٔ افزونه از آن خوا
 msgstr ""
 
 #: admin/views/watch-log.php:198
-#: includes/class-meta-box.php:594
+#: includes/class-meta-box.php:657
 msgid "مدت"
 msgstr ""
 
@@ -1594,6 +1625,7 @@ msgid "مدت (ثانیه)"
 msgstr ""
 
 #: includes/class-player.php:90
+#: includes/class-player.php:178
 msgid "مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند."
 msgstr ""
 
@@ -1618,11 +1650,11 @@ msgid "مسیر واقعی پوشهٔ افزونه"
 msgstr ""
 
 #. translators: %s: عنوان دوره
-#: includes/class-player.php:208
+#: includes/class-player.php:285
 msgid "مشاهده دوره: %s"
 msgstr ""
 
-#: includes/class-meta-box.php:641
+#: includes/class-meta-box.php:704
 msgid "مشاهدهٔ گزارش کامل این ویدیو"
 msgstr ""
 
@@ -1646,7 +1678,7 @@ msgstr ""
 msgid "مقیاس اندازهٔ فونت واترمارک"
 msgstr ""
 
-#: includes/class-meta-box.php:579
+#: includes/class-meta-box.php:642
 msgid "میانگین تماشا"
 msgstr ""
 
@@ -1707,7 +1739,7 @@ msgstr ""
 msgid "نشست"
 msgstr ""
 
-#: includes/class-stream.php:432
+#: includes/class-stream.php:493
 msgid "نشست پخش پایان یافت. اگر در دستگاه دیگری وارد شده‌اید، همان پخش فعال است."
 msgstr ""
 
@@ -1719,11 +1751,11 @@ msgstr ""
 msgid "نشست‌های پخش"
 msgstr ""
 
-#: includes/class-meta-box.php:563
+#: includes/class-meta-box.php:626
 msgid "نفر یکتا"
 msgstr ""
 
-#: includes/class-meta-box.php:587
+#: includes/class-meta-box.php:650
 msgid "نکتهٔ حریم خصوصی: IP فقط به‌صورت هش یک‌طرفه ذخیره می‌شود — مقدار خام IP هرگز نگه داشته نمی‌شود."
 msgstr ""
 
@@ -1764,7 +1796,7 @@ msgstr ""
 msgid "همه‌ی ویدیوها به پوشه‌ی امن منتقل شده‌اند"
 msgstr ""
 
-#: includes/class-meta-box.php:276
+#: includes/class-meta-box.php:302
 msgid "هنوز به هیچ دوره‌ای وصل نیست — فقط مدیران می‌بینند. برای فعال‌سازی محدودیت، پایین یک دوره (یا درس) انتخاب و ذخیره کنید."
 msgstr ""
 
@@ -1772,19 +1804,23 @@ msgstr ""
 msgid "هنوز پشتیبانی ساخته نشده است. پیش از هر آپدیت، به‌صورت خودکار پشتیبان گرفته می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:586
+#: includes/class-meta-box.php:649
 msgid "هنوز کسی این ویدیو را در ۳۰ روز اخیر ندیده است. پس از اولین پخش واقعی (با لاگین)، همین‌جا نام، ایمیل و زمان تماشا نمایش داده می‌شود."
 msgstr ""
 
-#: includes/class-meta-box.php:411
+#: includes/class-meta-box.php:437
 msgid "هنوز هیچ درسی این ویدیو را به‌صورت مستقیم embed نکرده؛ دسترسی از همین صفحه (دوره/درس بالا) اعمال می‌شود."
+msgstr ""
+
+#: includes/class-meta-box.php:577
+msgid "هنوز ویدیویی آپلود نشده — پس از اولین ذخیره، پیش‌نمایش اینجا ظاهر می‌شود."
 msgstr ""
 
 #: admin/views/settings.php:216
 msgid "هیچ — همه منتقل شده‌اند"
 msgstr ""
 
-#: includes/class-meta-box.php:403
+#: includes/class-meta-box.php:429
 msgid "و %d مورد دیگر…"
 msgstr ""
 
@@ -1792,11 +1828,11 @@ msgstr ""
 msgid "واترمارک"
 msgstr ""
 
-#: includes/class-player.php:221
+#: includes/class-player.php:298
 msgid "ورود به حساب کاربری"
 msgstr ""
 
-#: includes/class-player.php:182
+#: includes/class-player.php:259
 msgid "ورود لازم است"
 msgstr ""
 
@@ -1819,11 +1855,11 @@ msgstr ""
 msgid "ویدیو"
 msgstr ""
 
-#: includes/class-player.php:183
+#: includes/class-player.php:260
 msgid "ویدیو آماده نیست"
 msgstr ""
 
-#: includes/class-player.php:184
+#: includes/class-player.php:261
 msgid "ویدیو به دوره متصل نشده"
 msgstr ""
 
@@ -1833,6 +1869,10 @@ msgstr ""
 
 #: admin/views/settings.php:147
 msgid "ویدیو را از داخل ویرایشگر درس یا مبحث (کادر «ویدیوی امن این درس») به آن مرحله متصل کنید. دسترسی فقط برای دانشجویان ثبت‌نام‌کرده‌ی همان دوره فعال می‌شود."
+msgstr ""
+
+#: includes/class-meta-box.php:583
+msgid "ویدیو هنوز انکود نشده — پس از اتمام صف، همین‌جا پخش خواهد شد."
 msgstr ""
 
 #: includes/class-embed.php:46
@@ -1871,11 +1911,11 @@ msgstr ""
 msgid "ویدیویی یافت نشد"
 msgstr ""
 
-#: includes/class-meta-box.php:377
+#: includes/class-meta-box.php:403
 msgid "ویرایش درس"
 msgstr ""
 
-#: includes/class-meta-box.php:366
+#: includes/class-meta-box.php:392
 msgid "ویرایش دوره در LearnDash"
 msgstr ""
 

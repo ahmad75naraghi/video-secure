@@ -128,6 +128,83 @@ final class Player {
 	}
 
 	/**
+	 * رندر پلیر برای پیش‌نمایش ادمین — بدون بررسی دسترسی، دقیقاً همانند فرانت.
+	 *
+	 * در صفحه‌ی ویرایش `secure_video` ادمین باید ویدیو را همان شکلی ببیند
+	 * که کاربر در فرانت می‌بیند، بدون اینکه شرط ثبت‌نام دوره اعمال شود.
+	 *
+	 * @param string $name نام ویدیو.
+	 * @return string
+	 */
+	public static function render_preview( string $name ): string {
+		$name = sanitize_text_field( $name );
+
+		if ( '' === $name || ! Storage::is_valid_name( $name ) ) {
+			return '';
+		}
+
+		Assets::enqueue();
+
+		// در پیش‌نمایش ادمین فقط «آماده نبودن» را نشان می‌دهیم؛ بقیه‌ی
+		// دلایل دسترسی (not_enrolled/locked/…) نادیده گرفته می‌شود تا
+		// پیش‌نمایش دقیقاً مثل فرانت رندر شود.
+		if ( ! Storage::is_encoded( $name ) ) {
+			return self::render_notice( 'not_ready', $name );
+		}
+
+		$html_id  = wp_unique_id( 'secure-vid-preview-' );
+		$template = Template_Settings::get();
+
+		$config = array(
+			'id'           => $html_id,
+			'name'         => $name,
+			'sessionUrl'   => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_PREVIEW ),
+			'heartbeatUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_HEARTBEAT ),
+			'endUrl'       => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_END ),
+			'watermark'    => array_merge(
+				array(
+					'line1' => '',
+					'line2' => '',
+				),
+				array(
+					'opacity'  => (float) $template['wm_opacity'],
+					'interval' => (int) $template['wm_interval'],
+					'scale'    => (float) $template['wm_font_scale'],
+				)
+			),
+			'i18n'       => array(
+				'resume'       => __( 'برای ادامه پخش روی صفحه کلیک کنید', 'falnic-secure-hls' ),
+				'error'        => __( 'خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'unsupported'  => __( 'مرورگر شما از پخش این ویدیو پشتیبانی نمی‌کند.', 'falnic-secure-hls' ),
+				'sessionError' => __( 'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.', 'falnic-secure-hls' ),
+				'expired'      => __( 'زمان دسترسی پخش تمام شد؛ صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'sessionEnded' => __( 'این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),
+				'multiDevice'  => __( 'این حساب در دستگاه دیگری در حال پخش است. ابتدا پخش قبلی را ببندید.', 'falnic-secure-hls' ),
+			),
+		);
+
+		$config = apply_filters( 'falnic_player_config', $config, $name );
+
+		$args = array(
+			'html_id'     => $html_id,
+			'name'        => $name,
+			'config_json' => (string) wp_json_encode(
+				$config,
+				JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+			),
+		);
+
+		ob_start();
+		$template_path = FALNIC_DIR . 'templates/player.php';
+
+		if ( is_readable( $template_path ) ) {
+			include $template_path;
+		}
+
+		return (string) ob_get_clean();
+	}
+
+	/**
 	 * خطوط واترمارک برای کاربر جاری.
 	 *
 	 * @return array

@@ -57,6 +57,11 @@ final class Stream {
 	public const ACTION_END = 'falnic_stream_end';
 
 	/**
+	 * اکشن پیش‌نمایش ادمین — بدون بررسی ثبت‌نام.
+	 */
+	public const ACTION_PREVIEW = 'falnic_stream_preview';
+
+	/**
 	 * سقف درخواست کلید در دقیقه.
 	 */
 	private const KEY_LIMIT = 30;
@@ -95,6 +100,7 @@ final class Stream {
 			self::ACTION_SUBTITLE  => 'subtitle',
 			self::ACTION_HEARTBEAT => 'heartbeat',
 			self::ACTION_END       => 'end_session',
+			self::ACTION_PREVIEW   => 'preview_session',
 		);
 
 		foreach ( $actions as $action => $method ) {
@@ -183,6 +189,53 @@ final class Stream {
 	}
 
 	/**
+	 * AJAX: نشست پیش‌نمایش ادمین — بدون چک ثبت‌نام، فقط edit_post.
+	 *
+	 * @return void
+	 */
+	public static function preview_session(): void {
+		$name = self::request_name();
+
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'برای پیش‌نمایش وارد شوید.', 'falnic-secure-hls' ) ), 401 );
+		}
+
+		$post_id = Post_Type::find_by_name( $name );
+
+		if ( $post_id <= 0 || ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'دسترسی پیش‌نمایش ندارید.', 'falnic-secure-hls' ) ), 403 );
+		}
+
+		if ( ! Storage::is_encoded( $name ) ) {
+			wp_send_json_error( array( 'message' => Access::message( 'not_ready' ) ), 404 );
+		}
+
+		if ( self::rate_limited( 'session', self::SESSION_LIMIT ) ) {
+			wp_send_json_error( array( 'message' => __( 'درخواست‌های بیش از حد. کمی بعد تلاش کنید.', 'falnic-secure-hls' ) ), 429 );
+		}
+
+		$user_id = (int) get_current_user_id();
+		$sid     = Play_Registry::start( $user_id, $name );
+
+		if ( is_wp_error( $sid ) ) {
+			wp_send_json_error( array( 'reason' => $sid->get_error_code(), 'message' => $sid->get_error_message() ), 409 );
+		}
+
+		$ttl   = max( 60, (int) get_option( 'falnic_token_ttl', 600 ) );
+		$extra = array( 'sid' => $sid, 'preview' => 1, 'pid' => $post_id );
+
+		wp_send_json_success( array(
+			'name'      => $name,
+			'sid'       => $sid,
+			'src'       => Token::url( self::ACTION_MANIFEST, $name, Token::SCOPE_MANIFEST, $extra, $ttl ),
+			'expires'   => time() + $ttl,
+			'watermark' => Player::watermark_lines(),
+			'subtitles' => self::subtitle_sources( $name, $extra, $ttl ),
+			'heartbeat' => Token::issue( Token::SCOPE_HEARTBEAT, $name, $extra, max( $ttl, 900 ) ),
+		) );
+	}
+
+	/**
 	 * AJAX: تحویل manifest (اصلی یا یکی از کیفیت‌ها).
 	 *
 	 * @return void
@@ -197,10 +250,12 @@ final class Stream {
 			self::fail( $claims->get_error_message(), self::token_status() );
 		}
 
-		$reason = Access::reason( $name );
+		if ( ! self::is_preview_allowed( $claims, $name ) ) {
+			$reason = Access::reason( $name );
 
-		if ( 'ok' !== $reason ) {
-			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			if ( 'ok' !== $reason ) {
+				self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			}
 		}
 
 		if ( ! self::session_alive( $claims ) ) {
@@ -275,10 +330,12 @@ final class Stream {
 			self::fail( $claims->get_error_message(), self::token_status() );
 		}
 
-		$reason = Access::reason( $name );
+		if ( ! self::is_preview_allowed( $claims, $name ) ) {
+			$reason = Access::reason( $name );
 
-		if ( 'ok' !== $reason ) {
-			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			if ( 'ok' !== $reason ) {
+				self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			}
 		}
 
 		if ( ! self::session_alive( $claims ) ) {
@@ -317,10 +374,12 @@ final class Stream {
 			self::fail( $claims->get_error_message(), self::token_status() );
 		}
 
-		$reason = Access::reason( $name );
+		if ( ! self::is_preview_allowed( $claims, $name ) ) {
+			$reason = Access::reason( $name );
 
-		if ( 'ok' !== $reason ) {
-			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			if ( 'ok' !== $reason ) {
+				self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			}
 		}
 
 		if ( ! self::session_alive( $claims ) ) {
@@ -371,10 +430,12 @@ final class Stream {
 			self::fail( $claims->get_error_message(), self::token_status() );
 		}
 
-		$reason = Access::reason( $name );
+		if ( ! self::is_preview_allowed( $claims, $name ) ) {
+			$reason = Access::reason( $name );
 
-		if ( 'ok' !== $reason ) {
-			self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			if ( 'ok' !== $reason ) {
+				self::fail( Access::message( $reason ), 'guest' === $reason ? 401 : 403 );
+			}
 		}
 
 		if ( ! self::session_alive( $claims ) ) {
@@ -498,6 +559,13 @@ final class Stream {
 
 		if ( ! empty( $claims['sid'] ) ) {
 			$extra['sid'] = (string) $claims['sid'];
+		}
+
+		if ( ! empty( $claims['preview'] ) ) {
+			$extra['preview'] = 1;
+			if ( ! empty( $claims['pid'] ) ) {
+				$extra['pid'] = (int) $claims['pid'];
+			}
 		}
 
 		if ( 0 === strpos( $line, '#EXT-X-KEY' ) || 0 === strpos( $line, '#EXT-X-SESSION-KEY' ) ) {
@@ -877,8 +945,34 @@ final class Stream {
 		Watch_Log::touch( $sid, $bytes );
 	}
 
+
+	/**
+	 * آیا توکن پیش‌نمایش است و کاربر اجازه‌ی ویرایش دارد؟
+	 *
+	 * @param array  $claims ادعاهای توکن.
+	 * @param string $name   نام ویدیو.
+	 * @return bool
+	 */
+	private static function is_preview_allowed( array $claims, string $name ): bool {
+		if ( empty( $claims['preview'] ) ) {
+			return false;
+		}
+
+		$post_id = (int) ( $claims['pid'] ?? 0 );
+
+		if ( $post_id > 0 ) {
+			return current_user_can( 'edit_post', $post_id );
+		}
+
+		// fallback: با نام ویدیو پیدا کن
+		$post_id = Post_Type::find_by_name( $name );
+
+		return $post_id > 0 && current_user_can( 'edit_post', $post_id );
+	}
+
 	/**
 	 * کد وضعیت برای خطای توکن: مهمان ۴۰۱، کاربر لاگین‌کرده ۴۰۳.
+	 *
 	 *
 	 * @return int
 	 */
