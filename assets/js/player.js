@@ -71,6 +71,10 @@
 			}
 
 			var rect  = root.getBoundingClientRect();
+			// در فول‌اسکرین rect ممکن است صفر باشد اگر display:none موقت باشد — از پنجره استفاده کن
+			if ( ! rect.width || ! rect.height ) {
+				rect = { width: window.innerWidth || document.documentElement.clientWidth, height: window.innerHeight || document.documentElement.clientHeight };
+			}
 			var scale = Math.min(
 				rect.width / video.videoWidth,
 				rect.height / video.videoHeight
@@ -82,6 +86,16 @@
 
 			canvas.width  = Math.max( 1, Math.round( video.videoWidth * scale ) );
 			canvas.height = Math.max( 1, Math.round( video.videoHeight * scale ) );
+
+			// اگر واترمارک بیرون از کادر جدید افتاد، دوباره داخل بیاور
+			var bounds = measureWatermarkBounds ? measureWatermarkBounds() : null;
+			if ( bounds ) {
+				var maxX = canvas.width - bounds.maxW - bounds.pad;
+				var maxY = canvas.height - bounds.totalH - bounds.pad;
+				if ( state.wmX > maxX || state.wmY > maxY || state.wmX < bounds.pad || state.wmY < bounds.pad ) {
+					moveWatermark();
+				}
+			}
 
 			draw();
 		}
@@ -165,24 +179,67 @@
 		/* ---------------------------------------------------------------------
 		 * جابه‌جایی واترمارک
 		 * ------------------------------------------------------------------ */
-		function moveWatermark() {
-			if ( ! canvas.width || video.paused ) {
-				return;
-			}
-
-			var maxX = Math.max( 20, canvas.width - Math.round( canvas.width * 0.35 ) );
-			var maxY = Math.max( 30, canvas.height - Math.round( canvas.height * 0.15 ) );
-
-			state.wmX = Math.round( 20 + Math.random() * Math.max( 1, maxX - 20 ) );
-			state.wmY = Math.round( 30 + Math.random() * Math.max( 1, maxY - 30 ) );
-
-			draw();
+		function measureWatermarkBounds() {
+		var wm = config.watermark || {};
+		if ( ! state.ctx || ! wm.line1 ) {
+			return null;
 		}
+		var ctx = state.ctx;
+		var scale = 'number' === typeof wm.scale ? wm.scale : 1;
+		var h = canvas.height || 0;
+		var fontSize = Math.max( 11, Math.round( ( h / 42 ) * scale ) );
+		var pad = 12;
+		ctx.save();
+		ctx.font = '600 ' + fontSize + 'px Tahoma, Arial, sans-serif';
+		var w1 = ctx.measureText( wm.line1 ).width;
+		var w2 = 0;
+		if ( wm.line2 ) {
+			ctx.font = Math.max( 10, fontSize - 2 ) + 'px Tahoma, Arial, sans-serif';
+			w2 = ctx.measureText( wm.line2 ).width;
+		}
+		ctx.restore();
+		var maxW = Math.max( w1, w2 );
+		var totalH = fontSize + ( wm.line2 ? ( fontSize + 4 ) : 0 );
+		return { maxW: maxW, totalH: totalH, pad: pad, fontSize: fontSize };
+	}
 
-		/* ---------------------------------------------------------------------
-		 * لایه‌ی «برای ادامه کلیک کنید» هنگام از دست دادن فوکوس
-		 * ------------------------------------------------------------------ */
-		function buildPauseOverlay() {
+	function moveWatermark() {
+		if ( ! canvas.width || ! canvas.height ) {
+			return;
+		}
+		var bounds = measureWatermarkBounds();
+		if ( ! bounds ) {
+			return;
+		}
+		var maxX = Math.max( bounds.pad, canvas.width - bounds.maxW - bounds.pad );
+		var maxY = Math.max( bounds.pad, canvas.height - bounds.totalH - bounds.pad );
+		if ( maxX <= bounds.pad || maxY <= bounds.pad ) {
+			state.wmX = Math.round( ( canvas.width - bounds.maxW ) / 2 );
+			state.wmY = Math.round( ( canvas.height - bounds.totalH ) / 2 );
+		} else {
+			state.wmX = Math.round( bounds.pad + Math.random() * Math.max( 1, maxX - bounds.pad ) );
+			state.wmY = Math.round( bounds.pad + Math.random() * Math.max( 1, maxY - bounds.pad ) );
+		}
+		draw();
+	}
+
+	function scheduleWatermarkMove() {
+		if ( state.destroyed ) {
+			return;
+		}
+		var delay = 15000 + Math.random() * 15000;
+		if ( state.moveTimer ) {
+			clearTimeout( state.moveTimer );
+		}
+		state.moveTimer = setTimeout( function () {
+			if ( ! video.paused && canvas.width ) {
+				moveWatermark();
+			}
+			scheduleWatermarkMove();
+		}, delay );
+	}
+
+	function buildPauseOverlay() {
 			var overlay = document.createElement( 'button' );
 
 			overlay.type      = 'button';
@@ -250,18 +307,40 @@
 
 		window.addEventListener( 'resize', resizeCanvas );
 
+		// نگه‌داشتن مرجع Plyr برای مدیریت فول‌اسکرین سفارشی
+		var plyrInstance = null;
 		if ( window.Plyr ) {
 			// eslint-disable-next-line no-new
-			new window.Plyr( video, {
+			plyrInstance = new window.Plyr( video, {
 				controls: [ 'play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen' ],
 				settings: [ 'quality', 'speed' ],
 				hideControls: true,
 				clickToPlay: true,
 				ratio: null,
-				fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
+				fullscreen: { enabled: true, fallback: true, iosNative: false, container: root }
 			} );
 		} else {
 			video.controls = true;
+		}
+
+		// در حالت فول‌اسکرین باید canvas دوباره اندازه بگیرد — Plyr آن را در container سفارشی می‌برد
+		function onFullscreenChange() {
+			// تاخیر کوتاه تا مرورگر فول‌اسکرین را کامل کند
+			setTimeout( function () {
+				resizeCanvas();
+				draw();
+				if ( ! video.paused ) {
+					startLoop();
+				}
+			}, 100 );
+		}
+		document.addEventListener( 'fullscreenchange', onFullscreenChange );
+		document.addEventListener( 'webkitfullscreenchange', onFullscreenChange );
+		document.addEventListener( 'mozfullscreenchange', onFullscreenChange );
+		document.addEventListener( 'MSFullscreenChange', onFullscreenChange );
+		if ( plyrInstance && plyrInstance.on ) {
+			plyrInstance.on( 'enterfullscreen', onFullscreenChange );
+			plyrInstance.on( 'exitfullscreen', onFullscreenChange );
 		}
 
 		/* ---------------------------------------------------------------------
@@ -364,6 +443,10 @@
 			}
 
 			config.watermark = Object.assign( {}, config.watermark || {}, watermark );
+			// موقعیت اولیه واترمارک را داخل کادر بیاور
+			if ( canvas.width && canvas.height ) {
+				moveWatermark();
+			}
 			draw();
 		}
 
@@ -537,11 +620,9 @@
 
 		loadStream();
 
-		var moveInterval = config.watermark && config.watermark.interval
-			? Math.max( 5000, parseInt( config.watermark.interval, 10 ) * 1000 )
-			: DEFAULT_WATERMARK_INTERVAL;
-
-		state.moveTimer = window.setInterval( moveWatermark, moveInterval );
+		// جابجایی اولیه واترمارک + زمان‌بندی رندوم ۱۵-۳۰ ثانیه
+		moveWatermark();
+		scheduleWatermarkMove();
 
 		/* ---------------------------------------------------------------------
 		 * پاک‌سازی
@@ -556,9 +637,14 @@
 			stopHeartbeat();
 			sendEnd();
 			window.clearInterval( state.moveTimer );
+			window.clearTimeout( state.moveTimer );
 			window.removeEventListener( 'blur', onBlur );
 			window.removeEventListener( 'focus', onFocus );
 			window.removeEventListener( 'resize', resizeCanvas );
+			document.removeEventListener( 'fullscreenchange', onFullscreenChange );
+			document.removeEventListener( 'webkitfullscreenchange', onFullscreenChange );
+			document.removeEventListener( 'mozfullscreenchange', onFullscreenChange );
+			document.removeEventListener( 'MSFullscreenChange', onFullscreenChange );
 
 			destroyStream();
 

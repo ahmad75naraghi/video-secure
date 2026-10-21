@@ -4,7 +4,7 @@ Tags: hls, video, learndash, watermark, aes-128
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.5.5
+Stable tag: 3.5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,7 +52,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 == Changelog ==
 
-= 3.5.5 =
+= 3.5.6 =
 * رفع حالت «percent:100 اما failed» وقتی ffmpeg با وجود نوشتن کامل HLS با کد غیرصفر خارج می‌شود (مثل 7.0.2-static): اگر پلی‌لیست و کلید قابل خواندن باشند، انکود موفق حساب می‌شود.
 
 = 3.5.2 =

@@ -19,18 +19,45 @@
 }
 
 .falnic-secure-container:fullscreen,
-.falnic-secure-container:-webkit-full-screen {
-	aspect-ratio: auto;
-	height: 100%;
-	border-radius: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+.falnic-secure-container:-webkit-full-screen,
+.falnic-secure-container:-moz-full-screen,
+.falnic-secure-container:-ms-fullscreen {
+	aspect-ratio: auto !important;
+	height: 100% !important;
+	height: 100vh !important;
+	max-height: 100vh !important;
+	border-radius: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background: #000 !important;
+	width: 100% !important;
 }
 
-.falnic-secure-container .plyr {
-	width: 100%;
-	height: 100%;
+.falnic-secure-container:fullscreen .plyr,
+.falnic-secure-container:-webkit-full-screen .plyr,
+.falnic-secure-container:-moz-full-screen .plyr {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+/* فول‌اسکرین Plyr fallback (مرورگرهای بدون Fullscreen API) */
+.plyr--fullscreen-fallback .falnic-secure-container,
+.falnic-secure-container.plyr--fullscreen-fallback {
+	width: 100% !important;
+	height: 100vh !important;
+	border-radius: 0 !important;
+}
+
+.falnic-secure-container:fullscreen .falnic-canvas-overlay,
+.falnic-secure-container:-webkit-full-screen .falnic-canvas-overlay,
+.falnic-secure-container:-moz-full-screen .falnic-canvas-overlay {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: contain;
+	margin: auto;
 }
 
 /* ویدیوی اصلی پنهان است؛ تصویر از canvas می‌آید */
