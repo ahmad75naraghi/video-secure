@@ -37,6 +37,10 @@
 	max-height: 80vh;
 }
 
+/* مخفی‌کردن دکمه فول‌اسکرین بومی ویدیو — فول‌اسکرین باید از طریق کانتینر باشد تا Canvas دیده شود */
+.falnic-preview-video::-webkit-media-controls-fullscreen-button { display: none !important; }
+.falnic-preview-video::-webkit-media-controls-enclosure { overflow: hidden; }
+
 /* Canvas واترمارک — روی ویدیو، غیرقابل کلیک، بدون ترنزیشن (پرش آنی) */
 .falnic-preview-canvas {
 	position: absolute;
@@ -100,34 +104,53 @@
 	line-height: 1.8;
 }
 
-/* فول‌اسکرین — کل کانتینر و ویدیو + Canvas */
+/* فول‌اسکرین — کل کانتینر و ویدیو + Canvas باید تمام صفحه شوند */
 .falnic-preview-container:fullscreen,
 .falnic-preview-container:-webkit-full-screen,
-.falnic-preview-container:-moz-full-screen {
+.falnic-preview-container:-moz-full-screen,
+.falnic-preview-container:-ms-fullscreen {
 	width: 100vw !important;
 	height: 100vh !important;
 	max-height: 100vh !important;
+	max-width: 100vw !important;
 	border-radius: 0 !important;
 	background: #000 !important;
 }
 
 .falnic-preview-container:fullscreen .falnic-preview-video-wrap,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-video-wrap {
+.falnic-preview-container:-webkit-full-screen .falnic-preview-video-wrap,
+.falnic-preview-container:-moz-full-screen .falnic-preview-video-wrap,
+.falnic-preview-container:-ms-fullscreen .falnic-preview-video-wrap {
 	height: 100vh !important;
+	width: 100vw !important;
 	border-radius: 0 !important;
+	max-height: 100vh !important;
 }
 
 .falnic-preview-container:fullscreen .falnic-preview-video,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-video {
+.falnic-preview-container:-webkit-full-screen .falnic-preview-video,
+.falnic-preview-container:-moz-full-screen .falnic-preview-video,
+.falnic-preview-container:-ms-fullscreen .falnic-preview-video {
 	max-height: 100vh !important;
 	height: 100vh !important;
+	width: 100vw !important;
 	object-fit: contain;
 }
 
 .falnic-preview-container:fullscreen .falnic-preview-canvas,
-.falnic-preview-container:-webkit-full-screen .falnic-preview-canvas {
+.falnic-preview-container:-webkit-full-screen .falnic-preview-canvas,
+.falnic-preview-container:-moz-full-screen .falnic-preview-canvas,
+.falnic-preview-container:-ms-fullscreen .falnic-preview-canvas {
 	width: 100% !important;
 	height: 100% !important;
+	z-index: 2147483647 !important;
+}
+
+/* اگر به هر دلیل ویدیو خودش فول‌اسکرین شد (مثلاً مرورگر قدیمی) — Canvas را پنهان نکن،
+   بلکه با خروج از فول‌اسکرین ویدیو و ورود به فول‌اسکرین کانتینر جایگزین کن (در JS مدیریت می‌شود) */
+.falnic-preview-video:fullscreen,
+.falnic-preview-video:-webkit-full-screen {
+	object-fit: contain;
 }
 
 @media (prefers-reduced-motion: reduce) {

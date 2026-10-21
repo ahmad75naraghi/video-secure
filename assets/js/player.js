@@ -65,33 +65,75 @@
 		/* ---------------------------------------------------------------------
 		 * اندازه‌ی canvas بر اساس ابعاد نمایش، نه ابعاد منبع
 		 * ------------------------------------------------------------------ */
+		function isPlyrFullscreen() {
+			// Plyr fallback: class on <html> or on container
+			if ( document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement ) return true;
+			if ( root.classList.contains( 'plyr--fullscreen-fallback' ) || root.classList.contains( 'plyr--is-fullscreen' ) ) return true;
+			var plyrEl = root.querySelector( '.plyr' );
+			if ( plyrEl && ( plyrEl.classList.contains( 'plyr--fullscreen-enabled' ) || plyrEl.classList.contains( 'plyr--is-fullscreen' ) ) ) return true;
+			if ( document.documentElement.classList.contains( 'plyr--fullscreen-fallback' ) ) return true;
+			return false;
+		}
+
 		function resizeCanvas() {
-			if ( ! video.videoWidth || ! video.videoHeight ) {
-				return;
-			}
+			var vw = video.videoWidth || 0;
+			var vh = video.videoHeight || 0;
 
 			var rect;
 			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-			// اگر در فول‌اسکرین هستیم، اندازهٔ المنت فول‌اسکرین را بگیر (Plyr روی .plyr فول‌اسکرین می‌کند نه root)
+			var inFs = !!( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) || isPlyrFullscreen();
+
 			if ( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) {
 				rect = fsEl.getBoundingClientRect();
+				// اگر fullscreen است ولی rect هنوز کوچک است (transition)، از viewport استفاده کن
+				if ( inFs && ( ! rect.width || rect.width < 200 || rect.height < 200 ) ) {
+					rect = { width: window.innerWidth, height: window.innerHeight };
+				}
+			} else if ( inFs ) {
+				rect = { width: window.innerWidth, height: window.innerHeight };
 			} else {
 				rect = root.getBoundingClientRect();
 			}
 			if ( ! rect.width || ! rect.height ) {
 				rect = { width: window.innerWidth || document.documentElement.clientWidth, height: window.innerHeight || document.documentElement.clientHeight };
 			}
+
+			// اگر metadata هنوز نیامده، Canvas را به اندازهٔ کانتینر بساز (واترمارک باید حتی قبل از پخش دیده شود)
+			if ( ! vw || ! vh ) {
+				canvas.width = Math.max( 1, Math.round( rect.width ) );
+				canvas.height = Math.max( 1, Math.round( rect.height ) );
+				// اطمینان از اینکه Canvas حتی بدون ویدیو، کل کانتینر را پر می‌کند
+				canvas.style.width = Math.round( rect.width ) + 'px';
+				canvas.style.height = Math.round( rect.height ) + 'px';
+				var b2 = ( typeof measureWatermarkBounds === 'function' ? measureWatermarkBounds() : null );
+				if ( b2 ) {
+					var maxX2 = canvas.width - b2.maxW - b2.pad;
+					var maxY2 = canvas.height - b2.totalH - b2.pad;
+					if ( state.wmX > maxX2 || state.wmY > maxY2 || state.wmX < b2.pad || state.wmY < b2.pad ) {
+						moveWatermark();
+					}
+				}
+				draw();
+				return;
+			}
+
 			var scale = Math.min(
-				rect.width / video.videoWidth,
-				rect.height / video.videoHeight
+				rect.width / vw,
+				rect.height / vh
 			);
 
 			if ( ! isFinite( scale ) || scale <= 0 ) {
 				scale = 1;
 			}
 
-			canvas.width  = Math.max( 1, Math.round( video.videoWidth * scale ) );
-			canvas.height = Math.max( 1, Math.round( video.videoHeight * scale ) );
+			canvas.width  = Math.max( 1, Math.round( vw * scale ) );
+			canvas.height = Math.max( 1, Math.round( vh * scale ) );
+			// در فول‌اسکرین، canvas باید دقیقاً وسط wrapper باشد و وسط‌چین شود (CSS margin:auto)
+			// اما برای اطمینان، اندازهٔ استایل را هم ست می‌کنیم
+			if ( inFs ) {
+				canvas.style.width = canvas.width + 'px';
+				canvas.style.height = canvas.height + 'px';
+			}
 
 			// اگر واترمارک بیرون از کادر جدید افتاد، دوباره داخل بیاور
 			var bounds = ( typeof measureWatermarkBounds === 'function' ? measureWatermarkBounds() : null );
@@ -143,13 +185,25 @@
 		function draw() {
 			var ctx = state.ctx;
 
-			if ( ! ctx || ! video.videoWidth || ! canvas.width ) {
+			if ( ! ctx || ! canvas.width || ! canvas.height ) {
+				return;
+			}
+
+			// اگر ویدیو هنوز فریم ندارد، پس‌زمینه سیاه بگذار و فقط واترمارک را بکش
+			if ( ! video.videoWidth || ! video.videoHeight || video.readyState < 2 ) {
+				ctx.fillStyle = '#000';
+				ctx.fillRect( 0, 0, canvas.width, canvas.height );
+				drawWatermark();
 				return;
 			}
 
 			try {
 				ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
 			} catch ( e ) {
+				// حتی اگر drawImage شکست خورد، واترمارک را روی پس‌زمینه سیاه نشان بده
+				ctx.fillStyle = '#000';
+				ctx.fillRect( 0, 0, canvas.width, canvas.height );
+				drawWatermark();
 				return;
 			}
 
@@ -352,15 +406,23 @@
 			video.controls = true;
 		}
 
-		// در حالت فول‌اسکرین باید canvas دوباره اندازه بگیرد
+		// در حالت فول‌اسکرین باید canvas دوباره اندازه بگیرد — واترمارک حتماً باید روی ویدیو دیده شود
 		function onFullscreenChange() {
 			setTimeout( function () {
 				resizeCanvas();
 				draw();
+				// واترمارک را دوباره داخل کادر بیاور (مخصوصاً اگر اندازه عوض شده)
+				try { moveWatermark(); } catch(e) {}
+				draw();
 				if ( ! video.paused ) {
 					startLoop();
 				}
-			}, 100 );
+			}, 150 );
+			// Safari/transition fallback
+			setTimeout( function () {
+				resizeCanvas();
+				draw();
+			}, 600 );
 		}
 		document.addEventListener( 'fullscreenchange', onFullscreenChange );
 		document.addEventListener( 'webkitfullscreenchange', onFullscreenChange );

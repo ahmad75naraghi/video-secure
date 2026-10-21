@@ -1,7 +1,7 @@
 /**
  * Falnic Secure HLS — پلیر پیش‌نمایش حرفه‌ای (ادمین) — Canvas
  * واترمارک روی Canvas (غیرقابل حذف) + پرش آنی بدون ترنزیشن
- * هر 15-30 ثانیه رندوم داخل کادر ویدیو + فول‌اسکرین درست
+ * هر 15-30 ثانیه رندوم داخل کادر ویدیو + فول‌اسکرین درست (نام کاربری همیشه روی ویدیو)
  */
 (function () {
 	'use strict';
@@ -46,33 +46,53 @@
 			destroyed: false,
 			loading: false,
 			wmX: 20,
-			wmY: 20
+			wmY: 20,
+			redirectingFullscreen: false
 		};
 
 		var i18n = config.i18n || {};
 
 		// ---------- Canvas سایز ----------
+		function getFullscreenElement() {
+			return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null;
+		}
+
 		function resizeCanvas() {
-			// اندازهٔ واقعی wrap (یا fullscreenElement)
 			var rect;
-			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-			if (fsEl && (fsEl === root || fsEl.contains(root) || root.contains(fsEl))) {
-				rect = fsEl.getBoundingClientRect();
+			var fsEl = getFullscreenElement();
+			// اگر خودِ root یا wrap یا والدِ آن فول‌اسکرین است → اندازهٔ fullscreen
+			// همچنین اگر ویدیو خودش فول‌اسکرین شد (مرورگر قدیمی)، از wrap استفاده کن
+			if (fsEl && (fsEl === root || fsEl === wrap || fsEl.contains(root) || root.contains(fsEl))) {
+				// اگر fsEl خودِ video باشد، rect را از wrap بگیر (چون canvas بیرون video است)
+				if (fsEl === video) {
+					rect = wrap.getBoundingClientRect();
+					// در حالت video-fullscreen، همچنان به اندازهٔ viewport بساز
+					if (!rect.width || rect.width < 100) {
+						rect = { width: window.innerWidth, height: window.innerHeight };
+					}
+				} else {
+					rect = fsEl.getBoundingClientRect();
+				}
 			} else {
 				rect = wrap.getBoundingClientRect();
 			}
 			if (!rect.width || !rect.height) {
-				rect = { width: wrap.offsetWidth || 600, height: wrap.offsetHeight || 340 };
+				rect = { width: wrap.offsetWidth || root.offsetWidth || 600, height: wrap.offsetHeight || root.offsetHeight || 340 };
 			}
-			// Canvas را دقیقاً به اندازهٔ wrap بساز (برای دقت HiDPI از devicePixelRatio)
+			// اگر در فول‌اسکرین هستیم، viewport را بگیر (مرورگر گاهی rect را کوچک می‌دهد قبل از paint)
+			var inFs = !!fsEl;
+			if (inFs && (rect.width < window.innerWidth * 0.9 || rect.height < window.innerHeight * 0.9)) {
+				// فول‌اسکرین واقعی باید نزدیک viewport باشد
+				if (fsEl === root || (fsEl && root.contains(fsEl))) {
+					rect = { width: window.innerWidth, height: window.innerHeight };
+				}
+			}
 			var dpr = window.devicePixelRatio || 1;
 			canvas.width = Math.round(rect.width * dpr);
 			canvas.height = Math.round(rect.height * dpr);
 			canvas.style.width = Math.round(rect.width) + 'px';
 			canvas.style.height = Math.round(rect.height) + 'px';
-			// مقیاس برای HiDPI
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			// اگر واترمارک بیرون افتاد، دوباره داخل بیاور
 			if (config.watermark && config.watermark.line1) {
 				ensureWatermarkInside();
 			}
@@ -85,8 +105,9 @@
 			var pad = 12;
 			var bounds = measureWatermark();
 			if (!bounds) return;
-			var maxX = (canvas.width / (window.devicePixelRatio||1)) - bounds.totalW - pad;
-			var maxY = (canvas.height / (window.devicePixelRatio||1)) - bounds.totalH - pad;
+			var dpr = window.devicePixelRatio || 1;
+			var maxX = (canvas.width / dpr) - bounds.totalW - pad;
+			var maxY = (canvas.height / dpr) - bounds.totalH - pad;
 			if (state.wmX > maxX || state.wmY > maxY || state.wmX < pad || state.wmY < pad) {
 				placeWatermarkRandom();
 			}
@@ -98,7 +119,6 @@
 			if (!wm.line1) return null;
 			var opacity = typeof wm.opacity === 'number' ? wm.opacity : 0.55;
 			var scale = typeof wm.scale === 'number' ? wm.scale : 1;
-			// اندازه فونت بر اساس ارتفاع canvas
 			var h = canvas.height / (window.devicePixelRatio || 1);
 			var fontSize = Math.max(12, Math.round((h / 40) * scale));
 			ctx.save();
@@ -121,7 +141,6 @@
 			var bounds = measureWatermark();
 			if (!bounds) return;
 
-			// پاک کن و دوباره بکش (بدون ترنزیشن — پرش آنی)
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.save();
 			ctx.textBaseline = 'top';
@@ -142,10 +161,8 @@
 		function applyWatermark(wm) {
 			if (!wm || !wm.line1) return;
 			config.watermark = Object.assign({}, config.watermark || {}, wm);
-			// اندازه Canvas را به‌روز کن و واترمارک را بکش
 			resizeCanvas();
 			placeWatermarkRandom();
-			// بدون ترنزیشن — یهو جابجا شود
 			drawWatermark();
 		}
 
@@ -170,13 +187,12 @@
 				state.wmX = Math.round(pad + Math.random() * Math.max(1, maxX - pad));
 				state.wmY = Math.round(pad + Math.random() * Math.max(1, maxY - pad));
 			}
-			// پرش آنی — بدون هیچ انیمیشن
 			drawWatermark();
 		}
 
 		function scheduleWatermark() {
 			if (state.destroyed) return;
-			var delay = 15000 + Math.random() * 15000; // 15-30 ثانیه رندوم
+			var delay = 15000 + Math.random() * 15000;
 			if (state.wmTimer) clearTimeout(state.wmTimer);
 			state.wmTimer = setTimeout(function () {
 				if (!state.destroyed) {
@@ -371,7 +387,7 @@
 
 		// ---------- فول‌اسکرین: Canvas هم باید همراهش برود ----------
 		function isFullscreen() {
-			return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+			return !!getFullscreenElement();
 		}
 
 		function requestFullscreen() {
@@ -382,36 +398,91 @@
 			else if (el.msRequestFullscreen) el.msRequestFullscreen();
 		}
 
-		video.addEventListener('dblclick', function () {
+		video.addEventListener('dblclick', function (e) {
+			e.preventDefault();
 			if (isFullscreen()) {
 				if (document.exitFullscreen) document.exitFullscreen();
 				else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+				else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+				else if (document.msExitFullscreen) document.msExitFullscreen();
 			} else {
 				requestFullscreen();
 			}
 		});
 
+		// دکمهٔ فول‌اسکرین اختصاصی اگر وجود داشت (برای آینده)
+		root.addEventListener('click', function (e) {
+			if (e.target && e.target.closest && e.target.closest('[data-falnic-fs]')) {
+				e.preventDefault();
+				if (isFullscreen()) {
+					if (document.exitFullscreen) document.exitFullscreen();
+				} else {
+					requestFullscreen();
+				}
+			}
+		});
+
 		function onFullscreenChange() {
+			var fsEl = getFullscreenElement();
+
+			// حالت بحرانی: کاربر با کنترل بومی، خودِ video را فول‌اسکرین کرده → canvas بیرون می‌ماند!
+			// فوراً از فول‌اسکرین video خارج شو و کانتینر را فول‌اسکرین کن.
+			if (fsEl === video && !state.redirectingFullscreen) {
+				state.redirectingFullscreen = true;
+				var exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+				if (exitFn) {
+					try {
+						var p = exitFn.call(document);
+						if (p && p.then) {
+							p.then(function() {
+								setTimeout(function() { state.redirectingFullscreen = false; requestFullscreen(); }, 150);
+							}).catch(function(){ state.redirectingFullscreen = false; });
+						} else {
+							setTimeout(function() { state.redirectingFullscreen = false; requestFullscreen(); }, 200);
+						}
+					} catch (e) { state.redirectingFullscreen = false; }
+				} else {
+					state.redirectingFullscreen = false;
+				}
+				return;
+			}
+			if (!fsEl) {
+				// خروج از فول‌اسکرین — فلگ را پاک کن
+				state.redirectingFullscreen = false;
+			}
+
+			// با تأخیر کوتاه Canvas را به اندازهٔ جدید بساز و واترمارک را دوباره بکش
 			setTimeout(function () {
 				resizeCanvas();
 				drawWatermark();
-				// واترمارک را دوباره داخل کادر بیاور
 				placeWatermarkRandom();
 			}, 200);
+			// بعضی مرورگرها (Safari) نیاز به یک بار دیگر بعد از paint دارند
+			setTimeout(function () {
+				resizeCanvas();
+				drawWatermark();
+			}, 600);
 		}
 		document.addEventListener('fullscreenchange', onFullscreenChange);
 		document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 		document.addEventListener('mozfullscreenchange', onFullscreenChange);
 		document.addEventListener('MSFullscreenChange', onFullscreenChange);
+		// iOS Safari رویداد جدا دارد
+		video.addEventListener('webkitbeginfullscreen', function(e) {
+			// iOS بومی: ویدیو فول‌اسکرین بومی می‌شود و Canvas دیده نمی‌شود — نمی‌توان جلوگیری کرد
+			// ولی پیام هشدار در کنسول می‌دهیم تا کاربر بداند
+			console.warn('[Falnic Preview] iOS native fullscreen — watermark may not be visible in native player');
+		});
+		video.addEventListener('webkitendfullscreen', function() {
+			setTimeout(function(){ resizeCanvas(); drawWatermark(); }, 100);
+		});
 		window.addEventListener('resize', function () {
 			clearTimeout(window._falnicResizeTimer);
 			window._falnicResizeTimer = setTimeout(function() { resizeCanvas(); drawWatermark(); }, 300);
 		});
-		// وقتی متادیتا لود شد Canvas را سایز کن
 		video.addEventListener('loadedmetadata', function() { resizeCanvas(); });
 
 		// ---------- شروع ----------
-		// Canvas اولیه را سایز کن (قبل از پخش)
 		resizeCanvas();
 		loadStream();
 

@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.12] — 2026-10-23
+
+### رفع
+- **واترمارک در فول‌اسکرین نمایش داده نمی‌شد:** علت دوگانه بود: ۱) در پیش‌نمایش ادمین، دکمهٔ فول‌اسکرین بومی مرورگر فقط خودِ `<video>` را فول‌اسکرین می‌کرد و `canvas` بیرون می‌ماند (رفع با `controlsList="nofullscreen"` + رهگیری `fullscreenchange` روی `video` و هدایت به فول‌اسکرین کانتینر). ۲) در پلیر اصلی، Plyr روی `.plyr` فول‌اسکرین می‌کند اما CSS فقط `.falnic-secure-container:fullscreen` را هدف گرفته بود؛ افزودن سلکتورهای `.plyr:fullscreen .falnic-canvas-overlay` و fallback، افزایش `z-index:2` و بازنویسی `resizeCanvas` برای `window.innerWidth` در حالت fallback. اکنون واترمارک (نام کاربری) روی Canvas در هر دو پلیر، داخل کادر و با پرش آنی 15-30s، حتی در فول‌اسکرین دیده می‌شود.
+
 ## [3.5.11] — 2026-10-23
 
 ### رفع

@@ -6,7 +6,7 @@
 			playsinline
 			preload="metadata"
 			controls
-			controlsList="nodownload noplaybackrate"
+			controlsList="nodownload noplaybackrate nofullscreen"
 			disablePictureInPicture
 			disableRemotePlayback
 			oncontextmenu="return false;"
