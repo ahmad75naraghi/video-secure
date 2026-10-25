@@ -425,6 +425,9 @@
 
 		window.addEventListener( 'resize', resizeCanvas );
 
+		// autoplay با صدا در کروم/سافاری بلاک می‌شود → اول muted
+		try { video.muted = true; video.setAttribute('muted',''); } catch(e){}
+
 		// نگه‌داشتن مرجع Plyr — فول‌اسکرین را خودِ Plyr روی .plyr انجام می‌دهد؛
 		// بوم (canvas) باید داخل همان کانتینر باشد تا در تمام‌صفحه دیده شود.
 		var plyrInstance = null;
@@ -436,6 +439,8 @@
 					settings: [ 'quality', 'speed' ],
 					hideControls: true,
 					clickToPlay: true,
+					muted: true,
+					volume: 1,
 					ratio: null,
 					fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
 				} );
@@ -564,10 +569,12 @@
 					resizeCanvas();
 					if(loadTimeout) { clearTimeout(loadTimeout); loadTimeout=0; }
 					// اگر تب هنوز مخفی بود، بعد از نمایان شدن دوباره resize خواهیم کرد
+					try { video.muted = true; } catch(e){}
 					video.play().then(function(){ dlog('play() ok after manifest'); updateDebug('playing'); }).catch(function(e){
 						dlog('play() blocked', e && e.message);
 						updateDebug('autoplay blocked: '+(e && e.message));
-						// bigPlay خودش نمایش داده می‌شود
+						// با muted هم بلاک شد → دکمه بزرگ نشان داده می‌شود
+						try { updateBigPlay(); } catch(e){}
 					});
 				});
 				state.hls.on( window.Hls.Events.FRAG_LOADED, function(ev,data){ if(isDebug && data && data.frag) dlog('FRAG', data.frag.sn, data.frag.url && data.frag.url.slice(-30)); });
@@ -872,7 +879,8 @@
 		canvas.style.pointerEvents = 'auto';
 		canvas.addEventListener('click', function(){
 			if(state.destroyed) return;
-			if(video.paused) video.play().catch(function(){});
+			dlog('canvas click paused='+video.paused);
+			if(video.paused) { try{ video.muted=false; }catch(e){} video.play().catch(function(){}); }
 			else video.pause();
 		});
 		// اگر autoplay مسدود شد، یک اورلیِ بزرگِ Play نشان بده تا سیاهِ خالی نماند
@@ -880,14 +888,27 @@
 		bigPlay.type='button'; bigPlay.className='falnic-bigplay';
 		bigPlay.innerHTML='▶';
 		bigPlay.setAttribute('aria-label','پخش');
-		bigPlay.style.cssText='position:absolute;inset:0;margin:auto;width:72px;height:72px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);color:#111;font-size:28px;cursor:pointer;z-index:4;display:none;align-items:center;justify-content:center;';
+		bigPlay.style.cssText='position:absolute;inset:0;margin:auto;width:72px;height:72px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);color:#111;font-size:28px;cursor:pointer;z-index:9;display:none;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,0.45);';
 		try{ (root.querySelector('.plyr__video-wrapper')||root).appendChild(bigPlay); }catch(e){ root.appendChild(bigPlay); }
-		function updateBigPlay(){ bigPlay.style.display = (video.paused && !state.destroyed && video.readyState>=1) ? 'flex' : 'none'; }
-		video.addEventListener('play', function(){ updateBigPlay(); startLoop(); });
-		video.addEventListener('pause', function(){ updateBigPlay(); stopLoop(); });
-		video.addEventListener('loadeddata', function(){ updateBigPlay(); draw(); });
-		video.addEventListener('canplay', updateBigPlay);
-		bigPlay.addEventListener('click', function(){ video.play().catch(function(){}); });
+		function updateBigPlay(){
+			var shouldShow = (video.paused && !state.destroyed && video.readyState>=1);
+			dlog('updateBigPlay shouldShow='+shouldShow+' paused='+video.paused+' rs='+video.readyState);
+			bigPlay.style.display = shouldShow ? 'flex' : 'none';
+			try{ updateDebug('bigPlay '+(shouldShow?'show':'hide')); }catch(e){}
+		}
+		video.addEventListener('play', function(){ dlog('video:play'); updateBigPlay(); startLoop(); });
+		video.addEventListener('pause', function(){ dlog('video:pause'); updateBigPlay(); stopLoop(); });
+		video.addEventListener('loadeddata', function(){ dlog('video:loadeddata->draw'); updateBigPlay(); resizeCanvas(); draw(); });
+		video.addEventListener('canplay', function(){ dlog('video:canplay'); updateBigPlay(); resizeCanvas(); draw(); });
+		bigPlay.addEventListener('click', function(){ dlog('bigPlay click'); try{ video.muted=false; }catch(e){} video.play().catch(function(){}); });
+		// حتی وقتی pause هستیم هر 600ms یک فریم بکش تا کاور سیاه نماند (فریم اول را نشان بده)
+		var pausedDrawTimer = setInterval(function(){
+			if(state.destroyed) { clearInterval(pausedDrawTimer); return; }
+			if(video.paused && video.readyState>=2 && video.videoWidth){
+				resizeCanvas(); // سایز ممکن است عوض شده باشد (ریسپانسیو)
+				draw();
+			}
+		}, 600);
 
 		// محافظت: پاک شدن Canvas = توقف کامل (ویدیو فقط روی Canvas دیده می‌شود)
 		var tamperEl = document.createElement('div');

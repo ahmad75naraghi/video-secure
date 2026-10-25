@@ -16,7 +16,7 @@
 	overflow: hidden;
 	aspect-ratio: var(--falnic-ratio, 16 / 9);
 	max-height: 100vh;
-	min-height: 200px;
+	min-height: 220px;
 	display: block;
 }
 /* فال‌بک مرورگرهای بدون aspect-ratio یا والدهای بدون ارتفاع */
@@ -26,6 +26,8 @@
 }
 /* اگر والدی تب/آکاردئون را display:none کرده بود، بعد از نمایان شدن درست نمایش بده */
 .falnic-secure-container.falnic--hidden-init { min-height: 260px; }
+/* Plyr ویدیو خودش را absolute کرده؛ Canvas باید همیشه دیده شود */
+.falnic-canvas-overlay { will-change: transform; }
 
 .falnic-secure-container:fullscreen,
 .falnic-secure-container:-webkit-full-screen,

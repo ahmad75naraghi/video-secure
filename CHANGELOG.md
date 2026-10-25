@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.18] — 2026-10-23
+
+### رفع
+- **سیاهی با `paused:true` و `readyState:4`:** `video.muted=true` + `plyr.muted:true` پیش‌فرض برای عبور از بلاکِ `autoplay` کروم، `MANIFEST_PARSED → muted play()`، `bigPlay` با `z-index:9` + `box-shadow` و لاگ، و `pausedDrawTimer 600ms` که حتی در حالت pause هر فریم اول را روی Canvas می‌کشد و `resizeCanvas()` را برای ریسپانسیو تکرار می‌کند.
+
 ## [3.5.17] — 2026-10-23
 
 ### رفع
