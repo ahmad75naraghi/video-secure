@@ -66,11 +66,15 @@ final class Player {
 
 		$template = Template_Settings::get();
 
-		$is_debug = ( isset( $_GET['falnic_debug'] ) && '1' === (string) $_GET['falnic_debug'] ) || current_user_can( 'manage_options' );
+		// دیباگ فقط برای مدیر و فقط وقتی ?falnic_debug=1 در آدرس باشد. پیش‌تر هر مدیری همیشه
+		// کادر دیباگ را روی پلیر می‌دید، و هر بازدیدکننده‌ای با افزودن پارامتر، خروجی
+		// Access::diagnose (شناسه‌ی دوره/درس و وضعیت ثبت‌نام) را در HTML صفحه می‌گرفت.
+		$is_debug = isset( $_GET['falnic_debug'] ) && '1' === (string) $_GET['falnic_debug'] && current_user_can( 'manage_options' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$config = array(
 			'id'           => $html_id,
 			'name'         => $name,
 			'debug'        => $is_debug,
+			'iconUrl'      => FALNIC_URL . 'assets/vendor/plyr/plyr.svg',
 			'sessionUrl'   => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_SESSION ),
 			'heartbeatUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_HEARTBEAT ),
 			'endUrl'       => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_END ),

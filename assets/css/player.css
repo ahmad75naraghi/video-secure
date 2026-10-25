@@ -29,6 +29,28 @@
 /* Plyr ویدیو خودش را absolute کرده؛ Canvas باید همیشه دیده شود */
 .falnic-canvas-overlay { will-change: transform; }
 
+/*
+ * اندازه‌ی پلیر را کانتینر تعیین می‌کند، نه Plyr.
+ *
+ * ویدیوی اصلی و Canvas هر دو absolute هستند، پس هیچ‌چیز ارتفاعی به .plyr و
+ * .plyr__video-wrapper نمی‌دهد. Plyr هم نسبت تصویر را فقط از روی ابعاد ویدیو می‌خواند
+ * و آن لحظه (قبل از metadata) صفر است؛ نتیجه: ارتفاع wrapper = 0 و Canvas (با
+ * max-height:100%) نامرئی می‌شد، در حالی که ویدیو درست پخش و روی Canvas کشیده می‌شد.
+ * اینجا .plyr را روی کل کانتینر (که خودش aspect-ratio دارد) می‌کشیم.
+ * حالت fallback تمام‌صفحه‌ی Plyr (position: fixed) دست‌نخورده می‌ماند.
+ */
+.falnic-secure-container .plyr:not(.plyr--fullscreen-fallback) {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+.falnic-secure-container .plyr__video-wrapper {
+	height: 100%;
+	aspect-ratio: auto !important;
+	padding-bottom: 0 !important;
+}
+
 .falnic-secure-container:fullscreen,
 .falnic-secure-container:-webkit-full-screen,
 .falnic-secure-container:-moz-full-screen,
@@ -69,7 +91,6 @@
 .plyr:fullscreen .falnic-canvas-overlay,
 .plyr:-webkit-full-screen .falnic-canvas-overlay,
 .plyr:-moz-full-screen .falnic-canvas-overlay,
-.plyr:fullscreen,
 .plyr--fullscreen-fallback .falnic-canvas-overlay,
 .falnic-secure-container.plyr--fullscreen-fallback .falnic-canvas-overlay,
 .falnic-secure-container.plyr--is-fullscreen .falnic-canvas-overlay {
@@ -190,6 +211,7 @@
 	text-align: center;
 	padding: 24px;
 	line-height: 1.9;
+	white-space: pre-line;
 }
 
 /* حالت وب‌سایت‌های راست‌به‌چپ */
