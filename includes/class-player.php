@@ -225,14 +225,18 @@ final class Player {
 			'line2' => '',
 		);
 
+		$template = Template_Settings::get();
+
+		if ( 'yes' !== ( $template['wm_enabled'] ?? 'no' ) ) {
+			return $lines;
+		}
+
 		if ( ! is_user_logged_in() ) {
 			return $lines;
 		}
 
 		$user = wp_get_current_user();
 		$full = trim( $user->first_name . ' ' . $user->last_name );
-
-		$template = Template_Settings::get();
 
 		$lines['line1'] = '' !== $full ? sprintf( '%s (%s)', $full, $user->user_login ) : $user->user_login;
 		$lines['line2'] = 'no' === $template['wm_show_email'] ? '' : (string) $user->user_email;
