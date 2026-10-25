@@ -57,10 +57,34 @@
 		};
 
 		var i18n = config.i18n || {};
+		// دیباگ: ?falnic_debug=1 یا config.debug یا ادمین
+		var isDebug = !!config.debug || /(?:\?|&)falnic_debug=1\b/.test(window.location.search) || !!window.FALNIC_DEBUG;
+		function dlog(){ if(isDebug) try{ console.log.apply(console, ['[Falnic]'].concat([].slice.call(arguments))); }catch(e){} }
+		function updateDebug(extra){
+			if(!isDebug) return;
+			try{
+				var el = root.querySelector('.falnic-debug');
+				if(!el){ el=document.createElement('div'); el.className='falnic-debug is-visible'; root.appendChild(el); }
+				else el.classList.add('is-visible');
+				var vw = video.videoWidth||0, vh=video.videoHeight||0, rect=root.getBoundingClientRect();
+				var info = {
+					video: config.name||'',
+					session: state.session ? {sid: state.session.sid, hasSrc: !!state.session.src} : null,
+					videoEl: { vw:vw, vh:vh, readyState: video.readyState, paused: video.paused, ended: video.ended, error: video.error? (video.error.message||video.error.code) : null, currentSrc: (video.currentSrc||video.src||'').slice(0,120) },
+					rect: {w: Math.round(rect.width), h: Math.round(rect.height), top: Math.round(rect.top)},
+					canvas: {w: canvas.width, h: canvas.height, sw: canvas.style.width, sh: canvas.style.height},
+					plyr: !!root.querySelector('.plyr'),
+					hls: state.hls ? 'attached' : 'none',
+					extra: extra||''
+				};
+				el.textContent = '[Falnic debug]\\n' + JSON.stringify(info, null, 2) + (extra ? '\\n---\\n'+String(extra) : '');
+			}catch(e){}
+		}
 
 		canvas.className = 'falnic-canvas-overlay';
 		root.appendChild( canvas );
 		state.ctx = canvas.getContext( '2d' );
+		dlog('mount', {id: config.id, name: config.name, hasPlyr: !!window.Plyr, hasHls: !!(window.Hls && window.Hls.isSupported && window.Hls.isSupported())});
 
 		/* ---------------------------------------------------------------------
 		 * اندازه‌ی canvas بر اساس ابعاد نمایش، نه ابعاد منبع
@@ -73,6 +97,27 @@
 			if ( plyrEl && ( plyrEl.classList.contains( 'plyr--fullscreen-enabled' ) || plyrEl.classList.contains( 'plyr--is-fullscreen' ) ) ) return true;
 			if ( document.documentElement.classList.contains( 'plyr--fullscreen-fallback' ) ) return true;
 			return false;
+		}
+
+		function getVisibleRect(){
+			var rect = root.getBoundingClientRect();
+			// تب لیرن‌دش / آکاردئون: المنت اول display:none است → rect صفر
+			if(rect.width < 10 || rect.height < 10){
+				// سعی کن والد قابل مشاهده را پیدا کنی
+				var visParent = root.parentElement;
+				while(visParent){
+					var pr = visParent.getBoundingClientRect();
+					if(pr.width > 20 && pr.height > 20){ rect = {width: pr.width, height: pr.width * 9/16}; break; }
+					visParent = visParent.parentElement;
+					if(!visParent || visParent === document.body) break;
+				}
+				if(rect.width < 10){
+					var fallbackW = root.clientWidth || root.offsetWidth || (root.parentElement && root.parentElement.clientWidth) || 640;
+					if(fallbackW < 10) fallbackW = 640;
+					rect = {width: fallbackW, height: fallbackW * 9/16};
+				}
+			}
+			return rect;
 		}
 
 		function resizeCanvas() {
@@ -92,10 +137,14 @@
 			} else if ( inFs ) {
 				rect = { width: window.innerWidth, height: window.innerHeight };
 			} else {
-				rect = root.getBoundingClientRect();
+				rect = getVisibleRect();
 			}
 			if ( ! rect.width || ! rect.height ) {
 				rect = { width: window.innerWidth || document.documentElement.clientWidth, height: window.innerHeight || document.documentElement.clientHeight };
+			}
+			if(inFs || rect.width < 10) dlog('resizeCanvas rect', rect, 'vw/vh', vw, vh);
+			if(!rect.width || rect.width < 10){
+				dlog('⚠️ rect still tiny - will retry', rect);
 			}
 
 			// اگر metadata هنوز نیامده، Canvas را به اندازهٔ کانتینر بساز (واترمارک باید حتی قبل از پخش دیده شود)
@@ -494,8 +543,10 @@
 		function startStream( src ) {
 			if ( ! src ) {
 				showError( i18n.error );
+				dlog('startStream: no src');
 				return;
 			}
+			dlog('startStream', src.slice(0,120));
 
 			if ( window.Hls && window.Hls.isSupported() ) {
 				state.hls = new window.Hls( {
@@ -503,8 +554,28 @@
 						xhr.withCredentials = true;
 					}
 				} );
+				dlog('HLS created, supported');
+
+				state.hls.on( window.Hls.Events.MEDIA_ATTACHED, function(){ dlog('HLS MEDIA_ATTACHED'); });
+				state.hls.on( window.Hls.Events.MANIFEST_PARSED, function(ev,data){
+					dlog('HLS MANIFEST_PARSED', data);
+					updateDebug('MANIFEST_PARSED levels='+(data && data.levels ? data.levels.length : '?'));
+					// مثل پیش‌نمایش: بعد از manifest باید resize + play
+					resizeCanvas();
+					if(loadTimeout) { clearTimeout(loadTimeout); loadTimeout=0; }
+					// اگر تب هنوز مخفی بود، بعد از نمایان شدن دوباره resize خواهیم کرد
+					video.play().then(function(){ dlog('play() ok after manifest'); updateDebug('playing'); }).catch(function(e){
+						dlog('play() blocked', e && e.message);
+						updateDebug('autoplay blocked: '+(e && e.message));
+						// bigPlay خودش نمایش داده می‌شود
+					});
+				});
+				state.hls.on( window.Hls.Events.FRAG_LOADED, function(ev,data){ if(isDebug && data && data.frag) dlog('FRAG', data.frag.sn, data.frag.url && data.frag.url.slice(-30)); });
+				state.hls.on( window.Hls.Events.LEVEL_LOADED, function(ev,data){ dlog('LEVEL_LOADED', data && data.details && data.details.live); });
 
 				state.hls.on( window.Hls.Events.ERROR, function ( event, data ) {
+					dlog('HLS ERROR', data);
+					updateDebug('HLS ERROR '+JSON.stringify(data && {type:data.type, details:data.details, fatal:data.fatal, response:data.networkDetails && data.networkDetails.status}).slice(0,300));
 					if ( ! data || ! data.fatal ) {
 						return;
 					}
@@ -512,6 +583,7 @@
 					if ( data.type === window.Hls.ErrorTypes.NETWORK_ERROR ) {
 						if ( ! state.retried && config.sessionUrl ) {
 							state.retried = true;
+							dlog('NETWORK_ERROR retry with new session');
 							destroyStream();
 							loadStream();
 							return;
@@ -529,7 +601,7 @@
 					}
 
 					console.warn('Falnic HLS fatal', data);
-					showError( i18n.error );
+					showError( i18n.error + ' (HLS fatal: '+(data.details||data.type)+')' );
 				} );
 
 				state.hls.loadSource( src );
@@ -539,12 +611,14 @@
 			}
 
 			if ( video.canPlayType( 'application/vnd.apple.mpegurl' ) ) {
+				dlog('native HLS');
 				video.src = src;
-
+				video.addEventListener('loadedmetadata', function nativeMeta(){ dlog('native loadedmetadata', video.videoWidth, video.videoHeight); resizeCanvas(); video.removeEventListener('loadedmetadata', nativeMeta); });
 				return;
 			}
 
 			showError( i18n.unsupported );
+			dlog('unsupported');
 		}
 
 		function destroyStream() {
@@ -710,6 +784,8 @@
 			}
 		} );
 
+		var loadTimeout = 0;
+		var visibilityCheckTimer = 0;
 		function loadStream() {
 			if ( ! config.sessionUrl ) {
 				startStream( config.src );
@@ -721,18 +797,70 @@
 			}
 
 			state.loading = true;
+			dlog('fetchSession start', config.name);
+			updateDebug('fetching session…');
+			if(loadTimeout) clearTimeout(loadTimeout);
+			loadTimeout = setTimeout(function(){
+				if(state.loading && !state.destroyed){
+					dlog('loadTimeout fired');
+					updateDebug('fetch timeout');
+					showError('بارگذاری بیش از حد طول کشید — اتصال را بررسی کنید');
+				}
+			}, 15000);
 
 			fetchSession().then( function ( session ) {
+				if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout=0; }
 				state.loading = false;
 				state.session = session;
+				dlog('session ok', {sid: session.sid, hasSrc: !!session.src, watermark: session.watermark});
+				updateDebug('session ok');
 				applyWatermark( session.watermark );
 				setSubtitles( session.subtitles );
 				startHeartbeat( session );
 				startStream( session.src || config.src );
+				// اگر والد مخفی بود، بعد از نمایان شدن دوباره resize کن
+				setupVisibilityObserver();
 			} ).catch( function ( error ) {
+				if(loadTimeout){ clearTimeout(loadTimeout); loadTimeout=0; }
 				state.loading = false;
+				dlog('session FAIL', error && error.message);
+				updateDebug('session FAIL: '+(error && error.message));
 				showError( error && error.message ? error.message : ( i18n.sessionError || i18n.error ) );
 			} );
+		}
+
+		// اگر کانتینر اول مخفی بود (لرن‌دش تب)، وقتی نمایان شد دوباره سایز بگیر
+		function setupVisibilityObserver(){
+			if(visibilityCheckTimer) return;
+			var lastW=0;
+			visibilityCheckTimer = setInterval(function(){
+				if(state.destroyed){ clearInterval(visibilityCheckTimer); return; }
+				var r = root.getBoundingClientRect();
+				if(r.width > 10 && r.width !== lastW){
+					dlog('visibility changed', r);
+					lastW = r.width;
+					resizeCanvas();
+					updateDebug('visibility change');
+					// بعد از چند ثانیه دیده شدن، دیگر چک نکن
+					setTimeout(function(){ clearInterval(visibilityCheckTimer); visibilityCheckTimer=0; }, 8000);
+				}
+			}, 400);
+			// ResizeObserver هم اگر موجود بود
+			try{
+				if(window.ResizeObserver){
+					var ro = new ResizeObserver(function(){ dlog('ResizeObserver'); resizeCanvas(); updateDebug('resizeObserver'); });
+					ro.observe(root);
+				}
+			}catch(e){}
+			// IntersectionObserver برای تب
+			try{
+				if(window.IntersectionObserver){
+					var io = new IntersectionObserver(function(entries){
+						entries.forEach(function(ent){ if(ent.isIntersecting){ dlog('Intersection visible'); resizeCanvas(); updateDebug('intersection visible'); } });
+					}, {threshold: 0.1});
+					io.observe(root);
+				}
+			}catch(e){}
 		}
 
 		loadStream();
@@ -784,12 +912,30 @@
 		canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 
 		// دیباگ: اگر بعد از 4 ثانیه هنوز MANIFEST_PARSED نیامده، لاگ بده تا سیاهی بی‌دلیل نماند
-		var manifestTimer = setTimeout(function(){
+		setTimeout(function(){
+			if(state.destroyed) return;
+			dlog('4s check', {hasSession: !!state.session, hasHls: !!state.hls, vw: video.videoWidth, vh: video.videoHeight, readyState: video.readyState, rect: root.getBoundingClientRect()});
+			updateDebug('4s check');
 			if(!state.session) return;
 			if(!video.videoWidth && !state.hls) {
 				console.warn('[Falnic] still no video dimensions after 4s — session ok but HLS not started', state.session);
+				updateDebug('⚠️ HLS not started after 4s');
+			}
+			// اگر هنوز کانواس 1×1 است یعنی تب مخفی بوده — سعی مجدد
+			if(canvas.width <= 10 || canvas.height <= 10){
+				dlog('canvas tiny after 4s, retry resize');
+				resizeCanvas();
+				updateDebug('retry resize (canvas tiny)');
 			}
 		}, 4000);
+		// اگر ادمین/دیباگ: هر 2 ثانیه debug را تازه کن
+		if(isDebug) setInterval(function(){ if(!state.destroyed) updateDebug(); }, 2000);
+		// لاگ Plyr
+		dlog('Plyr instance', !!window.Plyr);
+		// ویدیو ایونت‌ها
+		['loadstart','waiting','stalled','suspend','loadedmetadata','loadeddata','canplay','canplaythrough','playing','pause','ended','error'].forEach(function(ev){
+			video.addEventListener(ev, function(){ dlog('video:'+ev, {vw:video.videoWidth, vh:video.videoHeight, rs:video.readyState, err: video.error && video.error.code}); updateDebug('video:'+ev); if(ev==='loadedmetadata' || ev==='loadeddata' || ev==='canplay'){ resizeCanvas(); } });
+		});
 
 		/* ---------------------------------------------------------------------
 		 * پاک‌سازی

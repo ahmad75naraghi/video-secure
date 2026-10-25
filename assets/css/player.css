@@ -16,7 +16,16 @@
 	overflow: hidden;
 	aspect-ratio: var(--falnic-ratio, 16 / 9);
 	max-height: 100vh;
+	min-height: 200px;
+	display: block;
 }
+/* فال‌بک مرورگرهای بدون aspect-ratio یا والدهای بدون ارتفاع */
+@supports not (aspect-ratio: 16 / 9) {
+	.falnic-secure-container { padding-top: 56.25%; height: 0; min-height: 0; }
+	.falnic-secure-container > * { position: absolute; inset: 0; }
+}
+/* اگر والدی تب/آکاردئون را display:none کرده بود، بعد از نمایان شدن درست نمایش بده */
+.falnic-secure-container.falnic--hidden-init { min-height: 260px; }
 
 .falnic-secure-container:fullscreen,
 .falnic-secure-container:-webkit-full-screen,
@@ -101,6 +110,29 @@
 	display: block;
 	cursor: pointer;
 }
+
+/* دیباگ فرانت: کارت وضعیت (فقط وقتی ?falnic_debug=1 یا ادمین) — نمایش داخل کانتینر */
+.falnic-debug {
+	position: absolute;
+	inset: auto 0 0 0;
+	z-index: 9996;
+	max-height: 50%;
+	overflow: auto;
+	background: rgba(10,18,28,0.92);
+	color: #cfe2ff;
+	font-family: Tahoma, monospace;
+	font-size: 11px;
+	line-height: 1.6;
+	padding: 8px 10px;
+	text-align: left;
+	direction: ltr;
+	white-space: pre-wrap;
+	word-break: break-all;
+	border-top: 1px solid rgba(120,160,220,0.25);
+	display: none;
+}
+.falnic-debug.is-visible { display: block; }
+.falnic-debug b { color: #fff; }
 
 /* پیام دستکاری — اگر Canvas حذف شد */
 .falnic-tamper {

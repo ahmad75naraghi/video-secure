@@ -66,9 +66,11 @@ final class Player {
 
 		$template = Template_Settings::get();
 
+		$is_debug = ( isset( $_GET['falnic_debug'] ) && '1' === (string) $_GET['falnic_debug'] ) || current_user_can( 'manage_options' );
 		$config = array(
 			'id'           => $html_id,
 			'name'         => $name,
+			'debug'        => $is_debug,
 			'sessionUrl'   => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_SESSION ),
 			'heartbeatUrl' => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_HEARTBEAT ),
 			'endUrl'       => admin_url( 'admin-ajax.php?action=' . Stream::ACTION_END ),
@@ -84,6 +86,7 @@ final class Player {
 					'scale'    => (float) $template['wm_font_scale'],
 				)
 			),
+			'diag'       => $is_debug ? Access::diagnose( $name, (int) get_current_user_id() ) : null,
 			'i18n'       => array(
 				'resume'       => __( 'برای ادامه پخش روی صفحه کلیک کنید', 'falnic-secure-hls' ),
 				'error'        => __( 'خطا در پخش ویدیو. لطفاً صفحه را دوباره بارگذاری کنید.', 'falnic-secure-hls' ),

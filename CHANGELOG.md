@@ -2,6 +2,12 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.17] — 2026-10-23
+
+### رفع
+- **سیاهیِ فرانت فقط در صفحه دوره/درس:** `getVisibleRect()` با فال‌بک به والد و `640×360`، چکِ `ResizeObserver` + `IntersectionObserver` + `setInterval 400ms` اضافه شد تا اگر کانتینر اول `display:none` (تبِ LearnDash/آکاردئون) بود بعد از نمایان شدن دوباره `resizeCanvas()` شود. `min-height:200px` و فال‌بک `aspect-ratio` هم برای مرورگر/قالب‌هایی که ارتفاع را صفر می‌کردند.
+- **دیباگ فرانت:** با `?falnic_debug=1` یا برای ادمین، کارتِ `.falnic-debug` داخل پلیر و لاگ‌های `[Falnic]` (mount/session/MANIFEST_PARSED/FRAG/HLS ERROR/video:* events/rect/canvas) نمایش داده می‌شود؛ `MANIFEST_PARSED → play()` مثل پیش‌نمایش اضافه شد تا `autoplay` مسدود نشود. `Access::diagnose` هم به `config.diag` می‌رود.
+
 ## [3.5.16] — 2026-10-23
 
 ### رفع
