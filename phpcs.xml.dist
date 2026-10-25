@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="Falnic Secure HLS">
+	<description>قواعد کدنویسی وردپرس برای این افزونه.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<exclude-pattern>/dist/*</exclude-pattern>
+	<exclude-pattern>/assets/vendor/*</exclude-pattern>
+	<exclude-pattern>/tests/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<rule ref="WordPress">
+		<!-- متن‌های فارسی؛ شمارش کاراکتر معنادار نیست. -->
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array" value="falnic-secure-hls"/>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array" value="falnic,FALNIC"/>
+		</properties>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP">
+		<properties>
+			<property name="testVersion" value="7.4-"/>
+		</properties>
+	</rule>
+
+	<!-- کلاس‌های namespaced با اسلش در نام فایل (قاعدهٔ autoloader پروژه). -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<severity>0</severity>
+	</rule>
+</ruleset>

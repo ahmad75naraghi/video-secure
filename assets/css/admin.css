@@ -1,0 +1,697 @@
+/**
+ * استایل صفحه‌های مدیریت افزونه — scoped به .falnic-admin
+ *
+ * @package Falnic\SecureHLS
+ */
+
+.falnic-admin {
+	max-width: 980px;
+}
+
+.falnic-admin .falnic-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 18px 20px;
+	margin: 18px 0;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.falnic-admin .falnic-card h2 {
+	margin-top: 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 16px;
+}
+
+.falnic-admin .falnic-muted {
+	color: #646970;
+	margin-top: 0;
+}
+
+.falnic-admin .falnic-field {
+	margin-bottom: 16px;
+}
+
+.falnic-admin .falnic-field > label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.falnic-admin .falnic-field input[type="text"],
+.falnic-admin .falnic-field input[type="password"] {
+	width: 100%;
+	max-width: 460px;
+}
+
+.falnic-admin .falnic-check {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+	color: #b32d2e;
+}
+
+.falnic-admin .falnic-meta {
+	width: 100%;
+	max-width: 720px;
+	border-collapse: collapse;
+	margin-bottom: 14px;
+}
+
+.falnic-admin .falnic-meta th,
+.falnic-admin .falnic-meta td {
+	text-align: right;
+	padding: 8px 10px;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: top;
+	word-break: break-word;
+}
+
+.falnic-admin .falnic-meta th {
+	width: 200px;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 6px 0 12px;
+}
+
+.falnic-admin .falnic-spinner {
+	display: none;
+	width: 18px;
+	height: 18px;
+	border: 2px solid #c3c4c7;
+	border-top-color: #2271b1;
+	border-radius: 50%;
+	animation: falnic-spin 0.8s linear infinite;
+}
+
+.falnic-admin .falnic-spinner.is-active {
+	display: inline-block;
+}
+
+@keyframes falnic-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.falnic-admin .falnic-spinner {
+		animation: none;
+	}
+}
+
+.falnic-admin .falnic-status:empty {
+	display: none;
+}
+
+.falnic-admin .falnic-status {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border-radius: 6px;
+	line-height: 1.9;
+	white-space: pre-line;
+}
+
+.falnic-admin .falnic-status.is-ok {
+	background: #edfaef;
+	border: 1px solid #b8e6c0;
+	color: #0a4b16;
+}
+
+.falnic-admin .falnic-status.is-error {
+	background: #fcf0f1;
+	border: 1px solid #f0b7ba;
+	color: #8a1f21;
+}
+
+.falnic-admin .falnic-status.is-busy {
+	background: #f0f6fc;
+	border: 1px solid #b9d6f2;
+	color: #0a4b78;
+}
+
+.falnic-admin .falnic-info,
+.falnic-admin .falnic-report {
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px dashed #dcdcde;
+}
+
+.falnic-admin .falnic-report h4 {
+	margin: 14px 0 6px;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-files {
+	margin: 0;
+	max-height: 240px;
+	overflow: auto;
+	background: #f6f7f7;
+	border: 1px solid #f0f0f1;
+	border-radius: 4px;
+	padding: 10px 12px;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	direction: ltr;
+	text-align: left;
+}
+
+.falnic-admin .falnic-files span {
+	display: block;
+	line-height: 1.7;
+	word-break: break-all;
+}
+
+.falnic-admin .falnic-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	background: #f0f0f1;
+	color: #50575e;
+	font-size: 11px;
+	margin-left: 6px;
+}
+
+.falnic-admin .falnic-badge-ok {
+	background: #edfaef;
+	color: #0a4b16;
+}
+
+.falnic-admin .falnic-badge-warn {
+	background: #fcf3e6;
+	color: #8a4b00;
+}
+
+.falnic-admin .falnic-list {
+	margin: 6px 0;
+	padding-right: 20px;
+	list-style: disc;
+}
+
+.falnic-admin .falnic-empty {
+	color: #646970;
+	font-style: italic;
+}
+
+.falnic-admin .falnic-row-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.falnic-admin .falnic-table td,
+.falnic-admin .falnic-table th {
+	vertical-align: middle;
+}
+
+.falnic-admin .falnic-warn {
+	color: #8a4b00;
+	background: #fef8ee;
+	border: 1px solid #f5d8a8;
+	border-radius: 6px;
+	padding: 8px 12px;
+	margin-top: 10px;
+}
+
+/* --- گزارش تماشا و صف انکود --- */
+.falnic-admin.falnic-wide,
+.wrap.falnic-admin .falnic-cards {
+	max-width: 1200px;
+}
+
+.falnic-admin .falnic-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 12px;
+	margin: 18px 0;
+}
+
+.falnic-admin .falnic-card-value {
+	display: block;
+	font-size: 26px;
+	font-weight: 700;
+	line-height: 1.4;
+	color: #1d2327;
+}
+
+.falnic-admin .falnic-card-label {
+	display: block;
+	color: #646970;
+	font-size: 12px;
+}
+
+.falnic-admin .falnic-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: flex-end;
+	margin: 12px 0;
+}
+
+.falnic-admin .falnic-denials {
+	margin: 0 0 18px;
+	padding-right: 18px;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-denials li {
+	margin: 2px 0;
+}
+
+.falnic-admin .falnic-subtitle-list {
+	margin: 0 0 8px;
+}
+
+/* نوار پیشرفت صف انکود */
+.falnic-admin .falnic-encode {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 14px 16px;
+	margin: 0 0 14px;
+}
+
+.falnic-admin .falnic-encode-bar {
+	height: 12px;
+	background: #e0e0e0;
+	border-radius: 999px;
+	overflow: hidden;
+	margin-bottom: 8px;
+}
+
+.falnic-admin .falnic-encode-bar span {
+	display: block;
+	height: 100%;
+	width: 0;
+	background: linear-gradient(90deg, #2271b1, #135e96);
+	border-radius: 999px;
+	transition: width 0.4s ease;
+}
+
+.falnic-admin .falnic-encode-message {
+	margin: 0 0 8px;
+	color: #50575e;
+}
+
+.falnic-admin .falnic-encode-actions {
+	margin: 0;
+}
+
+.falnic-admin .falnic-encode-log pre {
+	max-height: 220px;
+	overflow: auto;
+	background: #1d2327;
+	color: #f0f0f1;
+	padding: 10px;
+	border-radius: 6px;
+	direction: ltr;
+	text-align: left;
+	font-size: 12px;
+	white-space: pre-wrap;
+}
+
+/* انتخاب دوره/درس در متاباکس ویدیو — legacy fallback */
+.falnic-target th {
+	width: 90px;
+	font-weight: 600;
+}
+
+.falnic-target select {
+	max-width: 100%;
+}
+
+/* ── متاباکس ویدیوی امن — بازطراحی 3.5 ────────────────────────── */
+.falnic-video-edit {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+.falnic-ve-overview {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 14px 16px;
+}
+
+.falnic-ve-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.falnic-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	background: #f0f0f1;
+	color: #50575e;
+	border: 1px solid #dcdcde;
+}
+
+.falnic-pill code {
+	background: transparent;
+	padding: 0;
+	font-size: 12px;
+}
+
+.falnic-pill-ok {
+	background: #edfaef;
+	color: #0a4b16;
+	border-color: #b8e6c0;
+}
+
+.falnic-pill-warn {
+	background: #fcf3e6;
+	color: #7c4d00;
+	border-color: #f5d8a8;
+}
+
+.falnic-pill-lock {
+	background: #e7f3ff;
+	color: #0a4a7a;
+	border-color: #b8d7f5;
+}
+
+.falnic-pill-muted {
+	background: #f6f7f7;
+	color: #646970;
+}
+
+.falnic-ve-tools {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+@media ( max-width: 782px ) {
+	.falnic-ve-tools {
+		grid-template-columns: 1fr;
+	}
+}
+
+.falnic-ve-tool {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.falnic-copy-row {
+	display: flex;
+	gap: 6px;
+}
+
+.falnic-copy-input {
+	flex: 1;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	direction: ltr;
+	text-align: left;
+}
+
+.falnic-copy-btn.is-copied {
+	background: #edfaef;
+	border-color: #b8e6c0;
+	color: #0a4b16;
+}
+
+.falnic-ve-hint {
+	margin: 6px 0 0;
+	color: #646970;
+	font-size: 12px;
+	line-height: 1.7;
+}
+
+.falnic-ve-section {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 16px 18px;
+}
+
+.falnic-ve-title {
+	margin: 0 0 12px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #1d2327;
+	border-bottom: 1px solid #f0f0f1;
+	padding-bottom: 8px;
+}
+
+.falnic-ve-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f0f1;
+	color: #50575e;
+	padding: 2px 8px;
+	border-radius: 999px;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.falnic-ve-notice {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 10px 12px;
+	font-size: 13px;
+	line-height: 1.7;
+}
+
+.falnic-ve-notice-warn {
+	background: #fcf3e6;
+	border-color: #f5d8a8;
+	color: #7c4d00;
+}
+
+.falnic-ve-summary {
+	margin-bottom: 12px;
+}
+
+.falnic-ve-summary-line {
+	margin: 0 0 6px;
+	font-size: 13px;
+	line-height: 1.8;
+}
+
+.falnic-ve-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+}
+
+@media ( max-width: 900px ) {
+	.falnic-ve-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.falnic-ve-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.falnic-ve-label {
+	font-weight: 700;
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.falnic-ve-select-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.falnic-ve-search {
+	width: 100%;
+	font-size: 13px;
+}
+
+.falnic-ve-search:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.falnic-ve-drop {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 18px;
+	border: 2px dashed #c3c4c7;
+	border-radius: 8px;
+	background: #f6f7f7;
+	cursor: pointer;
+	transition: border-color 0.15s, background 0.15s;
+	text-align: center;
+}
+
+.falnic-ve-drop:hover,
+.falnic-ve-drop:focus-within {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.falnic-ve-drop input[type=\"file\"] {
+	width: 100%;
+	max-width: 360px;
+}
+
+.falnic-ve-drop-text {
+	font-size: 13px;
+	color: #50575e;
+	line-height: 1.7;
+}
+
+.falnic-ve-linked {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px dashed #dcdcde;
+}
+
+.falnic-ve-linked-list {
+	margin: 8px 0 0;
+	padding-right: 18px;
+	font-size: 13px;
+}
+
+.falnic-ve-linked-list li {
+	margin: 4px 0;
+}
+
+.falnic-ve-stats {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
+	margin-bottom: 14px;
+}
+
+@media ( max-width: 700px ) {
+	.falnic-ve-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.falnic-ve-stat {
+	background: #f6f7f7;
+	border: 1px solid #f0f0f1;
+	border-radius: 8px;
+	padding: 10px 12px;
+	text-align: center;
+}
+
+.falnic-ve-stat strong {
+	display: block;
+	font-size: 20px;
+	color: #1d2327;
+	line-height: 1.2;
+}
+
+.falnic-ve-stat span {
+	font-size: 11px;
+	color: #646970;
+}
+
+.falnic-ve-table-wrap {
+	overflow: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.falnic-ve-table {
+	margin: 0;
+	border: 0;
+}
+
+.falnic-ve-table th {
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.falnic-ve-table td {
+	font-size: 13px;
+	vertical-align: middle;
+}
+
+.falnic-ve-user small {
+	color: #646970;
+}
+
+.falnic-ve-empty {
+	background: #f6f7f7;
+	border: 1px dashed #c3c4c7;
+	border-radius: 8px;
+	padding: 16px;
+	text-align: center;
+	color: #50575e;
+	line-height: 1.8;
+}
+
+.falnic-ve-actions {
+	margin-top: 12px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.falnic-ve-section .falnic-subtitle-list {
+	margin: 0 0 10px;
+	padding: 0;
+	list-style: none;
+}
+
+.falnic-ve-section .falnic-subtitle-list li {
+	margin: 6px 0;
+}
+
+/* فوکوس قابل مشاهده برای دسترس‌پذیری */
+.falnic-video-edit a:focus,
+.falnic-video-edit button:focus,
+.falnic-video-edit select:focus,
+.falnic-video-edit input:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+/* ── پیش‌نمایش ویدیو در صفحه‌ی ویرایش ────────────────────────── */
+.falnic-ve-preview .falnic-ve-preview-player {
+	margin: 12px 0 8px;
+	border-radius: 8px;
+	overflow: hidden;
+	background: #000;
+}
+
+.falnic-ve-preview .falnic-ve-preview-player .falnic-secure-container {
+	border-radius: 8px;
+}
+
+/* ── مخفی کردن کامل بخش توضیحات / ویرایشگر کلاسیک در CPT ویدیو ─ */
+.post-type-secure_video #postdivrich,
+.post-type-secure_video #wp-content-editor-container,
+.post-type-secure_video #wp-content-wrap,
+.post-type-secure_video .wp-editor-container,
+.post-type-secure_video #mceu_26,
+.post-type-secure_video #mceu_26-body {
+	display: none !important;
+}

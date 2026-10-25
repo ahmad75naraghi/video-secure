@@ -1,0 +1,32 @@
+{
+	"name": "ahmad75naraghi/falnic-secure-hls",
+	"description": "پخش امن ویدیو با رمزنگاری HLS، دروازه‌ی توکن‌دار و ثبت‌نام LearnDash.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"wp-coding-standards/wpcs": "^3.1",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+	},
+	"scripts": {
+		"lint": "php tests/lint-all.php",
+		"test": [
+			"@php tests/access-tests.php",
+			"@php tests/run-tests.php",
+			"@php tests/queue-tests.php",
+			"@node tests/static-checks.js"
+		],
+		"phpcs": "phpcs",
+		"phpcbf": "phpcbf",
+		"pot": "node bin/make-pot.js"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"sort-packages": true
+	}
+}

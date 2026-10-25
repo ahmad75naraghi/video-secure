@@ -1,0 +1,283 @@
+/**
+ * Falnic Secure HLS — استایل پلیر
+ *
+ * همه‌ی دارایی‌ها محلی هستند. هیچ فونت یا تصویر بیرونی بارگذاری نمی‌شود.
+ *
+ * @package Falnic\SecureHLS
+ */
+
+.falnic-secure-container {
+	position: relative;
+	width: 100%;
+	max-width: 100%;
+	margin: 0 auto;
+	background: #000;
+	border-radius: var(--falnic-radius, 8px);
+	overflow: hidden;
+	aspect-ratio: var(--falnic-ratio, 16 / 9);
+	max-height: 100vh;
+	min-height: 220px;
+	display: block;
+}
+/* فال‌بک مرورگرهای بدون aspect-ratio یا والدهای بدون ارتفاع */
+@supports not (aspect-ratio: 16 / 9) {
+	.falnic-secure-container { padding-top: 56.25%; height: 0; min-height: 0; }
+	.falnic-secure-container > * { position: absolute; inset: 0; }
+}
+/* اگر والدی تب/آکاردئون را display:none کرده بود، بعد از نمایان شدن درست نمایش بده */
+.falnic-secure-container.falnic--hidden-init { min-height: 260px; }
+/* Plyr ویدیو خودش را absolute کرده؛ Canvas باید همیشه دیده شود */
+.falnic-canvas-overlay { will-change: transform; }
+
+.falnic-secure-container:fullscreen,
+.falnic-secure-container:-webkit-full-screen,
+.falnic-secure-container:-moz-full-screen,
+.falnic-secure-container:-ms-fullscreen {
+	aspect-ratio: auto !important;
+	height: 100% !important;
+	height: 100vh !important;
+	max-height: 100vh !important;
+	border-radius: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background: #000 !important;
+	width: 100% !important;
+}
+
+.falnic-secure-container:fullscreen .plyr,
+.falnic-secure-container:-webkit-full-screen .plyr,
+.falnic-secure-container:-moz-full-screen .plyr {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+/* فول‌اسکرین Plyr fallback (مرورگرهای بدون Fullscreen API) */
+.plyr--fullscreen-fallback .falnic-secure-container,
+.falnic-secure-container.plyr--fullscreen-fallback,
+.falnic-secure-container.plyr--is-fullscreen {
+	width: 100% !important;
+	height: 100vh !important;
+	border-radius: 0 !important;
+}
+
+/* Canvas در فول‌اسکرین — چه کانتینر اصلی چه Plyr چه wrapper — باید تمام صفحه باشد */
+.falnic-secure-container:fullscreen .falnic-canvas-overlay,
+.falnic-secure-container:-webkit-full-screen .falnic-canvas-overlay,
+.falnic-secure-container:-moz-full-screen .falnic-canvas-overlay,
+.falnic-secure-container:-ms-fullscreen .falnic-canvas-overlay,
+.plyr:fullscreen .falnic-canvas-overlay,
+.plyr:-webkit-full-screen .falnic-canvas-overlay,
+.plyr:-moz-full-screen .falnic-canvas-overlay,
+.plyr:fullscreen,
+.plyr--fullscreen-fallback .falnic-canvas-overlay,
+.falnic-secure-container.plyr--fullscreen-fallback .falnic-canvas-overlay,
+.falnic-secure-container.plyr--is-fullscreen .falnic-canvas-overlay {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: contain !important;
+	margin: auto !important;
+	z-index: 3 !important;
+}
+
+/* وقتی Plyr فول‌اسکرین است، wrapper هم باید relative بماند تا Canvas روی آن بیفتد */
+.plyr:fullscreen .plyr__video-wrapper,
+.plyr:-webkit-full-screen .plyr__video-wrapper {
+	position: relative !important;
+	width: 100% !important;
+	height: 100% !important;
+}
+
+/* ویدیوی اصلی پنهان است؛ تصویر فقط از canvas می‌آید — opacity:0 ولی 100% تا Plyr درست کار کند؛ پاک شدن Canvas = پاک شدن تصویر (via JS tamper) */
+.falnic-hidden-video {
+	opacity: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	position: absolute !important;
+	inset: 0 !important;
+	pointer-events: none !important;
+}
+
+.falnic-canvas-overlay {
+	position: absolute;
+	inset: 0;
+	margin: auto;
+	max-width: 100%;
+	max-height: 100%;
+	pointer-events: auto;
+	z-index: 2;
+	object-fit: contain;
+	display: block;
+	cursor: pointer;
+}
+
+/* دیباگ فرانت: کارت وضعیت (فقط وقتی ?falnic_debug=1 یا ادمین) — نمایش داخل کانتینر */
+.falnic-debug {
+	position: absolute;
+	inset: auto 0 0 0;
+	z-index: 9996;
+	max-height: 50%;
+	overflow: auto;
+	background: rgba(10,18,28,0.92);
+	color: #cfe2ff;
+	font-family: Tahoma, monospace;
+	font-size: 11px;
+	line-height: 1.6;
+	padding: 8px 10px;
+	text-align: left;
+	direction: ltr;
+	white-space: pre-wrap;
+	word-break: break-all;
+	border-top: 1px solid rgba(120,160,220,0.25);
+	display: none;
+}
+.falnic-debug.is-visible { display: block; }
+.falnic-debug b { color: #fff; }
+
+/* پیام دستکاری — اگر Canvas حذف شد */
+.falnic-tamper {
+	position: absolute;
+	inset: 0;
+	z-index: 9997;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.94);
+	color: #ffb4b4;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 14px;
+	text-align: center;
+	padding: 20px;
+	line-height: 1.8;
+}
+
+/* لایه‌ی کلیک اولیه برای شروع پخش */
+.falnic-pause-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 9998;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.72);
+	color: #fff;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 15px;
+	text-align: center;
+	padding: 20px;
+	cursor: pointer;
+	border: 0;
+	width: 100%;
+}
+
+.falnic-pause-overlay.is-visible {
+	display: flex;
+}
+
+.falnic-error {
+	position: absolute;
+	inset: 0;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #111;
+	color: #f5b5b5;
+	font-family: Tahoma, Arial, sans-serif;
+	font-size: 14px;
+	text-align: center;
+	padding: 24px;
+	line-height: 1.9;
+}
+
+/* حالت وب‌سایت‌های راست‌به‌چپ */
+.falnic-secure-container[dir="rtl"] .plyr {
+	direction: rtl;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.falnic-secure-container * {
+		animation-duration: 0.001ms !important;
+		transition-duration: 0.001ms !important;
+	}
+}
+
+/* -------------------------------------------------------------------------
+ * پیام عدم دسترسی (دوره/ثبت‌نام)
+ * ---------------------------------------------------------------------- */
+.falnic-secure-container.falnic-denied {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: auto;
+	min-height: 240px;
+	height: auto;
+	background: radial-gradient(circle at 50% 20%, #1d2530 0%, #0b0f14 70%);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.falnic-denied-inner {
+	max-width: 460px;
+	text-align: center;
+	color: #e8eef6;
+	font-family: Tahoma, Arial, sans-serif;
+	line-height: 1.9;
+}
+
+.falnic-denied-icon {
+	display: inline-block;
+	font-size: 34px;
+	line-height: 1;
+	margin-bottom: 6px;
+	opacity: 0.9;
+}
+
+.falnic-denied-title {
+	margin: 0 0 6px;
+	font-size: 18px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.falnic-denied-text {
+	margin: 0 0 14px;
+	font-size: 14px;
+	color: #b9c6d6;
+}
+
+.falnic-denied-links {
+	margin: 0 0 8px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: center;
+}
+
+.falnic-denied-btn {
+	display: inline-block;
+	padding: 8px 16px;
+	border-radius: 6px;
+	background: var(--falnic-accent, #2271b1);
+	color: #fff !important;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+	border: 0;
+	transition: filter 0.15s ease-in-out;
+}
+
+.falnic-denied-btn:hover,
+.falnic-denied-btn:focus {
+	filter: brightness(1.12);
+	color: #fff;
+}
+
+@media (max-width: 480px) {
+	.falnic-denied-text {
+		font-size: 13px;
+	}
+}
