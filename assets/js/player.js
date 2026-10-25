@@ -53,12 +53,20 @@
 			session: null,
 			heartbeatTimer: 0,
 			beatFailures: 0,
-			endSent: false
+			endSent: false,
+			pausedDrawTimer: 0,
+			visibilityTimer: 0,
+			observing: false,
+			ro: null,
+			io: null
 		};
 
+		// نمونه‌ی Plyr (بعداً مقداردهی می‌شود)؛ توابع اندازه‌گیری به آن نیاز دارند.
+		var plyrInstance = null;
+
 		var i18n = config.i18n || {};
-		// دیباگ: ?falnic_debug=1 یا config.debug یا ادمین
-		var isDebug = !!config.debug || /(?:\?|&)falnic_debug=1\b/.test(window.location.search) || !!window.FALNIC_DEBUG;
+		// دیباگ فقط وقتی سرور آن را برای مدیر فعال کرده باشد (?falnic_debug=1 + manage_options)
+		var isDebug = !!config.debug;
 		function dlog(){ if(isDebug) try{ console.log.apply(console, ['[Falnic]'].concat([].slice.call(arguments))); }catch(e){} }
 		function updateDebug(extra){
 			if(!isDebug) return;
@@ -77,7 +85,7 @@
 					hls: state.hls ? 'attached' : 'none',
 					extra: extra||''
 				};
-				el.textContent = '[Falnic debug]\\n' + JSON.stringify(info, null, 2) + (extra ? '\\n---\\n'+String(extra) : '');
+				el.textContent = '[Falnic debug]\n' + JSON.stringify(info, null, 2) + (extra ? '\n---\n'+String(extra) : '');
 			}catch(e){}
 		}
 
@@ -89,14 +97,25 @@
 		/* ---------------------------------------------------------------------
 		 * اندازه‌ی canvas بر اساس ابعاد نمایش، نه ابعاد منبع
 		 * ------------------------------------------------------------------ */
-		function isPlyrFullscreen() {
-			// Plyr fallback: class on <html> or on container
-			if ( document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement ) return true;
-			if ( root.classList.contains( 'plyr--fullscreen-fallback' ) || root.classList.contains( 'plyr--is-fullscreen' ) ) return true;
+		/**
+		 * آیا پلیر الآن در حالت تمام‌صفحه است؟
+		 *
+		 * فقط حالت «فعال» حساب می‌شود. کلاس `plyr--fullscreen-enabled` فقط می‌گوید مرورگر
+		 * تمام‌صفحه را پشتیبانی می‌کند (همیشه روی .plyr هست) و نباید به‌عنوان نشانه‌ی
+		 * «در حال تمام‌صفحه» استفاده شود؛ استفاده‌ی قبلی باعث می‌شد Canvas همیشه به‌اندازه‌ی
+		 * کل پنجره ساخته شود نه کانتینر.
+		 */
+		function isFullscreenActive() {
+			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+			if ( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) {
+				return true;
+			}
+			// تمام‌صفحه‌ی شبیه‌سازی‌شده‌ی Plyr (iOS و مرورگرهای بدون Fullscreen API)
+			if ( plyrInstance && plyrInstance.fullscreen && plyrInstance.fullscreen.active ) {
+				return true;
+			}
 			var plyrEl = root.querySelector( '.plyr' );
-			if ( plyrEl && ( plyrEl.classList.contains( 'plyr--fullscreen-enabled' ) || plyrEl.classList.contains( 'plyr--is-fullscreen' ) ) ) return true;
-			if ( document.documentElement.classList.contains( 'plyr--fullscreen-fallback' ) ) return true;
-			return false;
+			return !!( plyrEl && plyrEl.classList.contains( 'plyr--fullscreen-fallback' ) );
 		}
 
 		function getVisibleRect(){
@@ -120,72 +139,60 @@
 			return rect;
 		}
 
+		/**
+		 * جعبه‌ای که ویدیو باید داخل آن جا شود: همان والدِ Canvas (wrapper پلیر).
+		 * اگر والد هنوز اندازه ندارد (تب مخفی)، به کانتینر و سپس به والدهای دیدنی برمی‌گردد.
+		 */
+		function getBox() {
+			var host = canvas.parentNode || root;
+			var rect = host.getBoundingClientRect();
+			if ( rect.width >= 10 && rect.height >= 10 ) {
+				return rect;
+			}
+			return getVisibleRect();
+		}
+
 		function resizeCanvas() {
 			var vw = video.videoWidth || 0;
 			var vh = video.videoHeight || 0;
+			var rect = getBox();
 
-			var rect;
-			var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-			var inFs = !!( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) || isPlyrFullscreen();
-
-			if ( fsEl && ( fsEl === root || fsEl.contains( root ) || root.contains( fsEl ) ) ) {
-				rect = fsEl.getBoundingClientRect();
-				// اگر fullscreen است ولی rect هنوز کوچک است (transition)، از viewport استفاده کن
-				if ( inFs && ( ! rect.width || rect.width < 200 || rect.height < 200 ) ) {
-					rect = { width: window.innerWidth, height: window.innerHeight };
-				}
-			} else if ( inFs ) {
+			// تمام‌صفحه در میانه‌ی transition: اگر هنوز جعبه کوچک است، از اندازه‌ی پنجره استفاده کن
+			if ( isFullscreenActive() && ( rect.width < 200 || rect.height < 200 ) ) {
 				rect = { width: window.innerWidth, height: window.innerHeight };
-			} else {
-				rect = getVisibleRect();
 			}
 			if ( ! rect.width || ! rect.height ) {
 				rect = { width: window.innerWidth || document.documentElement.clientWidth, height: window.innerHeight || document.documentElement.clientHeight };
 			}
-			if(inFs || rect.width < 10) dlog('resizeCanvas rect', rect, 'vw/vh', vw, vh);
-			if(!rect.width || rect.width < 10){
-				dlog('⚠️ rect still tiny - will retry', rect);
-			}
 
-			// اگر metadata هنوز نیامده، Canvas را به اندازهٔ کانتینر بساز (واترمارک باید حتی قبل از پخش دیده شود)
-			if ( ! vw || ! vh ) {
-				canvas.width = Math.max( 1, Math.round( rect.width ) );
-				canvas.height = Math.max( 1, Math.round( rect.height ) );
-				// اطمینان از اینکه Canvas حتی بدون ویدیو، کل کانتینر را پر می‌کند
-				canvas.style.width = Math.round( rect.width ) + 'px';
-				canvas.style.height = Math.round( rect.height ) + 'px';
-				var b2 = ( typeof measureWatermarkBounds === 'function' ? measureWatermarkBounds() : null );
-				if ( b2 ) {
-					var maxX2 = canvas.width - b2.maxW - b2.pad;
-					var maxY2 = canvas.height - b2.totalH - b2.pad;
-					if ( state.wmX > maxX2 || state.wmY > maxY2 || state.wmX < b2.pad || state.wmY < b2.pad ) {
-						moveWatermark();
-					}
+			var boxW = Math.max( 1, Math.round( rect.width ) );
+			var boxH = Math.max( 1, Math.round( rect.height ) );
+			var cw = boxW;
+			var ch = boxH;
+
+			// تا رسیدن metadata، Canvas به‌اندازه‌ی جعبه است (واترمارک باید حتی قبل از پخش دیده شود)؛
+			// بعد از آن، به نسبت واقعی ویدیو و بدون بیرون‌زدگی از جعبه.
+			if ( vw && vh ) {
+				var scale = Math.min( boxW / vw, boxH / vh );
+
+				if ( ! isFinite( scale ) || scale <= 0 ) {
+					scale = 1;
 				}
-				draw();
-				return;
+
+				cw = Math.max( 1, Math.round( vw * scale ) );
+				ch = Math.max( 1, Math.round( vh * scale ) );
 			}
 
-			var scale = Math.min(
-				rect.width / vw,
-				rect.height / vh
-			);
-
-			if ( ! isFinite( scale ) || scale <= 0 ) {
-				scale = 1;
+			// تغییر width/height بوم را پاک می‌کند؛ فقط وقتی لازم است انجام شود.
+			if ( canvas.width !== cw || canvas.height !== ch ) {
+				canvas.width  = cw;
+				canvas.height = ch;
 			}
-
-			canvas.width  = Math.max( 1, Math.round( vw * scale ) );
-			canvas.height = Math.max( 1, Math.round( vh * scale ) );
-			// در فول‌اسکرین، canvas باید دقیقاً وسط wrapper باشد و وسط‌چین شود (CSS margin:auto)
-			// اما برای اطمینان، اندازهٔ استایل را هم ست می‌کنیم
-			if ( inFs ) {
-				canvas.style.width = canvas.width + 'px';
-				canvas.style.height = canvas.height + 'px';
-			}
+			canvas.style.width  = cw + 'px';
+			canvas.style.height = ch + 'px';
 
 			// اگر واترمارک بیرون از کادر جدید افتاد، دوباره داخل بیاور
-			var bounds = ( typeof measureWatermarkBounds === 'function' ? measureWatermarkBounds() : null );
+			var bounds = measureWatermarkBounds();
 			if ( bounds ) {
 				var maxX = canvas.width - bounds.maxW - bounds.pad;
 				var maxY = canvas.height - bounds.totalH - bounds.pad;
@@ -396,12 +403,8 @@
 			var box = document.createElement( 'div' );
 
 			box.className   = 'falnic-error';
-			// پیام را به‌صورت چندخطی نشان بده + لینک دوره‌ها اگر هست
-			if ( typeof message === 'string' && message.indexOf('<') !== -1 ) {
-				box.innerHTML = message;
-			} else {
-				box.textContent = message || i18n.error || '';
-			}
+			// همیشه متن ساده (بدون innerHTML)؛ خط‌های جدید با CSS (white-space: pre-line) نمایش داده می‌شوند.
+			box.textContent = message || i18n.error || '';
 			root.appendChild( box );
 			// هرگز سیاهِ خالی نماند: اگر fetch هنوز در حال لود بود، لودینگ را پنهان کن
 			var loading = root.querySelector('.falnic-preview-loading, .falnic-player-loading');
@@ -425,25 +428,29 @@
 
 		window.addEventListener( 'resize', resizeCanvas );
 
-		// autoplay با صدا در کروم/سافاری بلاک می‌شود → اول muted
-		try { video.muted = true; video.setAttribute('muted',''); } catch(e){}
-
 		// نگه‌داشتن مرجع Plyr — فول‌اسکرین را خودِ Plyr روی .plyr انجام می‌دهد؛
 		// بوم (canvas) باید داخل همان کانتینر باشد تا در تمام‌صفحه دیده شود.
-		var plyrInstance = null;
 		try {
 			if ( window.Plyr ) {
-				// eslint-disable-next-line no-new
-				plyrInstance = new window.Plyr( video, {
+				var plyrOptions = {
 					controls: [ 'play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen' ],
-					settings: [ 'quality', 'speed' ],
+					settings: [ 'speed' ],
 					hideControls: true,
 					clickToPlay: true,
-					muted: true,
 					volume: 1,
 					ratio: null,
 					fullscreen: { enabled: true, fallback: true, iosNative: false, container: null }
-				} );
+				};
+
+				// آیکن‌های Plyr به‌صورت پیش‌فرض از cdn.plyr.io گرفته می‌شوند؛ روی شبکه‌های محدود
+				// (یا با فیلتر) دکمه‌ها نامرئی می‌شوند. نسخه‌ی محلی همراه پلاگین است.
+				if ( config.iconUrl ) {
+					plyrOptions.iconUrl = config.iconUrl;
+					plyrOptions.loadSprite = true;
+				}
+
+				// eslint-disable-next-line no-new
+				plyrInstance = new window.Plyr( video, plyrOptions );
 				try {
 					var plyrContainer = root.querySelector( '.plyr__video-wrapper' ) || root.querySelector( '.plyr' );
 					if ( plyrContainer && canvas.parentNode === root ) {
@@ -569,13 +576,16 @@
 					resizeCanvas();
 					if(loadTimeout) { clearTimeout(loadTimeout); loadTimeout=0; }
 					// اگر تب هنوز مخفی بود، بعد از نمایان شدن دوباره resize خواهیم کرد
-					try { video.muted = true; } catch(e){}
-					video.play().then(function(){ dlog('play() ok after manifest'); updateDebug('playing'); }).catch(function(e){
-						dlog('play() blocked', e && e.message);
-						updateDebug('autoplay blocked: '+(e && e.message));
-						// با muted هم بلاک شد → دکمه بزرگ نشان داده می‌شود
-						try { updateBigPlay(); } catch(e){}
-					});
+					// تلاش برای پخش خودکار با صدا؛ اگر مرورگر اجازه نداد، ویدیو روی فریم اول می‌ماند
+					// و دکمه‌ی بزرگ پخش Plyr دیده می‌شود (بدون بی‌صدا کردنِ اجباری).
+					var started = null;
+					try { started = video.play(); } catch(e){}
+					if ( started && started.then ) {
+						started.then(function(){ dlog('play() ok after manifest'); updateDebug('playing'); }).catch(function(e){
+							dlog('autoplay blocked', e && e.message);
+							updateDebug('autoplay blocked: '+(e && e.message));
+						});
+					}
 				});
 				state.hls.on( window.Hls.Events.FRAG_LOADED, function(ev,data){ if(isDebug && data && data.frag) dlog('FRAG', data.frag.sn, data.frag.url && data.frag.url.slice(-30)); });
 				state.hls.on( window.Hls.Events.LEVEL_LOADED, function(ev,data){ dlog('LEVEL_LOADED', data && data.details && data.details.live); });
@@ -792,7 +802,6 @@
 		} );
 
 		var loadTimeout = 0;
-		var visibilityCheckTimer = 0;
 		function loadStream() {
 			if ( ! config.sessionUrl ) {
 				startStream( config.src );
@@ -836,36 +845,36 @@
 			} );
 		}
 
-		// اگر کانتینر اول مخفی بود (لرن‌دش تب)، وقتی نمایان شد دوباره سایز بگیر
+		// اگر کانتینر اول مخفی بود (تب/آکاردئون لرن‌دش)، وقتی نمایان یا بزرگ‌تر شد دوباره سایز بگیر.
+		// فقط یک‌بار راه‌اندازی می‌شود (تلاش دوباره‌ی نشست ناظر تازه نمی‌سازد).
 		function setupVisibilityObserver(){
-			if(visibilityCheckTimer) return;
+			if(state.observing) return;
+			state.observing = true;
 			var lastW=0;
-			visibilityCheckTimer = setInterval(function(){
-				if(state.destroyed){ clearInterval(visibilityCheckTimer); return; }
+			state.visibilityTimer = setInterval(function(){
+				if(state.destroyed){ clearInterval(state.visibilityTimer); state.visibilityTimer=0; return; }
 				var r = root.getBoundingClientRect();
 				if(r.width > 10 && r.width !== lastW){
 					dlog('visibility changed', r);
 					lastW = r.width;
 					resizeCanvas();
 					updateDebug('visibility change');
-					// بعد از چند ثانیه دیده شدن، دیگر چک نکن
-					setTimeout(function(){ clearInterval(visibilityCheckTimer); visibilityCheckTimer=0; }, 8000);
 				}
 			}, 400);
-			// ResizeObserver هم اگر موجود بود
+			// بعد از چند ثانیه چک دوره‌ای کافی است؛ ResizeObserver بقیه را پوشش می‌دهد.
+			setTimeout(function(){ if(state.visibilityTimer){ clearInterval(state.visibilityTimer); state.visibilityTimer=0; } }, 8000);
 			try{
 				if(window.ResizeObserver){
-					var ro = new ResizeObserver(function(){ dlog('ResizeObserver'); resizeCanvas(); updateDebug('resizeObserver'); });
-					ro.observe(root);
+					state.ro = new ResizeObserver(function(){ if(!state.destroyed){ resizeCanvas(); updateDebug('resizeObserver'); } });
+					state.ro.observe(root);
 				}
 			}catch(e){}
-			// IntersectionObserver برای تب
 			try{
 				if(window.IntersectionObserver){
-					var io = new IntersectionObserver(function(entries){
-						entries.forEach(function(ent){ if(ent.isIntersecting){ dlog('Intersection visible'); resizeCanvas(); updateDebug('intersection visible'); } });
+					state.io = new IntersectionObserver(function(entries){
+						entries.forEach(function(ent){ if(ent.isIntersecting && !state.destroyed){ resizeCanvas(); updateDebug('intersection visible'); } });
 					}, {threshold: 0.1});
-					io.observe(root);
+					state.io.observe(root);
 				}
 			}catch(e){}
 		}
@@ -875,38 +884,24 @@
 		moveWatermark();
 		scheduleWatermarkMove();
 
-		// کلیک روی Canvas = play/pause (چون Canvas روی ویدیو است و pointer-events:none بود، حالا با pointer + handler)
+		// Canvas روی ویدیو است. با Plyr، کلیک روی Canvas تا کانتینر Plyr بالا می‌رود و خودِ Plyr
+		// play/pause می‌کند؛ هندلر جداگانه اینجا باعث می‌شد هر کلیک دو بار toggle شود (بی‌اثر).
+		// فقط در حالت بدون Plyr (کنترل‌های بومی) خودمان toggle می‌کنیم.
 		canvas.style.pointerEvents = 'auto';
-		canvas.addEventListener('click', function(){
-			if(state.destroyed) return;
-			dlog('canvas click paused='+video.paused);
-			if(video.paused) { try{ video.muted=false; }catch(e){} video.play().catch(function(){}); }
-			else video.pause();
-		});
-		// اگر autoplay مسدود شد، یک اورلیِ بزرگِ Play نشان بده تا سیاهِ خالی نماند
-		var bigPlay = document.createElement('button');
-		bigPlay.type='button'; bigPlay.className='falnic-bigplay';
-		bigPlay.innerHTML='▶';
-		bigPlay.setAttribute('aria-label','پخش');
-		bigPlay.style.cssText='position:absolute;inset:0;margin:auto;width:72px;height:72px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);color:#111;font-size:28px;cursor:pointer;z-index:9;display:none;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(0,0,0,0.45);';
-		try{ (root.querySelector('.plyr__video-wrapper')||root).appendChild(bigPlay); }catch(e){ root.appendChild(bigPlay); }
-		function updateBigPlay(){
-			var shouldShow = (video.paused && !state.destroyed && video.readyState>=1);
-			dlog('updateBigPlay shouldShow='+shouldShow+' paused='+video.paused+' rs='+video.readyState);
-			bigPlay.style.display = shouldShow ? 'flex' : 'none';
-			try{ updateDebug('bigPlay '+(shouldShow?'show':'hide')); }catch(e){}
+		if ( ! plyrInstance ) {
+			canvas.addEventListener('click', function(){
+				if(state.destroyed) return;
+				if(video.paused) { video.play().catch(function(){}); }
+				else video.pause();
+			});
 		}
-		video.addEventListener('play', function(){ dlog('video:play'); updateBigPlay(); startLoop(); });
-		video.addEventListener('pause', function(){ dlog('video:pause'); updateBigPlay(); stopLoop(); });
-		video.addEventListener('loadeddata', function(){ dlog('video:loadeddata->draw'); updateBigPlay(); resizeCanvas(); draw(); });
-		video.addEventListener('canplay', function(){ dlog('video:canplay'); updateBigPlay(); resizeCanvas(); draw(); });
-		bigPlay.addEventListener('click', function(){ dlog('bigPlay click'); try{ video.muted=false; }catch(e){} video.play().catch(function(){}); });
+		video.addEventListener('loadeddata', function(){ dlog('video:loadeddata->draw'); resizeCanvas(); draw(); });
+		video.addEventListener('canplay', function(){ dlog('video:canplay'); resizeCanvas(); draw(); });
 		// حتی وقتی pause هستیم هر 600ms یک فریم بکش تا کاور سیاه نماند (فریم اول را نشان بده)
-		var pausedDrawTimer = setInterval(function(){
-			if(state.destroyed) { clearInterval(pausedDrawTimer); return; }
+		state.pausedDrawTimer = setInterval(function(){
+			if(state.destroyed) { clearInterval(state.pausedDrawTimer); state.pausedDrawTimer=0; return; }
 			if(video.paused && video.readyState>=2 && video.videoWidth){
 				resizeCanvas(); // سایز ممکن است عوض شده باشد (ریسپانسیو)
-				draw();
 			}
 		}, 600);
 
@@ -972,6 +967,10 @@
 			sendEnd();
 			window.clearInterval( state.moveTimer );
 			window.clearTimeout( state.moveTimer );
+			window.clearInterval( state.pausedDrawTimer );
+			window.clearInterval( state.visibilityTimer );
+			if ( state.ro ) { try { state.ro.disconnect(); } catch ( e ) {} state.ro = null; }
+			if ( state.io ) { try { state.io.disconnect(); } catch ( e ) {} state.io = null; }
 			window.removeEventListener( 'blur', onBlur );
 			window.removeEventListener( 'focus', onFocus );
 			window.removeEventListener( 'resize', resizeCanvas );

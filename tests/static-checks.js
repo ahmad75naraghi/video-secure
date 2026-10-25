@@ -440,5 +440,35 @@ php74Banned.forEach( ( pair ) => {
 	);
 } );
 
+/* ۱۴) پلیر فرانت — ضدرگرسیونِ «ویدیو در پنل دیده می‌شود ولی در فرانت نه» (3.5.19) */
+// توضیحات (که عمداً به همین الگوها اشاره می‌کنند) از بررسی کنار گذاشته می‌شوند.
+const stripComments = ( code ) => code.replace( /\/\*[\s\S]*?\*\//g, '' ).replace( /^\s*\/\/.*$/gm, '' );
+const playerCss = read( 'assets/css/player.css' );
+const playerCode = stripComments( playerJs );
+check(
+	! /plyr--fullscreen-enabled/.test( playerCode ),
+	'پلیر: تمام‌صفحه‌بودن از کلاس plyr--fullscreen-enabled (که همیشه هست) تشخیص داده نمی‌شود'
+);
+check(
+	/\.falnic-secure-container \.plyr:not\(\.plyr--fullscreen-fallback\)\s*\{[^}]*height:\s*100%/.test( playerCss ),
+	'پلیر: .plyr کل کانتینر را پر می‌کند (وگرنه ارتفاع wrapper و Canvas صفر می‌شود)'
+);
+check(
+	/\.falnic-secure-container \.plyr__video-wrapper\s*\{[^}]*height:\s*100%/.test( playerCss ),
+	'پلیر: wrapper ویدیو ارتفاع ۱۰۰٪ دارد'
+);
+check(
+	/'iconUrl'\s*=>\s*FALNIC_URL\s*\.\s*'assets\/vendor\/plyr\/plyr\.svg'/.test( player ) && /config\.iconUrl/.test( playerJs ),
+	'پلیر: آیکن‌های Plyr از نسخه‌ی محلی می‌آیند (بدون وابستگی به cdn.plyr.io)'
+);
+check( fs.existsSync( path.join( ROOT, 'assets/vendor/plyr/plyr.svg' ) ), 'پلیر: فایل plyr.svg همراه پلاگین است' );
+check( ! /cdn\.plyr\.io|unpkg\.com|jsdelivr/.test( playerCode + stripComments( playerCss ) + stripComments( player ) ), 'پلیر: هیچ CDN بیرونی در کد پلیر نیست' );
+check( ! /\.innerHTML\s*=/.test( playerCode ), 'پلیر: در player.js از innerHTML نوشتن استفاده نمی‌شود (پیام‌های خطا متن ساده‌اند)' );
+check(
+	/\$is_debug\s*=\s*isset\(\s*\$_GET\['falnic_debug'\]\s*\)[^;]*&&\s*current_user_can\(\s*'manage_options'\s*\)/.test( player ),
+	'پلیر: حالت دیباگ فقط با ?falnic_debug=1 و فقط برای مدیر فعال می‌شود (نشت Access::diagnose بسته است)'
+);
+check( ! /window\.FALNIC_DEBUG|falnic_debug=1/.test( playerCode ), 'پلیر: دیباگ سمت مرورگر فقط از config.debug سرور تبعیت می‌کند' );
+
 console.log( '\nنتیجه: ' + pass + ' موفق، ' + fail + ' ناموفق\n' );
 process.exit( fail > 0 ? 1 : 0 );
