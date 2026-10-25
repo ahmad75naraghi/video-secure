@@ -2,6 +2,11 @@
 
 قالب بر اساس [Keep a Changelog](https://keepachangelog.com/fa/1.1.0/) و [Semantic Versioning](https://semver.org/).
 
+## [3.5.16] — 2026-10-23
+
+### رفع
+- **سیاهیِ فرانت با وجود توکن سالم:** `falnic-hidden-video` از `1px offscreen` به `opacity:0 + 100%` برگشت تا Plyr ارتفاعِ wrapper را درست حساب کند؛ `Canvas` حالا `pointer-events:auto + click→play/pause` و یک دکمهٔ بزرگِ `▶` (نمایش فقط وقتی `paused && readyState>=1`) دارد تا اگر autoplay مسدود شد صفحه سیاهِ خالی نماند. لاگِ `still no video dimensions after 4s` برای عیب‌یابی اضافه شد.
+
 ## [3.5.15] — 2026-10-23
 
 ### رفع

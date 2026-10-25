@@ -432,7 +432,7 @@ msgstr ""
 msgid "این حساب‌ها در ۲۴ ساعت گذشته از سه IP یا بیشتر پخش کرده‌اند."
 msgstr ""
 
-#: includes/class-access.php:514
+#: includes/class-access.php:625
 msgid "این درس هنوز برای شما باز نشده است. زمان باز شدن را در صفحه‌ی دوره ببینید."
 msgstr ""
 
@@ -457,14 +457,14 @@ msgstr ""
 msgid "این نشست پخش پایان یافت. صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-stream.php:264
-#: includes/class-stream.php:344
-#: includes/class-stream.php:388
-#: includes/class-stream.php:444
+#: includes/class-stream.php:267
+#: includes/class-stream.php:347
+#: includes/class-stream.php:391
+#: includes/class-stream.php:447
 msgid "این نشست پخش پایان یافته است؛ صفحه را دوباره بارگذاری کنید."
 msgstr ""
 
-#: includes/class-access.php:508
+#: includes/class-access.php:619
 msgid "این ویدیو به هیچ دوره‌ای متصل نشده است؛ دسترسی فقط برای مدیران است."
 msgstr ""
 
@@ -476,7 +476,7 @@ msgstr ""
 msgid "این ویدیو فقط برای دانشجویان"
 msgstr ""
 
-#: includes/class-access.php:511
+#: includes/class-access.php:622
 msgid "این ویدیو مخصوص دانشجویان دوره است. برای تماشا باید در دوره ثبت‌نام کنید."
 msgstr ""
 
@@ -484,7 +484,7 @@ msgstr ""
 msgid "این ویدیو همین حالا در صف انکود است."
 msgstr ""
 
-#: includes/class-access.php:505
+#: includes/class-access.php:616
 msgid "این ویدیو هنوز آماده نیست. کمی بعد دوباره تلاش کنید."
 msgstr ""
 
@@ -549,11 +549,11 @@ msgstr ""
 msgid "برای پخش باید وارد شوید."
 msgstr ""
 
-#: includes/class-stream.php:200
+#: includes/class-stream.php:203
 msgid "برای پیش‌نمایش وارد شوید."
 msgstr ""
 
-#: includes/class-access.php:502
+#: includes/class-access.php:613
 msgid "برای تماشای این ویدیو ابتدا وارد حساب کاربری خود شوید."
 msgstr ""
 
@@ -645,11 +645,11 @@ msgstr ""
 msgid "پلیر بالای محتوای درس نمایش داده شود"
 msgstr ""
 
-#: includes/class-stream.php:271
+#: includes/class-stream.php:274
 msgid "پلی‌لیست این ویدیو پیدا نشد."
 msgstr ""
 
-#: includes/class-stream.php:281
+#: includes/class-stream.php:284
 msgid "پلی‌لیست قابل خواندن نیست."
 msgstr ""
 
@@ -1035,16 +1035,16 @@ msgstr ""
 msgid "درخواست لغو ثبت شد."
 msgstr ""
 
-#: includes/class-stream.php:275
-#: includes/class-stream.php:450
+#: includes/class-stream.php:278
+#: includes/class-stream.php:453
 msgid "درخواست معتبر نیست."
 msgstr ""
 
-#: includes/class-player.php:267
+#: includes/class-player.php:273
 msgid "درخواست نامعتبر"
 msgstr ""
 
-#: includes/class-access.php:517
+#: includes/class-access.php:628
 #: includes/class-key-server.php:50
 msgid "درخواست نامعتبر است."
 msgstr ""
@@ -1053,15 +1053,15 @@ msgstr ""
 msgid "درخواست‌ها بیش از حد مجاز است. کمی بعد تلاش کنید."
 msgstr ""
 
-#: includes/class-stream.php:485
+#: includes/class-stream.php:488
 msgid "درخواست‌های بیش از حد."
 msgstr ""
 
 #: includes/class-key-server.php:64
-#: includes/class-stream.php:149
-#: includes/class-stream.php:214
-#: includes/class-stream.php:349
-#: includes/class-stream.php:393
+#: includes/class-stream.php:152
+#: includes/class-stream.php:217
+#: includes/class-stream.php:352
+#: includes/class-stream.php:396
 msgid "درخواست‌های بیش از حد. کمی بعد تلاش کنید."
 msgstr ""
 
@@ -1077,7 +1077,7 @@ msgstr ""
 msgid "درس انتخاب‌شده"
 msgstr ""
 
-#: includes/class-player.php:266
+#: includes/class-player.php:272
 msgid "درس هنوز باز نشده"
 msgstr ""
 
@@ -1097,12 +1097,12 @@ msgstr ""
 msgid "دسترسی به این مخزن وجود ندارد. برای مخزن خصوصی، توکن با مجوز مناسب لازم است."
 msgstr ""
 
-#: includes/class-stream.php:206
+#: includes/class-stream.php:209
 msgid "دسترسی پیش‌نمایش ندارید."
 msgstr ""
 
-#: includes/class-player.php:265
-#: includes/class-player.php:270
+#: includes/class-player.php:271
+#: includes/class-player.php:276
 msgid "دسترسی محدود"
 msgstr ""
 
@@ -1188,7 +1188,7 @@ msgstr ""
 msgid "زیرنویس (اختیاری)"
 msgstr ""
 
-#: includes/class-stream.php:456
+#: includes/class-stream.php:459
 msgid "زیرنویس یافت نشد."
 msgstr ""
 
@@ -1269,7 +1269,7 @@ msgstr ""
 msgid "شفافیت واترمارک (۰.۱ تا ۰.۹)"
 msgstr ""
 
-#: includes/class-access.php:520
+#: includes/class-access.php:631
 msgid "شما اجازه‌ی تماشای این ویدیو را ندارید."
 msgstr ""
 
@@ -1406,7 +1406,7 @@ msgstr ""
 msgid "فایل دانلودشده خالی یا ناقص است."
 msgstr ""
 
-#: includes/class-stream.php:356
+#: includes/class-stream.php:359
 msgid "فایل درخواستی معتبر نیست."
 msgstr ""
 
@@ -1529,12 +1529,12 @@ msgid "کسانی که این ویدیو را دیده‌اند"
 msgstr ""
 
 #: includes/class-key-server.php:80
-#: includes/class-stream.php:405
+#: includes/class-stream.php:408
 msgid "کلید قابل خواندن نیست."
 msgstr ""
 
 #: includes/class-key-server.php:74
-#: includes/class-stream.php:399
+#: includes/class-stream.php:402
 msgid "کلید یافت نشد."
 msgstr ""
 
@@ -1654,7 +1654,7 @@ msgid "مسیر واقعی پوشهٔ افزونه"
 msgstr ""
 
 #. translators: %s: عنوان دوره
-#: includes/class-player.php:288
+#: includes/class-player.php:294
 msgid "مشاهده دوره: %s"
 msgstr ""
 
@@ -1743,7 +1743,7 @@ msgstr ""
 msgid "نشست"
 msgstr ""
 
-#: includes/class-stream.php:495
+#: includes/class-stream.php:498
 msgid "نشست پخش پایان یافت. اگر در دستگاه دیگری وارد شده‌اید، همان پخش فعال است."
 msgstr ""
 
@@ -1832,11 +1832,11 @@ msgstr ""
 msgid "واترمارک"
 msgstr ""
 
-#: includes/class-player.php:301
+#: includes/class-player.php:307
 msgid "ورود به حساب کاربری"
 msgstr ""
 
-#: includes/class-player.php:262
+#: includes/class-player.php:268
 msgid "ورود لازم است"
 msgstr ""
 
@@ -1859,11 +1859,11 @@ msgstr ""
 msgid "ویدیو"
 msgstr ""
 
-#: includes/class-player.php:263
+#: includes/class-player.php:269
 msgid "ویدیو آماده نیست"
 msgstr ""
 
-#: includes/class-player.php:264
+#: includes/class-player.php:270
 msgid "ویدیو به دوره متصل نشده"
 msgstr ""
 

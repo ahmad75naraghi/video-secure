@@ -79,17 +79,14 @@
 	height: 100% !important;
 }
 
-/* ویدیوی اصلی پنهان است؛ تصویر فقط از canvas می‌آید — 1×1 offscreen تا حذف Canvas = حذف تصویر */
+/* ویدیوی اصلی پنهان است؛ تصویر فقط از canvas می‌آید — opacity:0 ولی 100% تا Plyr درست کار کند؛ پاک شدن Canvas = پاک شدن تصویر (via JS tamper) */
 .falnic-hidden-video {
-	position: absolute !important;
-	width: 1px !important;
-	height: 1px !important;
-	left: -9999px !important;
-	top: -9999px !important;
 	opacity: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	position: absolute !important;
+	inset: 0 !important;
 	pointer-events: none !important;
-	overflow: hidden !important;
-	clip: rect(0,0,0,0) !important;
 }
 
 .falnic-canvas-overlay {
@@ -98,10 +95,11 @@
 	margin: auto;
 	max-width: 100%;
 	max-height: 100%;
-	pointer-events: none;
+	pointer-events: auto;
 	z-index: 2;
 	object-fit: contain;
 	display: block;
+	cursor: pointer;
 }
 
 /* پیام دستکاری — اگر Canvas حذف شد */

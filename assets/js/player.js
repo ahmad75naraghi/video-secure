@@ -740,6 +740,27 @@
 		moveWatermark();
 		scheduleWatermarkMove();
 
+		// کلیک روی Canvas = play/pause (چون Canvas روی ویدیو است و pointer-events:none بود، حالا با pointer + handler)
+		canvas.style.pointerEvents = 'auto';
+		canvas.addEventListener('click', function(){
+			if(state.destroyed) return;
+			if(video.paused) video.play().catch(function(){});
+			else video.pause();
+		});
+		// اگر autoplay مسدود شد، یک اورلیِ بزرگِ Play نشان بده تا سیاهِ خالی نماند
+		var bigPlay = document.createElement('button');
+		bigPlay.type='button'; bigPlay.className='falnic-bigplay';
+		bigPlay.innerHTML='▶';
+		bigPlay.setAttribute('aria-label','پخش');
+		bigPlay.style.cssText='position:absolute;inset:0;margin:auto;width:72px;height:72px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);color:#111;font-size:28px;cursor:pointer;z-index:4;display:none;align-items:center;justify-content:center;';
+		try{ (root.querySelector('.plyr__video-wrapper')||root).appendChild(bigPlay); }catch(e){ root.appendChild(bigPlay); }
+		function updateBigPlay(){ bigPlay.style.display = (video.paused && !state.destroyed && video.readyState>=1) ? 'flex' : 'none'; }
+		video.addEventListener('play', function(){ updateBigPlay(); startLoop(); });
+		video.addEventListener('pause', function(){ updateBigPlay(); stopLoop(); });
+		video.addEventListener('loadeddata', function(){ updateBigPlay(); draw(); });
+		video.addEventListener('canplay', updateBigPlay);
+		bigPlay.addEventListener('click', function(){ video.play().catch(function(){}); });
+
 		// محافظت: پاک شدن Canvas = توقف کامل (ویدیو فقط روی Canvas دیده می‌شود)
 		var tamperEl = document.createElement('div');
 		tamperEl.className = 'falnic-tamper';
@@ -761,6 +782,14 @@
 			tObs.observe(root,{childList:true,subtree:true});
 		} catch(e) {}
 		canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+		// دیباگ: اگر بعد از 4 ثانیه هنوز MANIFEST_PARSED نیامده، لاگ بده تا سیاهی بی‌دلیل نماند
+		var manifestTimer = setTimeout(function(){
+			if(!state.session) return;
+			if(!video.videoWidth && !state.hls) {
+				console.warn('[Falnic] still no video dimensions after 4s — session ok but HLS not started', state.session);
+			}
+		}, 4000);
 
 		/* ---------------------------------------------------------------------
 		 * پاک‌سازی
