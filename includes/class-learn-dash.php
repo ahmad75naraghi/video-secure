@@ -192,29 +192,9 @@ final class Learn_Dash {
 			return $content;
 		}
 
-		// --- صفحه‌ی دوره: ویدیوهایی که مستقیم به این دوره وصل‌اند ---
+		// صفحه‌ی دوره هرگز خودکار ویدیو نمایش نمی‌دهد — فقط شورت‌کد دستی [secure_video] یا [falnic_lesson_video]
 		if ( is_singular( 'sfwd-courses' ) ) {
-			$names = self::videos_for_course( $post_id );
-
-			if ( empty( $names ) ) {
-				return $content;
-			}
-
-			$html = '';
-			foreach ( $names as $name ) {
-				$rendered = Player::render( $name );
-				if ( '' !== $rendered ) {
-					$html .= $rendered;
-				}
-			}
-
-			if ( '' === $html ) {
-				return $content;
-			}
-
-			return 'after' === get_option( 'falnic_ld_position', 'before' )
-				? $content . $html
-				: $html . $content;
+			return $content;
 		}
 
 		// --- درس / مبحث ---
