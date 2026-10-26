@@ -115,6 +115,7 @@ final class Admin_Menu {
 			'radius'        => isset( $_POST['radius'] ) ? absint( wp_unslash( $_POST['radius'] ) ) : 8,
 			'accent'        => isset( $_POST['accent'] ) ? sanitize_text_field( wp_unslash( $_POST['accent'] ) ) : '#2271b1',
 			'ratio'         => isset( $_POST['ratio'] ) ? sanitize_text_field( wp_unslash( $_POST['ratio'] ) ) : '16:9',
+			'wm_enabled'    => isset( $_POST['wm_enabled'] ) ? 'yes' : 'no',
 			'wm_opacity'    => isset( $_POST['wm_opacity'] ) ? (float) wp_unslash( $_POST['wm_opacity'] ) : 0.45,
 			'wm_interval'   => isset( $_POST['wm_interval'] ) ? absint( wp_unslash( $_POST['wm_interval'] ) ) : 30,
 			'wm_font_scale' => isset( $_POST['wm_font_scale'] ) ? (float) wp_unslash( $_POST['wm_font_scale'] ) : 1,

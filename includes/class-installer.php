@@ -22,7 +22,7 @@ final class Installer {
 	private const DEFAULTS = array(
 		'falnic_hls_max_sessions'      => 1,
 		'falnic_hls_bind_ip'           => 'no',
-		'falnic_ld_auto_embed'         => 'yes',
+		'falnic_ld_auto_embed'         => 'no',
 		'falnic_ld_position'           => 'before',
 		'falnic_ld_require_enrollment' => 'yes',
 		'falnic_token_ttl'             => 600,
@@ -105,6 +105,11 @@ final class Installer {
 		Storage::ensure_dirs();
 		self::add_defaults();
 		self::schedule_events();
+
+		// 3.5.20: حذف نمایش خودکار در دوره — طبق درخواست کاربر، ویدیو فقط با شورت‌کد دستی نمایش داده می‌شود
+		if ( 'yes' === get_option( 'falnic_ld_auto_embed', 'no' ) ) {
+			update_option( 'falnic_ld_auto_embed', 'no' );
+		}
 
 		if ( Watch_Log::DB_VERSION !== (string) get_option( 'falnic_log_db_version', '' ) ) {
 			Watch_Log::install();

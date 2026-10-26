@@ -31,6 +31,7 @@ final class Template_Settings {
 			'radius'        => 8,
 			'accent'        => '#2271b1',
 			'ratio'         => '16:9',
+			'wm_enabled'    => 'no',
 			'wm_opacity'    => 0.45,
 			'wm_interval'   => 30,
 			'wm_show_email' => 'yes',
@@ -75,6 +76,8 @@ final class Template_Settings {
 			$ratio = $defaults['ratio'];
 		}
 
+		$wm_enabled = isset( $input['wm_enabled'] ) && 'yes' === $input['wm_enabled'] ? 'yes' : 'no';
+
 		$opacity = isset( $input['wm_opacity'] ) ? (float) $input['wm_opacity'] : $defaults['wm_opacity'];
 		$opacity = max( 0.1, min( 0.9, $opacity ) );
 
@@ -90,6 +93,7 @@ final class Template_Settings {
 			'radius'        => $radius,
 			'accent'        => $accent,
 			'ratio'         => $ratio,
+			'wm_enabled'    => $wm_enabled,
 			'wm_opacity'    => round( $opacity, 2 ),
 			'wm_interval'   => $interval,
 			'wm_show_email' => $show_email,

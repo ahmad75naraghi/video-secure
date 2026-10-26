@@ -55,6 +55,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<h2><?php esc_html_e( 'واترمارک', 'falnic-secure-hls' ); ?></h2>
 
 			<div class="falnic-field">
+				<label class="falnic-check">
+					<input type="checkbox" name="wm_enabled" value="yes" <?php checked( $settings['wm_enabled'], 'yes' ); ?>>
+					<?php esc_html_e( 'نمایش متن واترمارک روی ویدیو', 'falnic-secure-hls' ); ?>
+				</label>
+				<p class="description"><?php esc_html_e( 'پیش‌فرض خاموش است؛ در صورت فعال‌سازی نام و ایمیل کاربر روی تصویر نمایش داده می‌شود.', 'falnic-secure-hls' ); ?></p>
+			</div>
+
+			<div class="falnic-field">
 				<label for="falnic-wm-opacity"><?php esc_html_e( 'شفافیت واترمارک (۰.۱ تا ۰.۹)', 'falnic-secure-hls' ); ?></label>
 				<input type="number" id="falnic-wm-opacity" name="wm_opacity" min="0.1" max="0.9" step="0.05" value="<?php echo esc_attr( (string) $settings['wm_opacity'] ); ?>" class="small-text">
 				<p class="description"><?php esc_html_e( 'مقدار بالاتر = دیده‌شدن بیشتر و بازدارندگی بیشتر.', 'falnic-secure-hls' ); ?></p>

@@ -169,6 +169,7 @@ $falnic_failed   = isset( $_GET['failed'] ) ? absint( wp_unslash( $_GET['failed'
 							<input name="ld_auto_embed" type="checkbox" value="yes" <?php checked( $auto_embed, 'yes' ); ?>>
 							<?php esc_html_e( 'پلیر بالای محتوای درس نمایش داده شود', 'falnic-secure-hls' ); ?>
 						</label>
+						<p class="description"><?php esc_html_e( 'پیش‌فرض خاموش: ویدیو فقط با شورت‌کد [secure_video name=\"...\"] یا [falnic_lesson_video] نمایش داده می‌شود. صفحه‌ی دوره هرگز خودکار ویدیو نشان نمی‌دهد.', 'falnic-secure-hls' ); ?></p>
 					</td>
 				</tr>
 				<tr>
